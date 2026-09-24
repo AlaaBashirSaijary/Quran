@@ -27,7 +27,7 @@ class BookMarkProvider extends ChangeNotifier {
 
   Color get markButtonColor {
     return isMarkedPage
-        ?  Colors.blue
+        ? AppColor.gold
         : Colors.transparent;
   }
 

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:quranapplication/providers/show_overlay_provider.dart';
-import 'package:quranapplication/providers/theme_provider.dart';
 import 'package:provider/provider.dart';
+
+import '../core/index.dart';
 
 class CustomContainer extends StatelessWidget {
   const CustomContainer({
@@ -17,9 +18,11 @@ class CustomContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<ShowOverlayProvider, ThemeProvider>(
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
+    return Consumer<ShowOverlayProvider>(
         child: child,
-        builder: (context, overlay, theme, ch) {
+        builder: (context, overlay, ch) {
           return AnimatedSlide(
             curve: Curves.easeOutQuart,
             duration: const Duration(milliseconds: 200),
@@ -30,13 +33,21 @@ class CustomContainer extends StatelessWidget {
               opacity: overlay.isShowOverlay ? 1 : 0,
               child: Container(
                   padding: padding,
-                  margin: EdgeInsets.all(theme.isDarkMode ? 6 : 8),
+                  margin: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    color: theme.isDarkMode ? Colors.black : Colors.pinkAccent,
-                    border: theme.isDarkMode
-                        ? Border.all(width: 2, color: Colors.white54)
-                        : null,
+                    borderRadius: BorderRadius.circular(16),
+                    color: colorScheme.overlay,
+                    border: Border.all(
+                      width: 1.5,
+                      color: colorScheme.gold.withValues(alpha: isDark ? 0.6 : 0.8),
+                    ),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 12,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: ch),
             ),

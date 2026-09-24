@@ -28,10 +28,6 @@ String getSurahDataByPage(int page) {
   return '${getPlaceOfRevelationByPage(page)}, آياتها ${getNumberOfAyahsByPage(page)}';
 }
 
-String getSurahDataWithName(int page) {
-  return 'سورة ${getSurahName(page)} (${getSurahData(page)})';
-}
-
 String getSurahDataWithNameByPage(int page) {
   return 'سورة ${getSurahName(page)} (${getSurahDataByPage(page)})';
 }

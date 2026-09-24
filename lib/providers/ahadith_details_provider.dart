@@ -1,25 +1,25 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import '../model/hadith_model.dart';
 
-
 class AhadithDetailsProvider extends ChangeNotifier {
   List<HadithModel> ahadithData = [];
 
- void loadHadithFile() {
-    rootBundle.loadString('assets/ahadeth.txt').then((hadithFile) {
-      List<String> ahadith = hadithFile.split('#');
-      for (int i = 0; i < ahadith.length; i++) {
-        String hadith = ahadith[i];
-        List<String> hadithLines = hadith.trim().split('\n');
-        String title = hadithLines[0];
-        hadithLines.removeAt(0);
-        List<String> hadithContent = hadithLines;
-        ahadithData.add(HadithModel(title: title, content: hadithContent));
-      }
-      notifyListeners();
-
-    });
+  Future<void> loadHadithFile() async {
+    final hadithFile = await rootBundle.loadString('assets/ahadeth.txt');
+    ahadithData = hadithFile
+        .replaceAll('﻿', '')
+        .split('#')
+        .map((hadith) => hadith.trim())
+        .where((hadith) => hadith.isNotEmpty)
+        .map((hadith) {
+      final lines = hadith.split('\n').map((line) => line.trim()).toList();
+      return HadithModel(
+        title: lines.first,
+        content: lines.skip(1).where((line) => line.isNotEmpty).toList(),
+      );
+    }).toList();
+    notifyListeners();
   }
 }

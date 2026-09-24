@@ -14,15 +14,19 @@ class SurahNumber extends StatelessWidget {
     return Stack(
       alignment: Alignment.center,
       children: [
-        SvgPicture.asset(AppAsset.surahNumber),
+        SvgPicture.asset(
+          AppAsset.surahNumber,
+          color: colorScheme.gold,
+        ),
         Padding(
           padding: const EdgeInsets.only(top: 3),
           child: Text(
             number.toString(),
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: colorScheme.surahNumber,
-              fontSize: 17,
+              color: colorScheme.juzCardText,
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ),

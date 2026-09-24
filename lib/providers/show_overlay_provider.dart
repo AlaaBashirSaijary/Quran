@@ -7,4 +7,10 @@ class ShowOverlayProvider extends ChangeNotifier {
     isShowOverlay = !isShowOverlay;
     notifyListeners();
   }
+
+  void hideOverlay() {
+    if (!isShowOverlay) return;
+    isShowOverlay = false;
+    notifyListeners();
+  }
 }

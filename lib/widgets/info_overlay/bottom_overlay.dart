@@ -89,12 +89,10 @@ class BottomOverlay extends StatelessWidget {
                 ),
                 const VerticalDiv(),
                 IconButton(
-                  icon: Consumer<ThemeProvider>(
-                    builder: (context, theme, child) {
-                      return SvgPicture.asset(
-                          theme.isDarkMode ? AppAsset.sun : AppAsset.moon);
-                    },
-                  ),
+                  icon: SvgPicture.asset(
+                      Theme.of(context).brightness == Brightness.dark
+                          ? AppAsset.sun
+                          : AppAsset.moon),
                   onPressed: () {
                     themeListenFalse.toggleTheme(!themeListenFalse.isDarkMode);
                   },

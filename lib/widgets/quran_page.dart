@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:quranapplication/providers/theme_provider.dart';
-import 'package:provider/provider.dart';
 
 import '../quran/quran.dart';
 import 'invert_color.dart';
@@ -12,9 +10,8 @@ class QuranPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Provider.of<ThemeProvider>(context);
     return InvertColor(
-      isInvert: theme.isDarkMode,
+      isInvert: Theme.of(context).brightness == Brightness.dark,
       child: Image.asset(pageDir(pageIndex + 1)),
     );
   }

@@ -13,16 +13,24 @@ class SearchButton extends StatelessWidget {
         Navigator.pushNamed(context, '/search');
       },
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.pinkAccent,
+        backgroundColor: Theme.of(context).colorScheme.gold,
+        foregroundColor: AppColor.greenDark,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           const Text(
             AppConstant.searchAyah,
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(
+              color: AppColor.greenDark,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          SvgPicture.asset(AppAsset.search),
+          SvgPicture.asset(
+            AppAsset.search,
+            color: AppColor.greenDark,
+          ),
         ],
       ),
     );

@@ -1,55 +1,65 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:quranapplication/screens/mainScreen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../core/index.dart';
+import 'main_tabs_screen.dart';
+import 'onboarding_screen.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  const SplashScreen({super.key, required this.prefs});
+
+  final SharedPreferences prefs;
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin
-{@override
+class _SplashScreenState extends State<SplashScreen> {
+  @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
-    Future.delayed(Duration(seconds:10),(){
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (!mounted) return;
+      final seenOnboarding =
+          widget.prefs.getBool(OnboardingScreen.seenKey) ?? false;
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_)=> MainScreen())
+        MaterialPageRoute(
+          builder: (_) =>
+              seenOnboarding ? const MainTabsScreen() : const OnboardingScreen(),
+        ),
       );
     });
   }
-  @override
-  void dispose() {
-    // TODO: implement dispose
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,overlays: SystemUiOverlay.values);
-  }
+
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-              colors: [Colors.pinkAccent,Colors.pinkAccent.shade200],
-          begin: Alignment.topRight,
-          end: Alignment.bottomLeft),
-        ),
+      backgroundColor: AppColor.paper,
+      body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-
-            CircleAvatar(
-              radius: 150,
-              backgroundImage: AssetImage("assets/1.jpg"),
+            Image.asset('assets/splash.png', width: 200),
+            const SizedBox(height: 24),
+            const Text(
+              'طريق الجنة',
+              style: TextStyle(
+                fontFamily: AppTheme.secondaryFontFamily,
+                color: AppColor.green,
+                fontSize: 36,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            Text("طريق الجنة",style: TextStyle(
-              color: Colors.white,
-              fontSize:30,
-              fontWeight: FontWeight.bold
-            ),)
+            const SizedBox(height: 32),
+            SizedBox(
+              width: 28,
+              height: 28,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.5,
+                color: colorScheme.gold,
+              ),
+            ),
           ],
         ),
       ),

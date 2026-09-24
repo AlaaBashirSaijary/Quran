@@ -30,10 +30,16 @@ class Quran extends ChangeNotifier {
 
   String get hizbText => gethizbText(currentPage);
 
-  String get surahData => getSurahDataWithName(surahNumber);
+  String get surahData => getSurahDataWithNameByPage(currentPage);
 
-  void goToPage(int pageIndex) {
-    carouselController.jumpToPage(pageIndex);
+  /// Jumps the open reader to [page] (1 to 604).
+  void goToPage(int page) {
+    carouselController.jumpToPage(page - 1);
+  }
+
+  /// Sets the page the reader opens on, for when no reader is open yet.
+  void openAtPage(int page) {
+    changePage(page - 1);
   }
 
   void changePage(int newIndex) {

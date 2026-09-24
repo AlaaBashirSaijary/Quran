@@ -1,152 +1,159 @@
-
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
-import '../model/pagevies.dart';
-import 'homeScreenmain.dart';
-import 'home_screen.dart';
+import '../core/index.dart';
+import 'main_tabs_screen.dart';
 
-class MainScreen extends StatefulWidget {
-   MainScreen({super.key});
+class _Slide {
+  const _Slide(this.icon, this.title, this.subtitle);
 
-  @override
-  State<MainScreen> createState() => _MainScreenState();
+  final IconData icon;
+  final String title;
+  final String subtitle;
 }
 
-class _MainScreenState extends State<MainScreen> {
-  List<previw> p = [
-    previw(
-        title: "اقرأ القرآن الكريم وتعلمه ",
-        Subtitle: "سُر السعادة به ",
-        image: "assets/5.jpg"),
-    previw(
-        title: "اقرأاحاديث الرسول صلي الله عليه وسلم  ",
-        Subtitle: "اتبعها في اتباعها حياة",
-        image: "assets/2.jpg"),
-    previw(title: "أذكار ليطمئن قلبك ", Subtitle: "فلتحيا بحفظ الله ", image: "assets/4.jpg")
-  ];
+const _slides = [
+  _Slide(Icons.menu_book_rounded, 'اقرأ القرآن الكريم وتدبّره',
+      'مصحف كامل يعمل دون إنترنت ويحفظ موضع قراءتك'),
+  _Slide(Icons.format_quote_rounded, 'أحاديث الرسول ﷺ',
+      'الأربعون النووية بين يديك في أي وقت'),
+  _Slide(Icons.favorite_rounded, 'أذكار ليطمئن قلبك',
+      'سبحة إلكترونية تعينك على الذكر'),
+];
 
-  PageController pageController = PageController(viewportFraction: 0.8, keepPage: true);
+class OnboardingScreen extends StatefulWidget {
+  const OnboardingScreen({super.key});
 
+  static const seenKey = 'seenOnboarding';
+
+  @override
+  State<OnboardingScreen> createState() => _OnboardingScreenState();
+}
+
+class _OnboardingScreenState extends State<OnboardingScreen> {
+  final pageController = PageController();
   int pageIndex = 0;
+
+  bool get isLastPage => pageIndex == _slides.length - 1;
+
+  @override
+  void dispose() {
+    pageController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _finish() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(OnboardingScreen.seenKey, true);
+    if (!mounted) return;
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const MainTabsScreen()),
+    );
+  }
+
+  void _next() {
+    if (isLastPage) {
+      _finish();
+    } else {
+      pageController.nextPage(
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOutCubic,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: SafeArea(
-        child: Scaffold(
-            backgroundColor: Colors.blue.shade50,
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
-            appBar: PreferredSize(
-              preferredSize: Size(100, 60),
-              child: AppBar(
-                title: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text('طريق الجنة',style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    fontSize:40
-                  ),),
-                ),
-                backgroundColor: Colors.pinkAccent,
-                centerTitle: true,
-
+    return Scaffold(
+      body: SafeArea(
+        child: Column(
+          children: [
+            Align(
+              alignment: AlignmentDirectional.topEnd,
+              child: TextButton(
+                onPressed: _finish,
+                child: Text('تخطٍّ', style: TextStyle(color: colorScheme.gold)),
               ),
             ),
-            body: PageView.builder(
-              controller: pageController,
-              physics: BouncingScrollPhysics(),
-              itemBuilder: (context, index) =>
-                  Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 40.0),
-                child: Center(
-                  widthFactor: double.infinity,
-                  child: Column(
-                   // mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        height: 500,
-                    decoration:BoxDecoration(
-                      borderRadius: BorderRadius.circular(100),
-
-                    ),
-                        clipBehavior:Clip.antiAliasWithSaveLayer ,
-                        child: Image.asset(
-                          '${p[index].image}',
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      SizedBox(height: 10,),
-                      Container(
-                         width: double.infinity,
-                        height: 150,
-                        decoration:BoxDecoration(
-                          borderRadius: BorderRadius.circular(25),
-                          color: Colors.blue.shade100.withOpacity(0.5)
-                        ),
-                        clipBehavior:Clip.antiAliasWithSaveLayer ,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: Column(
-                            mainAxisAlignment:MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                "${p[index].title}",
-                              textAlign:TextAlign.center,
-                                style: TextStyle(
-                                    fontSize: 23,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.pink.shade300),
-                              ),
-                              Text(
-                                "${p[index].Subtitle}",
-                                style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.pinkAccent.shade100),
-                              ),
-                            ],
+            Expanded(
+              child: PageView.builder(
+                controller: pageController,
+                itemCount: _slides.length,
+                onPageChanged: (index) => setState(() => pageIndex = index),
+                itemBuilder: (context, index) {
+                  final slide = _slides[index];
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 180,
+                          height: 180,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: colorScheme.primary,
+                            border: Border.all(
+                              color: colorScheme.gold,
+                              width: 4,
+                            ),
+                          ),
+                          child: Icon(
+                            slide.icon,
+                            size: 84,
+                            color: colorScheme.gold,
                           ),
                         ),
-                      ),
-
-                      Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Row(
-                          children: [
-                           // SizedBox(width: 300,),
-                            SmoothPageIndicator(
-                                effect: SwapEffect(
-                                    dotHeight: 10,
-                                    dotWidth: 10,
-                                    type: SwapType.yRotation,
-                                    dotColor: Colors.grey,
-                                    activeDotColor: Colors.pinkAccent),
-                                controller: pageController,
-                                count: 3),
-                          ],
+                        const SizedBox(height: 40),
+                        Text(
+                          slide.title,
+                          textAlign: TextAlign.center,
+                          style: textTheme.headlineMedium?.copyWith(
+                            fontFamily: AppTheme.secondaryFontFamily,
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.primary,
+                          ),
                         ),
-                      ),
-                     Container(
-                       decoration:BoxDecoration(
-                         borderRadius: BorderRadius.circular(100)
-                       ) ,
-                       clipBehavior: Clip.antiAliasWithSaveLayer,
-                       child: MaterialButton(
-
-                         onPressed: (){
-                           Navigator.pushAndRemoveUntil(
-                             context,
-                             MaterialPageRoute(builder: (context) => MyHomePage()),
-                                 (route) => false,);
-                         },color: Colors.pinkAccent,child: Icon(Icons.home_rounded,color: Colors.blue.shade100,size: 40,),),
-                     )
-                    ],
-                  ),
+                        const SizedBox(height: 12),
+                        Text(
+                          slide.subtitle,
+                          textAlign: TextAlign.center,
+                          style: textTheme.bodyLarge?.copyWith(
+                            color: colorScheme.onSurface.withValues(alpha: 0.7),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+            SmoothPageIndicator(
+              controller: pageController,
+              count: _slides.length,
+              effect: ExpandingDotsEffect(
+                dotHeight: 8,
+                dotWidth: 8,
+                dotColor: colorScheme.div,
+                activeDotColor: colorScheme.gold,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: _next,
+                  child: Text(isLastPage ? 'ابدأ' : 'التالي'),
                 ),
               ),
-           itemCount: 3, )),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,25 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:quranapplication/providers/bookmark.dart';
-import 'package:quranapplication/providers/my_provider.dart';
-import 'package:quranapplication/providers/theme_provider.dart';
-import 'package:quranapplication/providers/toast.dart';
-import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:quranapplication/screens/homeScreenmain.dart';
-import 'package:quranapplication/screens/home_screen.dart';
-import 'package:quranapplication/splassh_screen.dart';
-import 'package:quranapplication/tabs/ahadeth_tab.dart';
-import 'package:quranapplication/widgets/hadith_details.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/index.dart';
-import 'model/hadith_model.dart';
+import 'providers/ahadith_details_provider.dart';
+import 'providers/bookmark.dart';
 import 'providers/quran.dart';
 import 'providers/show_overlay_provider.dart';
+import 'providers/theme_provider.dart';
+import 'providers/toast.dart';
 import 'screens/douaa_screen.dart';
 import 'screens/index_screen.dart';
 import 'screens/juz_index_screen.dart';
 import 'screens/search_screen.dart';
+import 'screens/splash_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,7 +25,7 @@ Future<void> main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider<ThemeProvider>(
-          create: (context) => ThemeProvider(),
+          create: (context) => ThemeProvider(prefs),
         ),
         ChangeNotifierProvider<ShowOverlayProvider>(
           create: (context) => ShowOverlayProvider(),
@@ -41,24 +36,26 @@ Future<void> main() async {
         ChangeNotifierProxyProvider<Quran, BookMarkProvider>(
           create: (context) => BookMarkProvider(prefs),
           update: (context, value, previous) =>
-          previous!..update(value.currentPage),
+              previous!..update(value.currentPage),
         ),
         ChangeNotifierProxyProvider<Quran, ToastProvider>(
           create: (context) => ToastProvider(),
           update: (context, value, previous) =>
-          previous!..update(value.hizbQuarter),
+              previous!..update(value.hizbQuarter),
         ),
-  ChangeNotifierProvider<MyProvider>(
-  create: (context) => MyProvider(),)
+        ChangeNotifierProvider<AhadithDetailsProvider>(
+          create: (context) => AhadithDetailsProvider()..loadHadithFile(),
+        ),
       ],
-
-      child: const MyApp(),
-    ),);
-
+      child: MyApp(prefs: prefs),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({Key? key, required this.prefs}) : super(key: key);
+
+  final SharedPreferences prefs;
 
   @override
   Widget build(BuildContext context) {
@@ -66,11 +63,11 @@ class MyApp extends StatelessWidget {
       builder: (context, theme, child) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
-          title: 'Quran App',
+          title: 'طريق الجنة',
           theme: AppTheme.lightThemeData,
           darkTheme: AppTheme.darkThemeData,
           themeMode: theme.themeMode,
-          home:  SplashScreen(),
+          home: SplashScreen(prefs: prefs),
           localizationsDelegates: const [
             GlobalCupertinoLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,

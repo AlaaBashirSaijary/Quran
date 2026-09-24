@@ -113,7 +113,9 @@ class ActionButtons extends StatelessWidget {
         CustomButton(
           onPressed: () => goToPage(textC),
           onPrimary: Colors.white,
-          primary: Colors.pinkAccent,
+          primary: Theme.of(context).colorScheme.primary,
+          isFilled: true,
+          borderRadius: 10,
           text: AppConstant.move,
         ),
       ],

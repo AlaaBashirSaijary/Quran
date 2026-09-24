@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 import '../core/index.dart';
-import '../providers/quran.dart';
+import '../screens/index_screen.dart';
 import '../quran/quran.dart';
 import 'horizental_divider.dart';
 import 'vertical_divider.dart';
 
-const vDiv = VerticalDiv(color: Color.fromARGB(104, 165, 165, 165));
-const hDiv = HorizentalDiv(color: Color.fromARGB(104, 165, 165, 165));
+const _divColor = Color.fromARGB(60, 201, 165, 76);
+const vDiv = VerticalDiv(color: _divColor);
+const hDiv = HorizentalDiv(color: _divColor);
 
 class JuzCard extends StatelessWidget {
-  const JuzCard({Key? key, required this.juz}) : super(key: key);
+  const JuzCard({Key? key, required this.juz, this.isTab = false})
+      : super(key: key);
 
   final int juz;
+  final bool isTab;
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +31,7 @@ class JuzCard extends StatelessWidget {
                   '${AppConstant.juz} $juz',
                   fontSize: 24,
                   page: getJuzPage(juz),
+                  isTab: isTab,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -48,6 +51,7 @@ class JuzCard extends StatelessWidget {
                   child: CustomText(
                 '${getJuzPage(juz)}',
                 page: getJuzPage(juz),
+                isTab: isTab,
               ))
             ],
           ),
@@ -64,6 +68,7 @@ class JuzCard extends StatelessWidget {
             flex: 3,
             child: CustomText(
               '${AppConstant.hizb} ${getHizb(juz: juz, hizb: hizb)}',
+              isTab: isTab,
               page: getHizbPage(
                 getHizb(juz: juz, hizb: hizb),
               ),
@@ -74,6 +79,7 @@ class JuzCard extends StatelessWidget {
             flex: 2,
             child: CustomText(
               'ربع',
+              isTab: isTab,
               page: getHizbQuarterPage(
                 getHizbQuarter(hizb: getHizb(juz: juz, hizb: hizb), quarter: 1),
               ),
@@ -84,6 +90,7 @@ class JuzCard extends StatelessWidget {
             flex: 2,
             child: CustomText(
               'نصف',
+              isTab: isTab,
               page: getHizbQuarterPage(
                 getHizbQuarter(hizb: getHizb(juz: juz, hizb: hizb), quarter: 2),
               ),
@@ -94,6 +101,7 @@ class JuzCard extends StatelessWidget {
             flex: 2,
             child: CustomText(
               '3 أرباع',
+              isTab: isTab,
               page: getHizbQuarterPage(
                 getHizbQuarter(hizb: getHizb(juz: juz, hizb: hizb), quarter: 3),
               ),
@@ -107,27 +115,28 @@ class JuzCard extends StatelessWidget {
 
 class CustomText extends StatelessWidget {
   const CustomText(this.text,
-      {Key? key, this.fontSize, required this.page, this.fontWeight})
+      {Key? key,
+      this.fontSize,
+      required this.page,
+      required this.isTab,
+      this.fontWeight})
       : super(key: key);
 
   final String text;
   final double? fontSize;
   final int page;
+  final bool isTab;
   final FontWeight? fontWeight;
 
   @override
   Widget build(BuildContext context) {
-    final quran = Provider.of<Quran>(context, listen: false);
     final colorScheme = Theme.of(context).colorScheme;
 
     return TextButton(
       style: TextButton.styleFrom(
         minimumSize: Size.infinite,
       ),
-      onPressed: () {
-        quran.goToPage(page);
-        Navigator.pop(context);
-      },
+      onPressed: () => openQuranPage(context, page, isTab: isTab),
       child: FittedBox(
         fit: BoxFit.scaleDown,
         child: Text(

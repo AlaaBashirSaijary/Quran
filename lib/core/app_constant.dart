@@ -22,7 +22,7 @@ class AppConstant {
   static const saved = 'تم الحفظ';
   static const goBack = 'العودة';
 
-  static const noSearchYet = 'لم يتم إدراج هده الميزة بعد :(';
+  static const noSearchYet = 'ميزة البحث لم تُضف بعد، وستتوفر قريباً بإذن الله';
 
   static const douaaKhatmQuran = '''
 اللَّهُمَّ ارْحَمْنِي بالقُرْءَانِ وَاجْعَلهُ لِي إِمَاماً وَنُوراً وَهُدًى وَرَحْمَةً *
