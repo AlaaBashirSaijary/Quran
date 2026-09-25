@@ -24,6 +24,36 @@ flutter run
 flutter test
 ```
 
+## تحميل APK من GitHub (CI/CD)
+عند كل `push` إلى أي فرع يقوم GitHub Actions تلقائياً بـ: تحليل الكود، تشغيل الاختبارات، ثم بناء ملفات APK.
+
+**لتحميل APK:** افتح تبويب **Actions** في المستودع ← اختر آخر تشغيل ناجح لـ **Build APK** ← في أسفل الصفحة قسم **Artifacts** ← حمّل `apk`. ستجد داخله:
+- `tareeq-aljannah.apk` — يعمل على أي هاتف (الأسهل).
+- `tareeq-aljannah-arm64-v8a.apk` — أصغر حجماً، لمعظم الهواتف الحديثة.
+- `tareeq-aljannah-armeabi-v7a.apk` — للهواتف القديمة.
+
+**لإصدار نسخة رسمية:** أنشئ tag يبدأ بـ `v` وارفعه، فيُنشئ GitHub صفحة Release وعليها ملفات APK:
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+### مفتاح التوقيع (مهم للتحديثات)
+بدون مفتاح توقيع ثابت، تُوقَّع كل نسخة بمفتاح عشوائي جديد، فيرفض الهاتف تثبيت النسخة الجديدة فوق القديمة (يجب حذف التطبيق أولاً). لإصلاح ذلك مرة واحدة:
+
+1. أنشئ مفتاحاً على جهازك (يحتاج Java) واحتفظ به وبكلمة المرور في مكان آمن — إن ضاع لن تستطيع تحديث التطبيق:
+   ```bash
+   keytool -genkey -v -keystore upload-keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+   base64 -w 0 upload-keystore.jks > keystore.txt
+   ```
+2. في GitHub: **Settings ← Secrets and variables ← Actions ← New repository secret**، وأضف:
+   - `ANDROID_KEYSTORE_BASE64`: محتوى `keystore.txt`
+   - `ANDROID_KEYSTORE_PASSWORD`: كلمة مرور المفتاح
+   - `ANDROID_KEY_ALIAS`: `upload`
+   - `ANDROID_KEY_PASSWORD`: كلمة مرور المفتاح
+
+لا ترفع ملف `upload-keystore.jks` إلى المستودع أبداً.
+
 ## بناء نسخة Android بأصغر حجم
 صفحات المصحف هي الجزء الأكبر من حجم التطبيق (حوالي 39 ميغابايت). لتجنب إضافة حجم فوق ذلك:
 
