@@ -1,12 +1,14 @@
 import 'page_data.dart';
 import 'surah_data.dart';
 
-/// Whether the bookmarked page shows part of [surahNumber]: either the surah
+/// Whether a bookmarked page shows part of [surahNumber]: either the surah
 /// the page opens with, or one that begins further down it.
-bool isMarkedSurah(int? markPage, int surahNumber) {
-  if (markPage == null) return false;
-  return getSurahNumberByPage(markPage) == surahNumber ||
-      getSurahFirstPage(surahNumber) == markPage;
+bool isMarkedSurah(Set<int> markPages, int surahNumber) {
+  return markPages.any(
+    (page) =>
+        getSurahNumberByPage(page) == surahNumber ||
+        getSurahFirstPage(surahNumber) == page,
+  );
 }
 
 String gethizbText(int page) {

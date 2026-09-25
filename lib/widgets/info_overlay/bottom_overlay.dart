@@ -3,8 +3,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/index.dart';
+import '../../screens/bookmarks_screen.dart';
 import '../../providers/bookmark.dart';
-import '../../providers/quran.dart';
 import '../../providers/show_overlay_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../custom_button.dart';
@@ -19,16 +19,12 @@ class BottomOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final quran = Provider.of<Quran>(context, listen: false);
     final bookMark = Provider.of<BookMarkProvider>(context);
     final themeListenFalse = Provider.of<ThemeProvider>(context, listen: false);
     final overlay = Provider.of<ShowOverlayProvider>(context, listen: false);
 
-    void goToBookMark() {
-      final page = bookMark.markPageOrNotify(context);
-      if (page == null) return;
-      quran.goToPage(page);
-      overlay.toggleisShowOverlay();
+    void openBookmarks() {
+      BookmarksScreen.open(context, isTab: false);
     }
 
     return CustomContainer(
@@ -41,7 +37,7 @@ class BottomOverlay extends StatelessWidget {
                 const Expanded(child: SearchButton()),
                 const SizedBox(width: 10),
                 CustomButton(
-                  onPressed: bookMark.changeMark,
+                  onPressed: () => bookMark.toggleCurrentPage(context),
                   text: bookMark.markButtonText,
                   onPrimary: Colors.white,
                   primary: bookMark.markButtonColor,
@@ -58,11 +54,11 @@ class BottomOverlay extends StatelessWidget {
                 Expanded(
                   flex: 5,
                   child: TextButton.icon(
-                    onPressed: goToBookMark,
+                    onPressed: openBookmarks,
                     icon: SvgPicture.asset(AppAsset.saveFilled),
                     label: const FittedBox(
                       child: Text(
-                        AppConstant.goToBookMark,
+                        AppConstant.bookmarks,
                         style: textStyle,
                       ),
                     ),

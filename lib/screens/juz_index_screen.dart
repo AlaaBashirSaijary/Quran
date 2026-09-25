@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 import '../core/index.dart';
-import '../providers/bookmark.dart';
+import 'bookmarks_screen.dart';
 import '../widgets/horizontal_divider.dart';
 import '../widgets/juz_card.dart';
-import 'index_screen.dart';
 
 class JuzIndexScreen extends StatelessWidget {
   const JuzIndexScreen({super.key, this.isTab = false});
@@ -15,7 +13,6 @@ class JuzIndexScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bookMark = Provider.of<BookMarkProvider>(context);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -23,12 +20,9 @@ class JuzIndexScreen extends StatelessWidget {
         title: const Text(AppConstant.ajzaa),
         actions: [
           IconButton(
-            tooltip: AppConstant.goToBookMark,
-            icon: const Icon(Icons.bookmark_rounded),
-            onPressed: () {
-              final page = bookMark.markPageOrNotify(context);
-              if (page != null) openQuranPage(context, page, isTab: isTab);
-            },
+            tooltip: AppConstant.bookmarks,
+            icon: const Icon(Icons.bookmarks_rounded),
+            onPressed: () => BookmarksScreen.open(context, isTab: isTab),
           ),
         ],
       ),

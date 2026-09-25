@@ -17,9 +17,12 @@ class AppConstant {
   static const madaniyah = 'مدنية';
   static const searchAyah = 'ابحث عن آية';
   static const saveBookmark = 'حفظ علامة';
-  static const goToBookMark = 'الانتقال إلى العلامة';
-  static const noBookmarkYet =
-      'لم تحفظ علامة بعد. اضغط «حفظ علامة» أثناء القراءة لحفظ صفحتك.';
+  static const bookmarks = 'العلامات';
+  static const bookmarkSaved = 'حُفظت الصفحة في العلامات';
+  static const bookmarkRemoved = 'أُزيلت العلامة';
+  static const noBookmarksYet =
+      'لا توجد علامات بعد. اضغط «حفظ علامة» أثناء القراءة لحفظ أي صفحة.';
+  static const undo = 'تراجع';
   static const goToPage = 'الانتقال إلى الصفحة';
   static const saved = 'تم الحفظ';
   static const goBack = 'العودة';

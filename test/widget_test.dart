@@ -162,28 +162,74 @@ void main() {
     });
   });
 
-  test('there is no bookmark until one is saved', () async {
-    SharedPreferences.setMockInitialValues({});
-    final bookMark = BookMarkProvider(await SharedPreferences.getInstance())
-      ..update(1);
+  group('Bookmarks', () {
+    Future<(BookMarkProvider, SharedPreferences)> fresh([
+      Map<String, Object> values = const {},
+    ]) async {
+      SharedPreferences.setMockInitialValues(values);
+      final prefs = await SharedPreferences.getInstance();
+      return (BookMarkProvider(prefs), prefs);
+    }
 
-    expect(bookMark.markPage, isNull);
-    expect(bookMark.isMarkedPage, isFalse);
-    expect(isMarkedSurah(bookMark.markPage, 1), isFalse);
-  });
+    Widget host(void Function(BuildContext) onTap) => MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () => onTap(context),
+                child: const Text('tap'),
+              ),
+            ),
+          ),
+        );
 
-  test('a bookmark marks every surah on its page', () async {
-    SharedPreferences.setMockInitialValues({});
-    final prefs = await SharedPreferences.getInstance();
-    BookMarkProvider(prefs)
-      ..update(293)
-      ..changeMark();
+    test('start empty', () async {
+      final (bookMark, _) = await fresh();
+      bookMark.update(1);
+      expect(bookMark.bookmarks, isEmpty);
+      expect(bookMark.isMarkedPage, isFalse);
+      expect(isMarkedSurah(bookMark.pages, 1), isFalse);
+    });
 
-    // Page 293 ends Al-Isra and begins Al-Kahf.
-    final markPage = BookMarkProvider(prefs).markPage;
-    expect(markPage, 293);
-    expect(isMarkedSurah(markPage, 17), isTrue);
-    expect(isMarkedSurah(markPage, 18), isTrue);
-    expect(isMarkedSurah(markPage, 19), isFalse);
+    testWidgets('several pages can be saved, and saving again removes',
+        (tester) async {
+      final (bookMark, prefs) = await fresh();
+      await tester.pumpWidget(host((context) {
+        bookMark.toggleCurrentPage(context);
+      }));
+
+      for (final page in [50, 293, 604]) {
+        bookMark.update(page);
+        await tester.tap(find.text('tap'));
+      }
+      expect(bookMark.pages, {50, 293, 604});
+      expect(BookMarkProvider(prefs).pages, {50, 293, 604}, reason: 'saved');
+
+      bookMark.update(293);
+      await tester.tap(find.text('tap'));
+      expect(bookMark.pages, {50, 604});
+      expect(BookMarkProvider(prefs).pages, {50, 604});
+    });
+
+    test('newest bookmark comes first', () async {
+      final (bookMark, _) = await fresh({
+        'bookmarks': ['10|1000', '20|3000', '30|2000'],
+      });
+      expect([for (final b in bookMark.bookmarks) b.page], [20, 30, 10]);
+    });
+
+    test('the single bookmark of older versions is kept', () async {
+      final (bookMark, prefs) = await fresh({'mark': 77});
+      expect(bookMark.pages, {77});
+      expect(prefs.getInt('mark'), isNull);
+      expect(BookMarkProvider(prefs).pages, {77});
+    });
+
+    test('a bookmark marks every surah on its page', () async {
+      // Page 293 ends Al-Isra and begins Al-Kahf.
+      expect(isMarkedSurah({293}, 17), isTrue);
+      expect(isMarkedSurah({293}, 18), isTrue);
+      expect(isMarkedSurah({293}, 19), isFalse);
+      expect(isMarkedSurah({1, 604}, 114), isTrue);
+    });
   });
 }
