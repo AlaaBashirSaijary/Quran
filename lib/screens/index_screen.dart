@@ -13,6 +13,7 @@ import '../quran/quran.dart';
 import '../widgets/surah_number.dart';
 import 'juz_index_screen.dart';
 import 'search_screen.dart';
+import 'wird_screen.dart';
 
 /// Opens the Quran reader at [page].
 ///
@@ -87,11 +88,20 @@ class IndexScreen extends StatelessWidget {
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                child: _ContinueReadingCard(
-                  surahName: quran.surahName,
-                  page: quran.currentPage,
-                  onTap: () =>
-                      openQuranPage(context, quran.currentPage, isTab: true),
+                child: Column(
+                  children: [
+                    _ContinueReadingCard(
+                      surahName: quran.surahName,
+                      page: quran.currentPage,
+                      onTap: () => openQuranPage(
+                        context,
+                        quran.currentPage,
+                        isTab: true,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    const WirdCard(),
+                  ],
                 ),
               ),
             ),

@@ -7,6 +7,7 @@ import 'package:quranapplication/main.dart';
 import 'package:quranapplication/providers/ahadith_details_provider.dart';
 import 'package:quranapplication/providers/bookmark.dart';
 import 'package:quranapplication/providers/quran.dart';
+import 'package:quranapplication/providers/reading_provider.dart';
 import 'package:quranapplication/providers/show_overlay_provider.dart';
 import 'package:quranapplication/providers/theme_provider.dart';
 import 'package:quranapplication/providers/toast.dart';
@@ -29,6 +30,10 @@ Widget buildApp(SharedPreferences prefs) {
       ChangeNotifierProxyProvider<Quran, ToastProvider>(
         create: (_) => ToastProvider(),
         update: (_, quran, previous) => previous!..update(quran.hizbQuarter),
+      ),
+      ChangeNotifierProxyProvider<Quran, ReadingProvider>(
+        create: (_) => ReadingProvider(prefs),
+        update: (_, quran, previous) => previous!..update(quran.currentPage),
       ),
       ChangeNotifierProvider(create: (_) => SebhaProvider(prefs)),
       ChangeNotifierProvider(
@@ -393,6 +398,81 @@ void main() {
       expect(suggestedCategory(DateTime(2026, 1, 1, 17)), 'evening');
       expect(suggestedCategory(DateTime(2026, 1, 1, 13)), isNull);
       expect(suggestedCategory(DateTime(2026, 1, 1, 2)), isNull);
+    });
+  });
+
+  group('Wird and khatma', () {
+    late DateTime now;
+
+    Future<ReadingProvider> fresh([
+      Map<String, Object> values = const {},
+    ]) async {
+      SharedPreferences.setMockInitialValues(values);
+      return ReadingProvider(
+        await SharedPreferences.getInstance(),
+        clock: () => now,
+      );
+    }
+
+    setUp(() => now = DateTime(2026, 9, 25, 20));
+
+    test('a page counts as read when moving on to the next page', () async {
+      final reading = await fresh()
+        ..update(10);
+      expect(reading.today, 0, reason: 'opening a page is not reading it');
+      reading
+        ..update(11)
+        ..update(12);
+      expect(reading.today, 2);
+      expect([reading.isRead(10), reading.isRead(11)], [true, true]);
+      expect(reading.isRead(12), isFalse, reason: 'still on it');
+
+      reading
+        ..update(300)
+        ..update(5);
+      expect(reading.today, 2, reason: 'jumps do not count');
+    });
+
+    test('daily goal, streak and saved progress', () async {
+      final reading = await fresh()
+        ..setGoal(2);
+      for (final page in [1, 2, 3]) {
+        reading.update(page);
+      }
+      expect(reading.goalMet, isTrue);
+      expect(reading.streak, 1);
+
+      now = now.add(const Duration(days: 1));
+      final nextDay = ReadingProvider(reading.prefs, clock: () => now);
+      expect(nextDay.today, 0);
+      expect(nextDay.goal, 2);
+      expect(nextDay.khatmaRead, 2);
+      expect(nextDay.streak, 1, reason: 'yesterday still counts until today');
+      expect(nextDay.lastDays(3), [0, 2, 0]);
+    });
+
+    test('estimates the days to finish at the goal pace', () async {
+      final reading = await fresh()
+        ..setGoal(20);
+      expect(reading.daysToFinish, 31); // 604 pages at 20 a day
+      reading.update(1);
+      for (var page = 2; page <= 21; page++) {
+        reading.update(page);
+      }
+      expect(reading.goalMet, isTrue);
+      expect(reading.daysToFinish, 30); // 584 left, from tomorrow
+    });
+
+    test('reading the last page completes the khatma', () async {
+      final reading = await fresh();
+      for (var page = 1; page <= totalPages; page++) {
+        reading.update(page);
+      }
+      expect(reading.khatmaRead, totalPages);
+      expect(reading.khatmas, 1);
+      reading.startNewKhatma();
+      expect(reading.khatmaRead, 0);
+      expect(reading.khatmas, 1);
     });
   });
 }

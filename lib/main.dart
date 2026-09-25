@@ -7,6 +7,7 @@ import 'core/index.dart';
 import 'providers/ahadith_details_provider.dart';
 import 'providers/bookmark.dart';
 import 'providers/quran.dart';
+import 'providers/reading_provider.dart';
 import 'providers/sebha_provider.dart';
 import 'providers/show_overlay_provider.dart';
 import 'providers/theme_provider.dart';
@@ -43,6 +44,11 @@ Future<void> main() async {
           create: (context) => ToastProvider(),
           update: (context, value, previous) =>
               previous!..update(value.hizbQuarter),
+        ),
+        ChangeNotifierProxyProvider<Quran, ReadingProvider>(
+          create: (context) => ReadingProvider(prefs),
+          update: (context, value, previous) =>
+              previous!..update(value.currentPage),
         ),
         ChangeNotifierProvider<SebhaProvider>(
           create: (context) => SebhaProvider(prefs),
