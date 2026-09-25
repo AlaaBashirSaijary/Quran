@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/index.dart';
+import 'prayer/prayer.dart';
 import 'providers/ahadith_details_provider.dart';
 import 'providers/bookmark.dart';
 import 'providers/quran.dart';
@@ -32,9 +33,7 @@ Future<void> main() async {
         ChangeNotifierProvider<ShowOverlayProvider>(
           create: (context) => ShowOverlayProvider(),
         ),
-        ChangeNotifierProvider<Quran>(
-          create: (context) => Quran(prefs),
-        ),
+        ChangeNotifierProvider<Quran>(create: (context) => Quran(prefs)),
         ChangeNotifierProxyProvider<Quran, BookMarkProvider>(
           create: (context) => BookMarkProvider(prefs),
           update: (context, value, previous) =>
@@ -49,6 +48,9 @@ Future<void> main() async {
           create: (context) => ReadingProvider(prefs),
           update: (context, value, previous) =>
               previous!..update(value.currentPage),
+        ),
+        ChangeNotifierProvider<PrayerProvider>(
+          create: (context) => PrayerProvider(prefs),
         ),
         ChangeNotifierProvider<SebhaProvider>(
           create: (context) => SebhaProvider(prefs),

@@ -11,7 +11,7 @@ const totalPages = 604;
 /// so jumping around from the index or search does not count as reading.
 class ReadingProvider extends ChangeNotifier {
   ReadingProvider(this.prefs, {DateTime Function()? clock})
-      : _clock = clock ?? DateTime.now {
+    : _clock = clock ?? DateTime.now {
     goal = prefs.getInt('wird.goal') ?? 5;
     khatmas = prefs.getInt('wird.khatmas') ?? 0;
     final saved = prefs.getString('wird.khatmaPages');
@@ -22,8 +22,9 @@ class ReadingProvider extends ChangeNotifier {
     final daily = prefs.getString('wird.daily');
     _daily = daily == null
         ? {}
-        : (jsonDecode(daily) as Map<String, dynamic>)
-            .map((k, v) => MapEntry(k, v as int));
+        : (jsonDecode(daily) as Map<String, dynamic>).map(
+            (k, v) => MapEntry(k, v as int),
+          );
   }
 
   static const goalOptions = [1, 2, 5, 10, 20];
@@ -92,9 +93,8 @@ class ReadingProvider extends ChangeNotifier {
     return afterToday <= 0 ? 1 : 1 + (afterToday / goal).ceil();
   }
 
-  DateTime get estimatedFinish => _clock().add(
-        Duration(days: goalMet ? daysToFinish : daysToFinish - 1),
-      );
+  DateTime get estimatedFinish =>
+      _clock().add(Duration(days: goalMet ? daysToFinish : daysToFinish - 1));
 
   void setGoal(int pages) {
     if (pages < 1) return;

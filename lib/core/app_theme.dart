@@ -77,12 +77,21 @@ class AppTheme {
       textTheme: TextTheme(
         displayLarge: TextStyle(fontWeight: _bold, fontSize: 48, color: onBg),
         displayMedium: TextStyle(fontWeight: _bold, fontSize: 38, color: onBg),
-        displaySmall:
-            TextStyle(fontWeight: _semiBold, fontSize: 32, color: onBg),
-        headlineMedium:
-            TextStyle(fontWeight: _semiBold, fontSize: 24, color: onBg),
-        headlineSmall:
-            TextStyle(fontWeight: _medium, fontSize: 20, color: onBg),
+        displaySmall: TextStyle(
+          fontWeight: _semiBold,
+          fontSize: 32,
+          color: onBg,
+        ),
+        headlineMedium: TextStyle(
+          fontWeight: _semiBold,
+          fontSize: 24,
+          color: onBg,
+        ),
+        headlineSmall: TextStyle(
+          fontWeight: _medium,
+          fontSize: 20,
+          color: onBg,
+        ),
         titleLarge: TextStyle(fontWeight: _semiBold, fontSize: 18, color: onBg),
         titleMedium: TextStyle(fontWeight: _medium, fontSize: 16, color: onBg),
         //

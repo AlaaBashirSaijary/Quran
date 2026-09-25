@@ -27,10 +27,7 @@ class CustomToast extends StatelessWidget {
           ),
           child: Text(
             quran.hizbText,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 17,
-            ),
+            style: const TextStyle(color: Colors.white, fontSize: 17),
           ),
         ),
       ),

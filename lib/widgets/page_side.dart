@@ -15,11 +15,9 @@ class PageSide extends StatelessWidget {
     return Column(
       children: [
         SvgPicture.asset(
-            quran.isRightPage ? AppAsset.pageRight : AppAsset.pageLeft),
-        Text(
-          quran.hizbText,
-          style: const TextStyle(color: Colors.white),
+          quran.isRightPage ? AppAsset.pageRight : AppAsset.pageLeft,
         ),
+        Text(quran.hizbText, style: const TextStyle(color: Colors.white)),
       ],
     );
   }

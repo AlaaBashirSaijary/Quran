@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:quranapplication/azkar/azkar.dart';
 import 'package:quranapplication/main.dart';
+import 'package:quranapplication/prayer/prayer.dart';
 import 'package:quranapplication/providers/ahadith_details_provider.dart';
 import 'package:quranapplication/providers/bookmark.dart';
 import 'package:quranapplication/providers/quran.dart';
@@ -35,6 +36,7 @@ Widget buildApp(SharedPreferences prefs) {
         create: (_) => ReadingProvider(prefs),
         update: (_, quran, previous) => previous!..update(quran.currentPage),
       ),
+      ChangeNotifierProvider(create: (_) => PrayerProvider(prefs)),
       ChangeNotifierProvider(create: (_) => SebhaProvider(prefs)),
       ChangeNotifierProvider(
         create: (_) => AhadithDetailsProvider()..loadHadithFile(),
@@ -45,8 +47,9 @@ Widget buildApp(SharedPreferences prefs) {
 }
 
 void main() {
-  testWidgets('first launch shows onboarding, then the main tabs',
-      (tester) async {
+  testWidgets('first launch shows onboarding, then the main tabs', (
+    tester,
+  ) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
 
@@ -63,9 +66,7 @@ void main() {
     expect(prefs.getBool('seenOnboarding'), isTrue);
   });
 
-  testWidgets('sebha counter screen counts taps and can undo', (
-    tester,
-  ) async {
+  testWidgets('sebha counter screen counts taps and can undo', (tester) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     await tester.pumpWidget(
@@ -95,9 +96,7 @@ void main() {
   group('Sebha', () {
     late DateTime now;
 
-    Future<SebhaProvider> fresh([
-      Map<String, Object> values = const {},
-    ]) async {
+    Future<SebhaProvider> fresh([Map<String, Object> values = const {}]) async {
       SharedPreferences.setMockInitialValues(values);
       return SebhaProvider(
         await SharedPreferences.getInstance(),
@@ -158,23 +157,25 @@ void main() {
       expect(sebha.azkar.length, defaultAzkar.length);
     });
 
-    test('today resets each day and the streak counts consecutive days',
-        () async {
-      final sebha = await fresh();
-      sebha.tap();
-      expect([sebha.today, sebha.streak], [1, 1]);
+    test(
+      'today resets each day and the streak counts consecutive days',
+      () async {
+        final sebha = await fresh();
+        sebha.tap();
+        expect([sebha.today, sebha.streak], [1, 1]);
 
-      now = now.add(const Duration(days: 1));
-      sebha.tap();
-      sebha.tap();
-      expect([sebha.today, sebha.streak, sebha.total], [2, 2, 3]);
+        now = now.add(const Duration(days: 1));
+        sebha.tap();
+        sebha.tap();
+        expect([sebha.today, sebha.streak, sebha.total], [2, 2, 3]);
 
-      now = now.add(const Duration(days: 2));
-      final later = SebhaProvider(sebha.prefs, clock: () => now);
-      expect([later.today, later.streak], [0, 0], reason: 'a day was missed');
-      later.tap();
-      expect([later.today, later.streak, later.total], [1, 1, 4]);
-    });
+        now = now.add(const Duration(days: 2));
+        final later = SebhaProvider(sebha.prefs, clock: () => now);
+        expect([later.today, later.streak], [0, 0], reason: 'a day was missed');
+        later.tap();
+        expect([later.today, later.streak, later.total], [1, 1, 4]);
+      },
+    );
 
     test('undo takes back the last tap', () async {
       final sebha = await fresh();
@@ -196,8 +197,9 @@ void main() {
     expect(ThemeProvider(prefs).themeMode, ThemeMode.dark);
   });
 
-  testWidgets('ahadith file parses into titled entries with no empty ones',
-      (tester) async {
+  testWidgets('ahadith file parses into titled entries with no empty ones', (
+    tester,
+  ) async {
     // An earlier test may have left a pending load of this file in the cache.
     rootBundle.evict('assets/ahadeth.txt');
     final provider = AhadithDetailsProvider();
@@ -230,9 +232,9 @@ void main() {
     });
 
     List<String> refs(String query) => [
-          for (final ayah in search.search(query).ayahs)
-            '${ayah.surah}:${ayah.number}',
-        ];
+      for (final ayah in search.search(query).ayahs)
+        '${ayah.surah}:${ayah.number}',
+    ];
 
     test('matches text typed in modern spelling', () {
       expect(refs('الحمد لله رب العالمين'), contains('1:2'));
@@ -275,15 +277,15 @@ void main() {
     }
 
     Widget host(void Function(BuildContext) onTap) => MaterialApp(
-          home: Scaffold(
-            body: Builder(
-              builder: (context) => TextButton(
-                onPressed: () => onTap(context),
-                child: const Text('tap'),
-              ),
-            ),
+      home: Scaffold(
+        body: Builder(
+          builder: (context) => TextButton(
+            onPressed: () => onTap(context),
+            child: const Text('tap'),
           ),
-        );
+        ),
+      ),
+    );
 
     test('start empty', () async {
       final (bookMark, _) = await fresh();
@@ -293,12 +295,15 @@ void main() {
       expect(isMarkedSurah(bookMark.pages, 1), isFalse);
     });
 
-    testWidgets('several pages can be saved, and saving again removes',
-        (tester) async {
+    testWidgets('several pages can be saved, and saving again removes', (
+      tester,
+    ) async {
       final (bookMark, prefs) = await fresh();
-      await tester.pumpWidget(host((context) {
-        bookMark.toggleCurrentPage(context);
-      }));
+      await tester.pumpWidget(
+        host((context) {
+          bookMark.toggleCurrentPage(context);
+        }),
+      );
 
       for (final page in [50, 293, 604]) {
         bookMark.update(page);
@@ -369,29 +374,31 @@ void main() {
       }
     });
 
-    test('progress counts down, is kept for the day, and resets next day',
-        () async {
-      SharedPreferences.setMockInitialValues({});
-      final prefs = await SharedPreferences.getInstance();
-      var now = DateTime(2026, 9, 25, 7);
-      final morning = categories.first;
-      final threeTimes = morning.items.indexWhere((d) => d.count == 3);
+    test(
+      'progress counts down, is kept for the day, and resets next day',
+      () async {
+        SharedPreferences.setMockInitialValues({});
+        final prefs = await SharedPreferences.getInstance();
+        var now = DateTime(2026, 9, 25, 7);
+        final morning = categories.first;
+        final threeTimes = morning.items.indexWhere((d) => d.count == 3);
 
-      final progress = AzkarProgress(prefs, morning, clock: () => now);
-      expect(progress.tap(threeTimes), isFalse);
-      expect(progress.tap(threeTimes), isFalse);
-      expect(progress.tap(threeTimes), isTrue);
-      expect(progress.isDone(threeTimes), isTrue);
-      expect(progress.tap(threeTimes), isFalse, reason: 'already done');
+        final progress = AzkarProgress(prefs, morning, clock: () => now);
+        expect(progress.tap(threeTimes), isFalse);
+        expect(progress.tap(threeTimes), isFalse);
+        expect(progress.tap(threeTimes), isTrue);
+        expect(progress.isDone(threeTimes), isTrue);
+        expect(progress.tap(threeTimes), isFalse, reason: 'already done');
 
-      final later = AzkarProgress(prefs, morning, clock: () => now);
-      expect(later.isDone(threeTimes), isTrue);
+        final later = AzkarProgress(prefs, morning, clock: () => now);
+        expect(later.isDone(threeTimes), isTrue);
 
-      now = now.add(const Duration(days: 1));
-      final tomorrow = AzkarProgress(prefs, morning, clock: () => now);
-      expect(tomorrow.remaining(threeTimes), 3);
-      expect(tomorrow.doneCount, 0);
-    });
+        now = now.add(const Duration(days: 1));
+        final tomorrow = AzkarProgress(prefs, morning, clock: () => now);
+        expect(tomorrow.remaining(threeTimes), 3);
+        expect(tomorrow.doneCount, 0);
+      },
+    );
 
     test('suggests morning azkar before noon and evening ones after asr', () {
       expect(suggestedCategory(DateTime(2026, 1, 1, 6)), 'morning');
@@ -473,6 +480,96 @@ void main() {
       reading.startNewKhatma();
       expect(reading.khatmaRead, 0);
       expect(reading.khatmas, 1);
+    });
+  });
+
+  group('Prayer times', () {
+    Future<PrayerProvider> at(City city, {String? method}) async {
+      SharedPreferences.setMockInitialValues({});
+      final prayer = PrayerProvider(await SharedPreferences.getInstance())
+        ..setCity(city);
+      if (method != null) prayer.setMethod(method);
+      return prayer;
+    }
+
+    City city(String name) => cities.firstWhere((c) => c.name == name);
+
+    test('no location until one is chosen', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prayer = PrayerProvider(await SharedPreferences.getInstance());
+      expect(prayer.hasLocation, isFalse);
+    });
+
+    test('times come in prayer order', () async {
+      final prayer = await at(city('دمشق'));
+      final times = prayer.timesOn(DateTime(2026, 9, 25));
+      expect(
+        [for (final t in times) t.name],
+        ['الفجر', 'الشروق', 'الظهر', 'العصر', 'المغرب', 'العشاء'],
+      );
+      for (var i = 1; i < times.length; i++) {
+        expect(times[i].time.isAfter(times[i - 1].time), isTrue);
+      }
+    });
+
+    test('Umm al-Qura sets isha 90 minutes after maghrib', () async {
+      final prayer = await at(city('مكة المكرمة'));
+      expect(prayer.method.id, 'ummAlQura');
+      final times = prayer.timesOn(DateTime(2026, 3, 10));
+      expect(times[5].time.difference(times[4].time).inMinutes, 90);
+    });
+
+    test('dhuhr is near solar noon', () async {
+      // At longitude 0 solar noon is 12:00 UTC give or take the equation
+      // of time (under 17 minutes).
+      final prayer = await at(const City('Greenwich', 51.48, 0, 'mwl'));
+      final dhuhr = prayer.timesOn(DateTime(2026, 6, 21))[2].time.toUtc();
+      final noon = DateTime.utc(2026, 6, 21, 12);
+      expect(dhuhr.difference(noon).inMinutes.abs(), lessThan(17));
+    });
+
+    test('hanafi asr is later than shafi asr', () async {
+      final prayer = await at(city('القاهرة'));
+      final day = DateTime(2026, 9, 25);
+      final shafi = prayer.timesOn(day)[3].time;
+      prayer.setHanafiAsr(true);
+      expect(prayer.timesOn(day)[3].time.isAfter(shafi), isTrue);
+    });
+
+    test('next prayer rolls over to tomorrow after isha', () async {
+      final prayer = await at(city('دمشق'));
+      final day = DateTime(2026, 9, 25);
+      final isha = prayer.timesOn(day)[5].time;
+      final next = prayer.nextPrayer(isha.add(const Duration(minutes: 1)));
+      expect(next.name, 'الفجر');
+      expect(next.time.isAfter(isha), isTrue);
+    });
+
+    test(
+      'qibla direction matches the great-circle bearing to the Kaaba',
+      () async {
+        // Expected values computed separately with the initial-bearing formula.
+        expect((await at(city('لندن'))).qibla, closeTo(118.99, 0.05));
+        expect((await at(city('دمشق'))).qibla, closeTo(164.55, 0.05));
+        final jakarta = await at(
+          const City('Jakarta', -6.2088, 106.8456, 'mwl'),
+        );
+        expect(jakarta.qibla, closeTo(295.15, 0.05));
+      },
+    );
+
+    test('knows when the location is at the Kaaba', () async {
+      expect((await at(city('مكة المكرمة'))).nearKaaba, isTrue);
+      expect((await at(city('جدة'))).nearKaaba, isFalse);
+    });
+
+    test('location and settings are saved', () async {
+      final prayer = await at(city('القاهرة'))
+        ..setHanafiAsr(true);
+      final again = PrayerProvider(prayer.prefs);
+      expect(again.placeName, 'القاهرة');
+      expect(again.method.id, 'egyptian');
+      expect(again.hanafiAsr, isTrue);
     });
   });
 }

@@ -4,6 +4,7 @@ import '../tabs/ahadeth_tab.dart';
 import '../tabs/sebha_tab.dart';
 import 'azkar_screen.dart';
 import 'index_screen.dart';
+import 'prayer_screen.dart';
 
 class MainTabsScreen extends StatefulWidget {
   const MainTabsScreen({super.key});
@@ -17,6 +18,7 @@ class _MainTabsScreenState extends State<MainTabsScreen> {
 
   static const _tabs = [
     IndexScreen(isTab: true),
+    PrayerScreen(),
     AzkarScreen(),
     SebhaTab(),
     AhadithTab(),
@@ -35,6 +37,11 @@ class _MainTabsScreenState extends State<MainTabsScreen> {
           NavigationDestination(
             icon: ImageIcon(AssetImage('assets/ic_quran.png')),
             label: 'القرآن',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.mosque_outlined),
+            selectedIcon: Icon(Icons.mosque_rounded),
+            label: 'الصلاة',
           ),
           NavigationDestination(
             icon: Icon(Icons.volunteer_activism_outlined),

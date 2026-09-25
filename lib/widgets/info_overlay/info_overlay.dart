@@ -12,16 +12,12 @@ class InfoOverlay extends StatelessWidget {
     final isLandscape = MediaQuery.of(context).size.width > 630;
 
     return Column(
-      mainAxisAlignment:
-          isLandscape ? MainAxisAlignment.end : MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: isLandscape
+          ? MainAxisAlignment.end
+          : MainAxisAlignment.spaceBetween,
       children: isLandscape
-          ? [
-              const LandscapeOverlay(),
-            ]
-          : const [
-              TopOverlay(),
-              BottomOverlay(),
-            ],
+          ? [const LandscapeOverlay()]
+          : const [TopOverlay(), BottomOverlay()],
     );
   }
 }

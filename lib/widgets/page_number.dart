@@ -12,10 +12,7 @@ class PageNumber extends StatelessWidget {
     final quran = Provider.of<Quran>(context);
     final colorScheme = Theme.of(context).colorScheme;
 
-    final textStyle = TextStyle(
-      fontSize: 14,
-      color: colorScheme.infoText,
-    );
+    final textStyle = TextStyle(fontSize: 14, color: colorScheme.infoText);
     return Padding(
       padding: const EdgeInsets.all(5),
       child: Text(

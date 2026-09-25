@@ -17,21 +17,25 @@ class Zikr {
   final bool isCustom;
 
   Zikr copyWith({int? target}) => Zikr(
-        id: id,
-        text: text,
-        target: target ?? this.target,
-        isCustom: isCustom,
-      );
+    id: id,
+    text: text,
+    target: target ?? this.target,
+    isCustom: isCustom,
+  );
 
-  Map<String, Object> toJson() =>
-      {'id': id, 'text': text, 'target': target, 'custom': isCustom};
+  Map<String, Object> toJson() => {
+    'id': id,
+    'text': text,
+    'target': target,
+    'custom': isCustom,
+  };
 
   static Zikr fromJson(Map<String, dynamic> json) => Zikr(
-        id: json['id'] as String,
-        text: json['text'] as String,
-        target: json['target'] as int,
-        isCustom: json['custom'] as bool? ?? false,
-      );
+    id: json['id'] as String,
+    text: json['text'] as String,
+    target: json['target'] as int,
+    isCustom: json['custom'] as bool? ?? false,
+  );
 }
 
 enum SebhaMode { free, afterPrayer }
@@ -68,7 +72,7 @@ const defaultAzkar = [
 
 class SebhaProvider extends ChangeNotifier {
   SebhaProvider(this.prefs, {DateTime Function()? clock})
-      : _clock = clock ?? DateTime.now {
+    : _clock = clock ?? DateTime.now {
     _load();
   }
 
@@ -153,8 +157,10 @@ class SebhaProvider extends ChangeNotifier {
     if (mode == SebhaMode.free) {
       if (count == 0) return;
       count--;
-      _todayByZikr[_selectedId] =
-          (todayCountFor(_selectedId) - 1).clamp(0, 1 << 30);
+      _todayByZikr[_selectedId] = (todayCountFor(_selectedId) - 1).clamp(
+        0,
+        1 << 30,
+      );
     } else {
       if (afterPrayerDone || stepCount == 0) return;
       stepCount--;
@@ -217,7 +223,7 @@ class SebhaProvider extends ChangeNotifier {
     if (zikr == null || !zikr.isCustom) return;
     _azkar = [
       for (final z in _azkar)
-        if (z.id != id) z
+        if (z.id != id) z,
     ];
     if (_selectedId == id) {
       _selectedId = _azkar.first.id;
@@ -274,10 +280,13 @@ class SebhaProvider extends ChangeNotifier {
     );
     count = prefs.getInt('sebha.count') ?? 0;
     rounds = prefs.getInt('sebha.rounds') ?? 0;
-    stepIndex =
-        (prefs.getInt('sebha.step') ?? 0).clamp(0, afterPrayerSteps.length - 1);
+    stepIndex = (prefs.getInt('sebha.step') ?? 0).clamp(
+      0,
+      afterPrayerSteps.length - 1,
+    );
     stepCount = prefs.getInt('sebha.stepCount') ?? 0;
-    afterPrayerDone = stepIndex == afterPrayerSteps.length - 1 &&
+    afterPrayerDone =
+        stepIndex == afterPrayerSteps.length - 1 &&
         stepCount >= afterPrayerSteps.last.target;
     total = prefs.getInt('sebha.total') ?? prefs.getInt('sebhaTotal') ?? 0;
     today = prefs.getInt('sebha.today') ?? 0;
@@ -286,8 +295,9 @@ class SebhaProvider extends ChangeNotifier {
     final byZikr = prefs.getString('sebha.todayByZikr');
     _todayByZikr = byZikr == null
         ? {}
-        : (jsonDecode(byZikr) as Map<String, dynamic>)
-            .map((k, v) => MapEntry(k, v as int));
+        : (jsonDecode(byZikr) as Map<String, dynamic>).map(
+            (k, v) => MapEntry(k, v as int),
+          );
     vibration = prefs.getBool('sebha.vibration') ?? true;
 
     // A new day since the last visit: show zero for today, but keep the

@@ -4,7 +4,9 @@
 	<dict>
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
-		<key>CFBundleDisplayName</key>
+		<key>NSLocationWhenInUseUsageDescription</key>
+		<string>يُستخدم موقعك لحساب مواقيت الصلاة واتجاه القبلة على هاتفك فقط.</string>
+	<key>CFBundleDisplayName</key>
 		<string>طريق الجنة</string>
 		<key>CFBundleExecutable</key>
 		<string>$(EXECUTABLE_NAME)</string>

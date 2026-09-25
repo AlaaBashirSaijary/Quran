@@ -22,8 +22,11 @@ class HadithDetails extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
               child: Column(
                 children: [
-                  Icon(Icons.format_quote_rounded,
-                      color: colorScheme.gold, size: 36),
+                  Icon(
+                    Icons.format_quote_rounded,
+                    color: colorScheme.gold,
+                    size: 36,
+                  ),
                   const SizedBox(height: 12),
                   for (final line in hadith.content)
                     Padding(

@@ -14,12 +14,21 @@ class _Slide {
 }
 
 const _slides = [
-  _Slide(Icons.menu_book_rounded, 'اقرأ القرآن الكريم وتدبّره',
-      'مصحف كامل يعمل دون إنترنت ويحفظ موضع قراءتك'),
-  _Slide(Icons.format_quote_rounded, 'أحاديث الرسول ﷺ',
-      'الأربعون النووية بين يديك في أي وقت'),
-  _Slide(Icons.favorite_rounded, 'أذكار ليطمئن قلبك',
-      'سبحة إلكترونية تعينك على الذكر'),
+  _Slide(
+    Icons.menu_book_rounded,
+    'اقرأ القرآن الكريم وتدبّره',
+    'مصحف كامل يعمل دون إنترنت ويحفظ موضع قراءتك',
+  ),
+  _Slide(
+    Icons.format_quote_rounded,
+    'أحاديث الرسول ﷺ',
+    'الأربعون النووية بين يديك في أي وقت',
+  ),
+  _Slide(
+    Icons.favorite_rounded,
+    'أذكار ليطمئن قلبك',
+    'سبحة إلكترونية تعينك على الذكر',
+  ),
 ];
 
 class OnboardingScreen extends StatefulWidget {

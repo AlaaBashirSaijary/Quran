@@ -7,10 +7,6 @@ class VerticalDiv extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: double.infinity,
-      width: 1,
-      color: color,
-    );
+    return Container(height: double.infinity, width: 1, color: color);
   }
 }
