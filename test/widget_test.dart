@@ -11,6 +11,7 @@ import 'package:quranapplication/providers/theme_provider.dart';
 import 'package:quranapplication/providers/toast.dart';
 import 'package:quranapplication/quran/quran.dart';
 import 'package:quranapplication/quran/search.dart';
+import 'package:quranapplication/providers/sebha_provider.dart';
 import 'package:quranapplication/tabs/sebha_tab.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -28,6 +29,7 @@ Widget buildApp(SharedPreferences prefs) {
         create: (_) => ToastProvider(),
         update: (_, quran, previous) => previous!..update(quran.hizbQuarter),
       ),
+      ChangeNotifierProvider(create: (_) => SebhaProvider(prefs)),
       ChangeNotifierProvider(
         create: (_) => AhadithDetailsProvider()..loadHadithFile(),
       ),
@@ -55,32 +57,127 @@ void main() {
     expect(prefs.getBool('seenOnboarding'), isTrue);
   });
 
-  testWidgets('sebha moves to the next zikr after 33 taps', (tester) async {
+  testWidgets('sebha counter screen counts taps and can undo', (
+    tester,
+  ) async {
     SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
     await tester.pumpWidget(
-      const MaterialApp(
+      ChangeNotifierProvider(
+        create: (_) => SebhaProvider(prefs),
+        child: const MaterialApp(
           home: Directionality(
-        textDirection: TextDirection.rtl,
-        child: SebhaTab(),
-      )),
+            textDirection: TextDirection.rtl,
+            child: SebhaTab(),
+          ),
+        ),
+      ),
     );
-    await tester.pumpAndSettle();
 
-    expect(find.text('سبحان الله'), findsOneWidget);
-    expect(find.text('0'), findsOneWidget);
-
-    for (var i = 0; i < 32; i++) {
+    expect(find.text('من 33'), findsOneWidget);
+    for (var i = 0; i < 3; i++) {
       await tester.tap(find.text('من 33'));
     }
     await tester.pump();
-    expect(find.text('32'), findsOneWidget);
-    expect(find.text('سبحان الله'), findsOneWidget);
+    expect(find.text('3'), findsWidgets);
 
-    await tester.tap(find.text('من 33'));
+    await tester.tap(find.text('تراجع'));
     await tester.pump();
-    expect(find.text('الحمد لله'), findsOneWidget);
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('مجموع التسبيحات: 33'), findsOneWidget);
+    expect(find.text('2'), findsWidgets);
+  });
+
+  group('Sebha', () {
+    late DateTime now;
+
+    Future<SebhaProvider> fresh([
+      Map<String, Object> values = const {},
+    ]) async {
+      SharedPreferences.setMockInitialValues(values);
+      return SebhaProvider(
+        await SharedPreferences.getInstance(),
+        clock: () => now,
+      );
+    }
+
+    setUp(() => now = DateTime(2026, 9, 25, 10));
+
+    test('counts to the target, then starts a new round', () async {
+      final sebha = await fresh();
+      expect(sebha.selected.text, 'سبحان الله');
+      for (var i = 0; i < 32; i++) {
+        expect(sebha.tap(), isFalse);
+      }
+      expect(sebha.count, 32);
+      expect(sebha.tap(), isTrue, reason: 'the 33rd tap reaches the target');
+      expect(sebha.count, 0);
+      expect(sebha.rounds, 1);
+      expect(sebha.today, 33);
+      expect(sebha.todayCountFor('subhan'), 33);
+    });
+
+    test('after-prayer mode goes 33, 33, 33, then the tahleel once', () async {
+      final sebha = await fresh()
+        ..setMode(SebhaMode.afterPrayer);
+      final seen = <String>[];
+      for (var i = 0; i < 100; i++) {
+        seen.add(sebha.currentText);
+        sebha.tap();
+      }
+      expect(seen.where((t) => t == 'سبحان الله').length, 33);
+      expect(seen.where((t) => t == 'الحمد لله').length, 33);
+      expect(seen.where((t) => t == 'الله أكبر').length, 33);
+      expect(seen.last, startsWith('لا إله إلا الله وحده'));
+      expect(sebha.afterPrayerDone, isTrue);
+      expect(sebha.total, 100);
+    });
+
+    test('custom azkar and targets are saved', () async {
+      final sebha = await fresh();
+      sebha.addZikr('رب اغفر لي', 7);
+      expect(sebha.selected.text, 'رب اغفر لي');
+      sebha.setTarget('akbar', 34);
+
+      final again = SebhaProvider(sebha.prefs, clock: () => now);
+      expect(again.selected.text, 'رب اغفر لي');
+      expect(again.selected.target, 7);
+      expect(again.azkar.firstWhere((z) => z.id == 'akbar').target, 34);
+
+      again.removeZikr(again.selected.id);
+      expect(again.azkar.any((z) => z.text == 'رب اغفر لي'), isFalse);
+    });
+
+    test('built-in azkar cannot be removed', () async {
+      final sebha = await fresh();
+      sebha.removeZikr('subhan');
+      expect(sebha.azkar.length, defaultAzkar.length);
+    });
+
+    test('today resets each day and the streak counts consecutive days',
+        () async {
+      final sebha = await fresh();
+      sebha.tap();
+      expect([sebha.today, sebha.streak], [1, 1]);
+
+      now = now.add(const Duration(days: 1));
+      sebha.tap();
+      sebha.tap();
+      expect([sebha.today, sebha.streak, sebha.total], [2, 2, 3]);
+
+      now = now.add(const Duration(days: 2));
+      final later = SebhaProvider(sebha.prefs, clock: () => now);
+      expect([later.today, later.streak], [0, 0], reason: 'a day was missed');
+      later.tap();
+      expect([later.today, later.streak, later.total], [1, 1, 4]);
+    });
+
+    test('undo takes back the last tap', () async {
+      final sebha = await fresh();
+      sebha
+        ..tap()
+        ..tap()
+        ..undo();
+      expect([sebha.count, sebha.today, sebha.total], [1, 1, 1]);
+    });
   });
 
   test('theme choice is saved and defaults to the system setting', () async {

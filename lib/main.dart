@@ -7,6 +7,7 @@ import 'core/index.dart';
 import 'providers/ahadith_details_provider.dart';
 import 'providers/bookmark.dart';
 import 'providers/quran.dart';
+import 'providers/sebha_provider.dart';
 import 'providers/show_overlay_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/toast.dart';
@@ -42,6 +43,9 @@ Future<void> main() async {
           create: (context) => ToastProvider(),
           update: (context, value, previous) =>
               previous!..update(value.hizbQuarter),
+        ),
+        ChangeNotifierProvider<SebhaProvider>(
+          create: (context) => SebhaProvider(prefs),
         ),
         ChangeNotifierProvider<AhadithDetailsProvider>(
           create: (context) => AhadithDetailsProvider()..loadHadithFile(),
