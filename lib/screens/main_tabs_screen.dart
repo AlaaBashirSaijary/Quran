@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../tabs/ahadeth_tab.dart';
 import '../tabs/sebha_tab.dart';
+import 'azkar_screen.dart';
 import 'index_screen.dart';
 
 class MainTabsScreen extends StatefulWidget {
@@ -16,8 +17,9 @@ class _MainTabsScreenState extends State<MainTabsScreen> {
 
   static const _tabs = [
     IndexScreen(isTab: true),
-    AhadithTab(),
+    AzkarScreen(),
     SebhaTab(),
+    AhadithTab(),
   ];
 
   @override
@@ -35,12 +37,17 @@ class _MainTabsScreenState extends State<MainTabsScreen> {
             label: 'القرآن',
           ),
           NavigationDestination(
-            icon: ImageIcon(AssetImage('assets/ic_ahadeth.png')),
-            label: 'الأحاديث',
+            icon: Icon(Icons.volunteer_activism_outlined),
+            selectedIcon: Icon(Icons.volunteer_activism_rounded),
+            label: 'الأذكار',
           ),
           NavigationDestination(
             icon: ImageIcon(AssetImage('assets/ic_sebha.png')),
             label: 'السبحة',
+          ),
+          NavigationDestination(
+            icon: ImageIcon(AssetImage('assets/ic_ahadeth.png')),
+            label: 'الأحاديث',
           ),
         ],
       ),
