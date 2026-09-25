@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import '../core/index.dart';
 import '../screens/index_screen.dart';
 import '../quran/quran.dart';
-import 'horizental_divider.dart';
+import 'horizontal_divider.dart';
 import 'vertical_divider.dart';
 
 const _divColor = Color.fromARGB(60, 201, 165, 76);
 const vDiv = VerticalDiv(color: _divColor);
-const hDiv = HorizentalDiv(color: _divColor);
+const hDiv = HorizontalDiv(color: _divColor);
 
 class JuzCard extends StatelessWidget {
   const JuzCard({Key? key, required this.juz, this.isTab = false})

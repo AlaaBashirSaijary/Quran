@@ -9,7 +9,7 @@ import '../../core/index.dart';
 import '../../providers/quran.dart';
 import '../../providers/show_overlay_provider.dart';
 import '../go_to_page_popup.dart';
-import '../horizental_divider.dart';
+import '../horizontal_divider.dart';
 import '../vertical_divider.dart';
 import 'info_text.dart';
 
@@ -75,7 +75,7 @@ class LandscapeOverlay extends StatelessWidget {
               ),
             ],
           ),
-          const HorizentalDiv(),
+          const HorizontalDiv(),
           SizedBox(
             height: 45,
             child: Row(

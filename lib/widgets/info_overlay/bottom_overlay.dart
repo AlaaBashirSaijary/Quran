@@ -10,7 +10,7 @@ import '../../providers/theme_provider.dart';
 import '../custom_button.dart';
 import '../custom_container.dart';
 import '../go_to_page_popup.dart';
-import '../horizental_divider.dart';
+import '../horizontal_divider.dart';
 import '../vertical_divider.dart';
 import 'search_button.dart';
 
@@ -48,7 +48,7 @@ class BottomOverlay extends StatelessWidget {
               ],
             ),
           ),
-          const HorizentalDiv(),
+          const HorizontalDiv(),
           SizedBox(
             height: 45,
             child: Row(
@@ -100,7 +100,7 @@ class BottomOverlay extends StatelessWidget {
               ],
             ),
           ),
-          const HorizentalDiv(),
+          const HorizontalDiv(),
           SizedBox(
             height: 45,
             child: Row(

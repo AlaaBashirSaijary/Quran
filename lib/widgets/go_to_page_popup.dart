@@ -7,7 +7,7 @@ import '../providers/quran.dart';
 import '../quran/quran.dart';
 import 'custom_button.dart';
 import 'info_overlay/info_text.dart';
-import 'page_feild.dart';
+import 'page_field.dart';
 
 class GoToPagePopup extends StatefulWidget {
   const GoToPagePopup({Key? key}) : super(key: key);
@@ -57,7 +57,7 @@ class _GoToPagePopupState extends State<GoToPagePopup> {
                   const Text(AppConstant.goToPage),
                   const SizedBox(width: 10),
                   Flexible(
-                    child: PageFeild(
+                    child: PageField(
                       onChanged: (text) {
                         textC = text;
                         setState(() {

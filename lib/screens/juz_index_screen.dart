@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../core/index.dart';
 import '../providers/bookmark.dart';
-import '../widgets/horizental_divider.dart';
+import '../widgets/horizontal_divider.dart';
 import '../widgets/juz_card.dart';
 import 'index_screen.dart';
 
@@ -33,7 +33,7 @@ class JuzIndexScreen extends StatelessWidget {
       body: ListView.separated(
         itemCount: 30,
         separatorBuilder: (context, index) {
-          return HorizentalDiv(color: colorScheme.div, thickness: 2);
+          return HorizontalDiv(color: colorScheme.div, thickness: 2);
         },
         itemBuilder: (BuildContext context, int index) {
           return JuzCard(juz: index + 1, isTab: isTab);

@@ -9,7 +9,7 @@ class AhadithDetailsProvider extends ChangeNotifier {
   Future<void> loadHadithFile() async {
     final hadithFile = await rootBundle.loadString('assets/ahadeth.txt');
     ahadithData = hadithFile
-        .replaceAll('﻿', '')
+        .replaceAll('\uFEFF', '')
         .split('#')
         .map((hadith) => hadith.trim())
         .where((hadith) => hadith.isNotEmpty)

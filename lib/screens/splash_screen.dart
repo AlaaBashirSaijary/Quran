@@ -40,7 +40,7 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Image.asset('assets/splash.png', width: 200),
+            Image.asset('assets/splash.png', width: 160),
             const SizedBox(height: 24),
             const Text(
               'طريق الجنة',

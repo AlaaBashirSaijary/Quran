@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:quranapplication/providers/bookmark.dart';
 import 'package:quranapplication/screens/home_screen.dart';
-import 'package:quranapplication/widgets/horizental_divider.dart';
+import 'package:quranapplication/widgets/horizontal_divider.dart';
 import 'package:quranapplication/widgets/marker.dart';
 
 import '../core/index.dart';
@@ -11,6 +11,7 @@ import '../providers/show_overlay_provider.dart';
 import '../quran/quran.dart';
 import '../widgets/surah_number.dart';
 import 'juz_index_screen.dart';
+import 'search_screen.dart';
 
 /// Opens the Quran reader at [page].
 ///
@@ -54,6 +55,19 @@ class IndexScreen extends StatelessWidget {
           ),
           if (isTab)
             IconButton(
+              tooltip: AppConstant.searchAyah,
+              icon: const Icon(Icons.search_rounded),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SearchScreen(isTab: true),
+                  ),
+                );
+              },
+            ),
+          if (isTab)
+            IconButton(
               tooltip: AppConstant.ajzaa,
               icon: const Icon(Icons.view_list_rounded),
               onPressed: () {
@@ -84,7 +98,7 @@ class IndexScreen extends StatelessWidget {
           SliverList.separated(
             itemCount: 114,
             separatorBuilder: (context, index) {
-              return HorizentalDiv(color: colorScheme.div);
+              return HorizontalDiv(color: colorScheme.div);
             },
             itemBuilder: (BuildContext context, int index) {
               final surahNumber = index + 1;

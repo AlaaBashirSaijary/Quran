@@ -9,6 +9,8 @@ import 'package:quranapplication/providers/quran.dart';
 import 'package:quranapplication/providers/show_overlay_provider.dart';
 import 'package:quranapplication/providers/theme_provider.dart';
 import 'package:quranapplication/providers/toast.dart';
+import 'package:quranapplication/quran/quran.dart';
+import 'package:quranapplication/quran/search.dart';
 import 'package:quranapplication/tabs/sebha_tab.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -113,5 +115,49 @@ void main() {
     expect(quran.surahName, 'آل عمران');
     expect(quran.surahData, startsWith('سورة آل عمران'));
     expect(quran.surahData, contains('200'));
+  });
+
+  group('Quran search', () {
+    late QuranSearch search;
+
+    setUpAll(() async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      search = await QuranSearch.load();
+    });
+
+    List<String> refs(String query) => [
+          for (final ayah in search.search(query).ayahs)
+            '${ayah.surah}:${ayah.number}',
+        ];
+
+    test('matches text typed in modern spelling', () {
+      expect(refs('الحمد لله رب العالمين'), contains('1:2'));
+      expect(refs('يا أيها الذين آمنوا'), contains('2:104'));
+      expect(refs('وأقيموا الصلاة وآتوا الزكاة'), contains('2:43'));
+      expect(refs('إبراهيم'), contains('2:124'));
+      expect(refs('السماء'), contains('2:22'));
+      expect(refs('الله لا إله إلا هو الحي القيوم'), ['2:255', '3:2']);
+    });
+
+    test('only matches from the start of a word', () {
+      // نَسۡلُكُهُۥ فِي reads as ...لكهف... once spaces are dropped
+      expect(refs('الكهف'), isNot(contains('15:12')));
+      expect(refs('الكهف'), contains('18:9'));
+    });
+
+    test('finds surahs by name and points to their first page', () {
+      final results = search.search('الكهف');
+      expect(results.surahs, [18]);
+      expect(getSurahFirstPage(18), 293);
+    });
+
+    test('knows the page of each ayah', () {
+      final kursi = search.search('الحي القيوم لا تأخذه سنة').ayahs.single;
+      expect([kursi.surah, kursi.number, kursi.page], [2, 255, 42]);
+    });
+
+    test('ignores queries shorter than two letters', () {
+      expect(search.search('ا').isEmpty, isTrue);
+    });
   });
 }

@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 
-class PageFeild extends StatefulWidget {
-  const PageFeild({Key? key, required this.onChanged, required this.onSubmitted}) : super(key: key);
+class PageField extends StatefulWidget {
+  const PageField({Key? key, required this.onChanged, required this.onSubmitted}) : super(key: key);
 
   final void Function(String) onChanged;
   final void Function(String) onSubmitted;
 
   @override
-  State<PageFeild> createState() => _PageFeildState();
+  State<PageField> createState() => _PageFieldState();
 }
 
-class _PageFeildState extends State<PageFeild> {
+class _PageFieldState extends State<PageField> {
   late TextEditingController textController;
   late FocusNode focusNode;
 
