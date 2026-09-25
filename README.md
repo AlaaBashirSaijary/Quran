@@ -29,18 +29,19 @@ flutter run
 flutter test
 ```
 
-## تحميل APK من GitHub (CI/CD)
-عند كل `push` إلى أي فرع يقوم GitHub Actions تلقائياً بـ: تحليل الكود، تشغيل الاختبارات، ثم بناء ملفات APK.
+## تحميل التطبيق على الهاتف
+افتح صفحة **[آخر إصدار](https://github.com/AlaaBashirSaijary/Quran/releases/latest)** من هاتفك، وحمّل `tareeq-aljannah.apk` من قسم **Assets** ثم افتحه للتثبيت. لا يلزم تسجيل الدخول إلى GitHub.
 
-**لتحميل APK:** افتح تبويب **Actions** في المستودع ← اختر آخر تشغيل ناجح لـ **Build APK** ← في أسفل الصفحة قسم **Artifacts** ← حمّل `apk`. ستجد داخله:
-- `tareeq-aljannah.apk` — يعمل على أي هاتف (الأسهل).
-- `tareeq-aljannah-arm64-v8a.apk` — أصغر حجماً، لمعظم الهواتف الحديثة.
-- `tareeq-aljannah-armeabi-v7a.apk` — للهواتف القديمة.
+- `tareeq-aljannah.apk`: يعمل على أي هاتف Android (الأسهل).
+- `tareeq-aljannah-arm64-v8a.apk`: أصغر حجماً، لمعظم الهواتف الحديثة.
+- `tareeq-aljannah-armeabi-v7a.apk`: للهواتف القديمة.
 
-**لإصدار نسخة رسمية:** أنشئ tag يبدأ بـ `v` وارفعه، فيُنشئ GitHub صفحة Release وعليها ملفات APK:
+## البناء التلقائي (CI/CD)
+عند كل `push` إلى أي فرع يقوم GitHub Actions بتحليل الكود وتشغيل الاختبارات وبناء ملفات APK (تجدها أيضاً في تبويب **Actions** ضمن **Artifacts**).
+وعند كل دمج في `master` يُنشر **إصدار جديد** تلقائياً (`v1.0.<رقم البناء>`) عليه ملفات APK للتحميل المباشر. يمكن أيضاً نشر إصدار باسم محدد برفع tag يبدأ بـ `v`:
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+git tag v2.0.0
+git push origin v2.0.0
 ```
 
 ### مفتاح التوقيع (مهم للتحديثات)
