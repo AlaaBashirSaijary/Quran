@@ -6,6 +6,7 @@ import 'package:quranapplication/widgets/horizontal_divider.dart';
 import 'package:quranapplication/widgets/marker.dart';
 
 import '../core/index.dart';
+import 'bookmarks_screen.dart';
 import '../providers/quran.dart';
 import '../providers/show_overlay_provider.dart';
 import '../quran/quran.dart';
@@ -48,12 +49,9 @@ class IndexScreen extends StatelessWidget {
         title: const Text(AppConstant.surahIndex),
         actions: [
           IconButton(
-            tooltip: AppConstant.goToBookMark,
-            icon: const Icon(Icons.bookmark_rounded),
-            onPressed: () {
-              final page = bookMark.markPageOrNotify(context);
-              if (page != null) openQuranPage(context, page, isTab: isTab);
-            },
+            tooltip: AppConstant.bookmarks,
+            icon: const Icon(Icons.bookmarks_rounded),
+            onPressed: () => BookmarksScreen.open(context, isTab: isTab),
           ),
           if (isTab)
             IconButton(
@@ -137,7 +135,7 @@ class IndexScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  if (isMarkedSurah(bookMark.markPage, surahNumber))
+                  if (isMarkedSurah(bookMark.pages, surahNumber))
                     const Marker(left: 60, alwaysShow: true),
                 ],
               );

@@ -6,6 +6,7 @@ import 'package:quranapplication/widgets/custom_container.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/index.dart';
+import '../../screens/bookmarks_screen.dart';
 import '../../providers/quran.dart';
 import '../../providers/show_overlay_provider.dart';
 import '../go_to_page_popup.dart';
@@ -28,11 +29,8 @@ class LandscapeOverlay extends StatelessWidget {
       fontSize: 15,
     );
 
-    void goToBookMark() {
-      final page = bookMark.markPageOrNotify(context);
-      if (page == null) return;
-      quran.goToPage(page);
-      overlay.toggleisShowOverlay();
+    void openBookmarks() {
+      BookmarksScreen.open(context, isTab: false);
     }
 
     return CustomContainer(
@@ -63,7 +61,7 @@ class LandscapeOverlay extends StatelessWidget {
                 icon: SvgPicture.asset(
                   bookMark.isMarkedPage ? AppAsset.saveFilled : AppAsset.save,
                 ),
-                onPressed: bookMark.changeMark,
+                onPressed: () => bookMark.toggleCurrentPage(context),
               ),
               IconButton(
                 icon: SvgPicture.asset(AppAsset.search),
@@ -88,11 +86,11 @@ class LandscapeOverlay extends StatelessWidget {
                 Expanded(
                   flex: 3,
                   child: TextButton.icon(
-                    onPressed: goToBookMark,
+                    onPressed: openBookmarks,
                     icon: SvgPicture.asset(AppAsset.saveFilled),
                     label: const FittedBox(
                       child: Text(
-                        AppConstant.goToBookMark,
+                        AppConstant.bookmarks,
                         style: textStyle,
                       ),
                     ),
