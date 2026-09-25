@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:quranapplication/azkar/azkar.dart';
 import 'package:quranapplication/main.dart';
 import 'package:quranapplication/providers/ahadith_details_provider.dart';
 import 'package:quranapplication/providers/bookmark.dart';
@@ -327,6 +328,71 @@ void main() {
       expect(isMarkedSurah({293}, 18), isTrue);
       expect(isMarkedSurah({293}, 19), isFalse);
       expect(isMarkedSurah({1, 604}, 114), isTrue);
+    });
+  });
+
+  group('Azkar', () {
+    late List<AzkarCategory> categories;
+
+    setUpAll(() async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      categories = await loadAzkar();
+    });
+
+    test('all categories load with their counts', () {
+      expect(
+        [for (final c in categories) c.id],
+        [
+          'morning',
+          'evening',
+          'afterPrayer',
+          'sleep',
+          'waking',
+          'tasabeeh',
+          'quranDuas',
+          'prophetsDuas',
+        ],
+      );
+      final morning = categories.first;
+      expect(morning.items, hasLength(25));
+      expect(morning.items.first.text, startsWith('أَصْبَحْنا'));
+      for (final c in categories) {
+        for (final d in c.items) {
+          expect(d.count, greaterThan(0), reason: d.text);
+          expect(d.text, isNot(contains('\u0640')), reason: 'no tatweel');
+        }
+      }
+    });
+
+    test('progress counts down, is kept for the day, and resets next day',
+        () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      var now = DateTime(2026, 9, 25, 7);
+      final morning = categories.first;
+      final threeTimes = morning.items.indexWhere((d) => d.count == 3);
+
+      final progress = AzkarProgress(prefs, morning, clock: () => now);
+      expect(progress.tap(threeTimes), isFalse);
+      expect(progress.tap(threeTimes), isFalse);
+      expect(progress.tap(threeTimes), isTrue);
+      expect(progress.isDone(threeTimes), isTrue);
+      expect(progress.tap(threeTimes), isFalse, reason: 'already done');
+
+      final later = AzkarProgress(prefs, morning, clock: () => now);
+      expect(later.isDone(threeTimes), isTrue);
+
+      now = now.add(const Duration(days: 1));
+      final tomorrow = AzkarProgress(prefs, morning, clock: () => now);
+      expect(tomorrow.remaining(threeTimes), 3);
+      expect(tomorrow.doneCount, 0);
+    });
+
+    test('suggests morning azkar before noon and evening ones after asr', () {
+      expect(suggestedCategory(DateTime(2026, 1, 1, 6)), 'morning');
+      expect(suggestedCategory(DateTime(2026, 1, 1, 17)), 'evening');
+      expect(suggestedCategory(DateTime(2026, 1, 1, 13)), isNull);
+      expect(suggestedCategory(DateTime(2026, 1, 1, 2)), isNull);
     });
   });
 }
