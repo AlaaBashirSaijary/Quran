@@ -9,12 +9,12 @@ import '../../core/index.dart';
 import '../../providers/quran.dart';
 import '../../providers/show_overlay_provider.dart';
 import '../go_to_page_popup.dart';
-import '../horizental_divider.dart';
+import '../horizontal_divider.dart';
 import '../vertical_divider.dart';
 import 'info_text.dart';
 
 class LandscapeOverlay extends StatelessWidget {
-  const LandscapeOverlay({Key? key}) : super(key: key);
+  const LandscapeOverlay({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -28,8 +28,10 @@ class LandscapeOverlay extends StatelessWidget {
       fontSize: 15,
     );
 
-    void _goToBookMark() {
-      quran.goToPage(bookMark.markPage);
+    void goToBookMark() {
+      final page = bookMark.markPageOrNotify(context);
+      if (page == null) return;
+      quran.goToPage(page);
       overlay.toggleisShowOverlay();
     }
 
@@ -70,12 +72,15 @@ class LandscapeOverlay extends StatelessWidget {
                 },
               ),
               IconButton(
-                icon: SvgPicture.asset(AppAsset.moon),
+                icon: SvgPicture.asset(
+                    Theme.of(context).brightness == Brightness.dark
+                        ? AppAsset.sun
+                        : AppAsset.moon),
                 onPressed: () => theme.toggleTheme(!theme.isDarkMode),
               ),
             ],
           ),
-          const HorizentalDiv(),
+          const HorizontalDiv(),
           SizedBox(
             height: 45,
             child: Row(
@@ -83,7 +88,7 @@ class LandscapeOverlay extends StatelessWidget {
                 Expanded(
                   flex: 3,
                   child: TextButton.icon(
-                    onPressed: _goToBookMark,
+                    onPressed: goToBookMark,
                     icon: SvgPicture.asset(AppAsset.saveFilled),
                     label: const FittedBox(
                       child: Text(

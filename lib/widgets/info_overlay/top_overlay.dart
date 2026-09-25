@@ -5,7 +5,7 @@ import '../page_info.dart';
 import '../page_side.dart';
 
 class TopOverlay extends StatelessWidget {
-  const TopOverlay({Key? key}) : super(key: key);
+  const TopOverlay({super.key});
 
   @override
   Widget build(BuildContext context) {

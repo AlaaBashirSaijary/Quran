@@ -1,5 +1,5 @@
 name: quranapplication
-description: A new Flutter project.
+description: طريق الجنة - تطبيق القرآن الكريم والأحاديث والسبحة.
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.0.6 <4.0.0'
+  sdk: '>=3.6.0 <4.0.0'
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -38,34 +38,34 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
   provider: ^6.0.3
-  carousel_slider: ^4.1.1
-  flutter_svg: ^1.1.3
+  carousel_slider: ^5.0.0
+  flutter_svg: ^2.2.0
   shared_preferences: ^2.0.15
-  flutter_native_splash: ^2.2.9
-  flutter_localization:
+  flutter_localizations:
+    sdk: flutter
   smooth_page_indicator:
-  animated_bottom_navigation_bar: ^1.3.3
-  auto_size_widget: ^0.0.4
-  auto_size_text:
-  circular_reveal_animation:
-  #flutter_localizations:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_launcher_icons: ^0.13.1
+  flutter_launcher_icons: ^0.14.4
+  flutter_lints: ^6.0.0
+  flutter_native_splash: ^2.4.6
 flutter_launcher_icons:
-  image_path: "assets/logo.png"
-  android: "launcher_icon"
+  image_path: "assets/launcher/icon.png"
+  android: true
+  adaptive_icon_background: "#1A5234"
+  adaptive_icon_foreground: "assets/launcher/icon_foreground.png"
+  ios: true
+  remove_alpha_ios: true
+  web:
+    generate: true
+    image_path: "assets/launcher/icon.png"
+    background_color: "#1F5E3B"
+    theme_color: "#1F5E3B"
 flutter_native_splash:
-  color: "#FFFFF9"
+  color: "#FFFDF6"
   image: assets/splash.png
 
-  # The "flutter_lints" package below contains a set of recommended lints to
-  # encourage good coding practices. The lint set provided by the package is
-  # activated in the `analysis_options.yaml` file located at the root of your
-  # package. See that file for information about deactivating specific lint
-  # rules and activating additional ones.
-  flutter_lints: ^2.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -85,7 +85,6 @@ flutter:
   assets:
     - assets/quran-images/
     - assets/icons/
-    - assets/logo.png
     - assets/splash.png
     - assets/
 

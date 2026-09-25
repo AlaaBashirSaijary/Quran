@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
 class InvertColor extends StatelessWidget {
-  const InvertColor({Key? key, required this.child, required this.isInvert})
-      : super(key: key);
+  const InvertColor({super.key, required this.child, required this.isInvert});
 
   final Widget child;
   final bool isInvert;

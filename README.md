@@ -1,18 +1,70 @@
-# Quran & Azkar App - Flutter  
-![App Screenshot](https://via.placeholder.com/300x600)  
+# طريق الجنة — تطبيق القرآن والأحاديث والسبحة (Flutter)
 
-✨ تطبيق شامل للقرآن والأذكار بميزات متقدمة، مبني بـ Flutter.  
+تطبيق عربي يعمل دون إنترنت، مبني بـ Flutter.
 
-## الميزات الرئيسية  
-- 📖 **قراءة القرآن** (أجزاء، سور، آيات) بدون إنترنت.  
-- 🔔 **تنبيهات أوقات الصلاة** (مزامنة مع Firebase).  
-- 🎨 **واجهة مستودرية** (Material Design).  
-- 📱 **يدعم iOS & Android**.  
+## الميزات
+- 📖 **مصحف المدينة كاملاً** (604 صفحات) مع فهرس السور والأجزاء والأحزاب، وحفظ آخر صفحة وعلامة مرجعية.
+- 🔍 **البحث في القرآن** بكلمة أو جزء من آية أو اسم سورة، والانتقال مباشرة إلى صفحتها.
+- 🕌 **الأحاديث النبوية** (الأربعون النووية).
+- 📿 **سبحة إلكترونية** تنتقل بين الأذكار كل 33 تسبيحة وتحفظ العدد.
+- 🌙 **وضع ليلي** يتبع إعداد الجهاز تلقائياً ويمكن تغييره من داخل المصحف.
+- 🤲 دعاء ختم القرآن.
 
-## كيفية التشغيل  
-1. تأكد من تثبيت Flutter:  
-   ```bash
-   flutter --version
-git clone https://github.com/AlaaBashirSaijary/quran-app.git
+## التشغيل
+يتطلب Flutter 3.27 أو أحدث.
+
+```bash
+git clone https://github.com/AlaaBashirSaijary/Quran.git
+cd Quran
 flutter pub get
 flutter run
+```
+
+## الاختبارات
+```bash
+flutter test
+```
+
+## تحميل APK من GitHub (CI/CD)
+عند كل `push` إلى أي فرع يقوم GitHub Actions تلقائياً بـ: تحليل الكود، تشغيل الاختبارات، ثم بناء ملفات APK.
+
+**لتحميل APK:** افتح تبويب **Actions** في المستودع ← اختر آخر تشغيل ناجح لـ **Build APK** ← في أسفل الصفحة قسم **Artifacts** ← حمّل `apk`. ستجد داخله:
+- `tareeq-aljannah.apk` — يعمل على أي هاتف (الأسهل).
+- `tareeq-aljannah-arm64-v8a.apk` — أصغر حجماً، لمعظم الهواتف الحديثة.
+- `tareeq-aljannah-armeabi-v7a.apk` — للهواتف القديمة.
+
+**لإصدار نسخة رسمية:** أنشئ tag يبدأ بـ `v` وارفعه، فيُنشئ GitHub صفحة Release وعليها ملفات APK:
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+### مفتاح التوقيع (مهم للتحديثات)
+بدون مفتاح توقيع ثابت، تُوقَّع كل نسخة بمفتاح عشوائي جديد، فيرفض الهاتف تثبيت النسخة الجديدة فوق القديمة (يجب حذف التطبيق أولاً). لإصلاح ذلك مرة واحدة:
+
+1. أنشئ مفتاحاً على جهازك (يحتاج Java) واحتفظ به وبكلمة المرور في مكان آمن — إن ضاع لن تستطيع تحديث التطبيق:
+   ```bash
+   keytool -genkey -v -keystore upload-keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+   base64 -w 0 upload-keystore.jks > keystore.txt
+   ```
+2. في GitHub: **Settings ← Secrets and variables ← Actions ← New repository secret**، وأضف:
+   - `ANDROID_KEYSTORE_BASE64`: محتوى `keystore.txt`
+   - `ANDROID_KEYSTORE_PASSWORD`: كلمة مرور المفتاح
+   - `ANDROID_KEY_ALIAS`: `upload`
+   - `ANDROID_KEY_PASSWORD`: كلمة مرور المفتاح
+
+لا ترفع ملف `upload-keystore.jks` إلى المستودع أبداً.
+
+## بناء نسخة Android بأصغر حجم
+صفحات المصحف هي الجزء الأكبر من حجم التطبيق (حوالي 39 ميغابايت). لتجنب إضافة حجم فوق ذلك:
+
+```bash
+# لرفعه على Google Play (المتجر يرسل لكل جهاز ما يحتاجه فقط)
+flutter build appbundle --release
+
+# أو ملفات APK منفصلة لكل نوع معالج بدل ملف واحد كبير
+flutter build apk --release --split-per-abi
+```
+
+## مصادر البيانات
+- نص القرآن المستخدم في البحث (الرسم العثماني) من [الموسوعة القرآنية quranenc.com](https://quranenc.com) عبر حزمة [quran-json](https://github.com/risan/quran-json)، وأرقام الصفحات من حزمة [quran-meta](https://github.com/quran-center/quran-meta)، وقد طوبقت مع بيانات صفحات المصحف في التطبيق.

@@ -1,0 +1,107 @@
+name: Build APK
+
+on:
+  push:
+    branches: ['**']
+    tags: ['v*']
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Test and build APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.47.5'
+          cache: true
+
+      - name: Install packages
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Run tests
+        run: flutter test
+
+      # Optional: sign with your own key so each new APK can update the
+      # previous one. Without these secrets, every run uses a new random debug
+      # key, and Android refuses to install it over an older build.
+      - name: Set up release signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        if: env.HAS_KEYSTORE == 'true'
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
+          cat > android/key.properties <<EOF
+          storeFile=upload-keystore.jks
+          storePassword=$KEYSTORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
+          EOF
+
+      - name: Build APKs
+        run: |
+          # One APK that installs on any phone
+          flutter build apk --release --build-number=${{ github.run_number }}
+          # Smaller APKs, one per processor type
+          flutter build apk --release --split-per-abi --build-number=${{ github.run_number }}
+
+      - name: Collect APKs
+        run: |
+          mkdir -p dist
+          cd build/app/outputs/flutter-apk
+          cp app-release.apk ../../../../dist/tareeq-aljannah.apk
+          cp app-arm64-v8a-release.apk ../../../../dist/tareeq-aljannah-arm64-v8a.apk
+          cp app-armeabi-v7a-release.apk ../../../../dist/tareeq-aljannah-armeabi-v7a.apk
+          cp app-x86_64-release.apk ../../../../dist/tareeq-aljannah-x86_64.apk
+          ls -lh ../../../../dist
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: apk
+          path: dist/*.apk
+          retention-days: 30
+
+  release:
+    name: Publish GitHub release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: apk
+          path: dist
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.apk
+          generate_release_notes: true

@@ -3,12 +3,11 @@ import 'package:flutter_svg/svg.dart';
 
 class InfoText extends StatelessWidget {
   const InfoText(
-      {Key? key,
+      {super.key,
       required this.text,
       this.svgIcon,
       this.color = Colors.white,
-      this.padding = 5})
-      : super(key: key);
+      this.padding = 5});
 
   final String? svgIcon;
   final String text;
@@ -22,7 +21,10 @@ class InfoText extends StatelessWidget {
       child: Row(
         children: [
           if (svgIcon != null) ...[
-            SvgPicture.asset(svgIcon!, color: color),
+            SvgPicture.asset(
+              svgIcon!,
+              colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+            ),
             const SizedBox(width: 5),
           ],
           Text(

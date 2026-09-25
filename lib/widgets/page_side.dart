@@ -6,7 +6,7 @@ import '../core/index.dart';
 import '../providers/quran.dart';
 
 class PageSide extends StatelessWidget {
-  const PageSide({Key? key}) : super(key: key);
+  const PageSide({super.key});
 
   @override
   Widget build(BuildContext context) {

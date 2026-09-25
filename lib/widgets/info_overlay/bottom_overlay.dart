@@ -10,12 +10,12 @@ import '../../providers/theme_provider.dart';
 import '../custom_button.dart';
 import '../custom_container.dart';
 import '../go_to_page_popup.dart';
-import '../horizental_divider.dart';
+import '../horizontal_divider.dart';
 import '../vertical_divider.dart';
 import 'search_button.dart';
 
 class BottomOverlay extends StatelessWidget {
-  const BottomOverlay({Key? key}) : super(key: key);
+  const BottomOverlay({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -24,8 +24,10 @@ class BottomOverlay extends StatelessWidget {
     final themeListenFalse = Provider.of<ThemeProvider>(context, listen: false);
     final overlay = Provider.of<ShowOverlayProvider>(context, listen: false);
 
-    void _goToBookMark() {
-      quran.goToPage(bookMark.markPage);
+    void goToBookMark() {
+      final page = bookMark.markPageOrNotify(context);
+      if (page == null) return;
+      quran.goToPage(page);
       overlay.toggleisShowOverlay();
     }
 
@@ -48,7 +50,7 @@ class BottomOverlay extends StatelessWidget {
               ],
             ),
           ),
-          const HorizentalDiv(),
+          const HorizontalDiv(),
           SizedBox(
             height: 45,
             child: Row(
@@ -56,7 +58,7 @@ class BottomOverlay extends StatelessWidget {
                 Expanded(
                   flex: 5,
                   child: TextButton.icon(
-                    onPressed: _goToBookMark,
+                    onPressed: goToBookMark,
                     icon: SvgPicture.asset(AppAsset.saveFilled),
                     label: const FittedBox(
                       child: Text(
@@ -89,12 +91,10 @@ class BottomOverlay extends StatelessWidget {
                 ),
                 const VerticalDiv(),
                 IconButton(
-                  icon: Consumer<ThemeProvider>(
-                    builder: (context, theme, child) {
-                      return SvgPicture.asset(
-                          theme.isDarkMode ? AppAsset.sun : AppAsset.moon);
-                    },
-                  ),
+                  icon: SvgPicture.asset(
+                      Theme.of(context).brightness == Brightness.dark
+                          ? AppAsset.sun
+                          : AppAsset.moon),
                   onPressed: () {
                     themeListenFalse.toggleTheme(!themeListenFalse.isDarkMode);
                   },
@@ -102,7 +102,7 @@ class BottomOverlay extends StatelessWidget {
               ],
             ),
           ),
-          const HorizentalDiv(),
+          const HorizontalDiv(),
           SizedBox(
             height: 45,
             child: Row(

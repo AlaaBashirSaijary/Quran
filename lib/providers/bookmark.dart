@@ -8,10 +8,11 @@ class BookMarkProvider extends ChangeNotifier {
 
   late int currentPage;
 
-  late int markPage;
+  /// The saved page, or null until the user saves a bookmark.
+  int? markPage;
 
   BookMarkProvider(this.prefs) {
-    markPage = prefs.getInt('mark') ?? 1;
+    markPage = prefs.getInt('mark');
   }
 
   void update(int newPage) {
@@ -26,14 +27,24 @@ class BookMarkProvider extends ChangeNotifier {
   }
 
   Color get markButtonColor {
-    return isMarkedPage
-        ?  Colors.blue
-        : Colors.transparent;
+    return isMarkedPage ? AppColor.gold : Colors.transparent;
   }
 
   void changeMark() {
     markPage = currentPage;
     notifyListeners();
     prefs.setInt('mark', currentPage);
+  }
+
+  /// Returns the bookmarked page, or tells the user there is none yet.
+  int? markPageOrNotify(BuildContext context) {
+    if (markPage == null) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text(AppConstant.noBookmarkYet)),
+        );
+    }
+    return markPage;
   }
 }

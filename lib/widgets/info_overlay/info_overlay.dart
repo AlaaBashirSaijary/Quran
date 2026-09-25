@@ -5,7 +5,7 @@ import 'landscape_overlay.dart';
 import 'top_overlay.dart';
 
 class InfoOverlay extends StatelessWidget {
-  const InfoOverlay({Key? key}) : super(key: key);
+  const InfoOverlay({super.key});
 
   @override
   Widget build(BuildContext context) {

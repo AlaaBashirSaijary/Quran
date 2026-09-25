@@ -7,19 +7,20 @@ import '../providers/quran.dart';
 import '../quran/quran.dart';
 import 'custom_button.dart';
 import 'info_overlay/info_text.dart';
-import 'page_feild.dart';
+import 'page_field.dart';
 
 class GoToPagePopup extends StatefulWidget {
-  const GoToPagePopup({Key? key}) : super(key: key);
+  const GoToPagePopup({super.key});
 
   @override
   State<GoToPagePopup> createState() => _GoToPagePopupState();
 }
 
-int currentPage = -1;
-String textC = '';
-
 class _GoToPagePopupState extends State<GoToPagePopup> {
+  /// The valid page typed so far, or -1.
+  int currentPage = -1;
+  String textC = '';
+
   @override
   Widget build(BuildContext context) {
     final quran = Provider.of<Quran>(context, listen: false);
@@ -36,11 +37,10 @@ class _GoToPagePopupState extends State<GoToPagePopup> {
       return -1;
     }
 
-    void _goToPage(String page) {
+    void goToPage(String page) {
       if (typedPage(page) != -1) {
         quran.goToPage(int.parse(page));
       }
-      currentPage = -1;
       Navigator.of(context).pop();
     }
 
@@ -57,14 +57,14 @@ class _GoToPagePopupState extends State<GoToPagePopup> {
                   const Text(AppConstant.goToPage),
                   const SizedBox(width: 10),
                   Flexible(
-                    child: PageFeild(
+                    child: PageField(
                       onChanged: (text) {
                         textC = text;
                         setState(() {
                           currentPage = typedPage(text);
                         });
                       },
-                      onSubmitted: _goToPage,
+                      onSubmitted: goToPage,
                     ),
                   ),
                 ],
@@ -75,7 +75,7 @@ class _GoToPagePopupState extends State<GoToPagePopup> {
                 PageInfo(currentPage: currentPage),
                 const SizedBox(height: 10),
               ],
-              ActionButtons(_goToPage, textC: textC),
+              ActionButtons(goToPage, textC: textC),
             ],
           ),
         ),
@@ -87,9 +87,9 @@ class _GoToPagePopupState extends State<GoToPagePopup> {
 class ActionButtons extends StatelessWidget {
   const ActionButtons(
     this.goToPage, {
-    Key? key,
+    super.key,
     required this.textC,
-  }) : super(key: key);
+  });
 
   final String textC;
   final Function(String) goToPage;
@@ -113,7 +113,9 @@ class ActionButtons extends StatelessWidget {
         CustomButton(
           onPressed: () => goToPage(textC),
           onPrimary: Colors.white,
-          primary: Colors.pinkAccent,
+          primary: Theme.of(context).colorScheme.primary,
+          isFilled: true,
+          borderRadius: 10,
           text: AppConstant.move,
         ),
       ],
@@ -123,9 +125,9 @@ class ActionButtons extends StatelessWidget {
 
 class PageInfo extends StatelessWidget {
   const PageInfo({
-    Key? key,
+    super.key,
     required this.currentPage,
-  }) : super(key: key);
+  });
 
   final int currentPage;
 

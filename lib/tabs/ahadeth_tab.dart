@@ -1,79 +1,64 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../model/hadith_model.dart';
-import '../widgets/hadith_details.dart';
+import '../core/index.dart';
 import '../providers/ahadith_details_provider.dart';
-import '../providers/my_provider.dart';
+import '../widgets/hadith_details.dart';
 
-class AhadithTab extends StatefulWidget {
+class AhadithTab extends StatelessWidget {
   const AhadithTab({super.key});
 
   @override
-  State<AhadithTab> createState() => _AhadithTabState();
-}
-
-class _AhadithTabState extends State<AhadithTab> {
-  @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<AhadithDetailsProvider>(context);
+    final colorScheme = Theme.of(context).colorScheme;
 
-    return ChangeNotifierProvider<AhadithDetailsProvider>(
-      create: (context) => AhadithDetailsProvider()..loadHadithFile(),
-      builder: (context, child) {
-        var provider = Provider.of<AhadithDetailsProvider>(context);
-        var providerC = Provider.of<MyProvider>(context);
-
-        return Scaffold(
-          backgroundColor: Colors.blue.shade50,
-          body: Column(
-            children: [
-              Image.asset('assets/ic_hadith_top.png'),
-              Divider(
-                thickness: 3,
-                color: Colors.pinkAccent
-              ),
-              Text(
-               "الأحاديث النبوية الشريفة",
-                style:TextStyle(
-                  color: Colors.pink,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold
-                ),
-                textAlign: TextAlign.center,
-              ),
-              Divider(
-                thickness: 3,
-                color: Colors.pinkAccent
-              ),
-              Expanded(
-                  child: ListView.separated(
-                    separatorBuilder: (context, index) => const SizedBox(height: 10),
-                    itemBuilder: (context, index) {
-                      return InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => HadithDetails(arghadith: HadithModel(title: provider.ahadithData[index].title,content: provider.ahadithData[index].content)),
-                            ),
-
-                          );
-                          print(provider.ahadithData[index].title);
-                          print(provider.ahadithData[index].content);
-                          print(provider.ahadithData[3].title);
-                          print(provider.ahadithData[3].content);
-                        },
-                        child: Text(provider.ahadithData[index].title,
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.bodyMedium),
+    return Scaffold(
+      appBar: AppBar(title: const Text('الأحاديث النبوية')),
+      body: provider.ahadithData.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : ListView.separated(
+              padding: const EdgeInsets.all(16),
+              itemCount: provider.ahadithData.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 10),
+              itemBuilder: (context, index) {
+                final hadith = provider.ahadithData[index];
+                return Card(
+                  clipBehavior: Clip.antiAlias,
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 4,
+                    ),
+                    leading: CircleAvatar(
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
+                      child: Text('${index + 1}'),
+                    ),
+                    title: Text(
+                      hadith.title,
+                      style: const TextStyle(
+                        fontFamily: AppTheme.secondaryFontFamily,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    trailing: Icon(
+                      Icons.chevron_left_rounded,
+                      color: colorScheme.gold,
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => HadithDetails(hadith: hadith),
+                        ),
                       );
                     },
-                    itemCount: provider.ahadithData.length,
-                  ))
-            ],
-          ),
-        );
-      },
+                  ),
+                );
+              },
+            ),
     );
   }
 }

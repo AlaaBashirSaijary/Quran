@@ -1,90 +1,50 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
+import '../core/index.dart';
 import '../model/hadith_model.dart';
-import '../providers/ahadith_details_provider.dart';
-import '../providers/my_provider.dart';
-
-
 
 class HadithDetails extends StatelessWidget {
-  const HadithDetails({super.key, required this.arghadith});
-  static const String routeName = 'HadithDetails';
-  final HadithModel arghadith;
+  const HadithDetails({super.key, required this.hadith});
+
+  final HadithModel hadith;
+
   @override
   Widget build(BuildContext context) {
-    var provider = Provider.of<MyProvider>(context);
+    final colorScheme = Theme.of(context).colorScheme;
 
-    return Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            fit: BoxFit.cover,
-            image: AssetImage(provider.getBackgroundImage()),
-          ),
-        ),
-        child: Scaffold(
-          appBar: AppBar(
-            backgroundColor: Colors.pinkAccent,
-
-            title: Text('الأحاديث النبوية الشريفة',style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 25,
-              color: Colors.white
-            ),),
-            centerTitle: true,
-          ),
-          body: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Container(
-              margin: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: provider.mode == ThemeMode.light
-                    ? const Color(0xFFF8F8F8).withOpacity(.8)
-                    : const Color(0xFF141A2E),
-                borderRadius: BorderRadius.circular(25),
-              ),
+    return Scaffold(
+      appBar: AppBar(title: Text(hadith.title)),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
               child: Column(
                 children: [
-                  const SizedBox(height: 20),
-                  Text(
-                    arghadith.title,
-                    style:TextStyle(
-                        fontSize: 25,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.black
+                  Icon(Icons.format_quote_rounded,
+                      color: colorScheme.gold, size: 36),
+                  const SizedBox(height: 12),
+                  for (final line in hadith.content)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        line,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 19,
+                          height: 1.9,
+                          fontWeight: FontWeight.w400,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
                     ),
-                  ),
-                  Divider(
-                    indent: 50,
-                    endIndent: 50,
-                      color: Colors.black
-
-                  ),
-                  SizedBox(
-                    height: 12,
-                  ),
-                  Expanded(
-                    child: ListView.builder(
-                      itemBuilder: (context, index) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Text( arghadith.content[index],
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 20,
-                                color: Colors.black
-                              ),),
-                        );
-                      },
-                      itemCount:arghadith.content.length,
-                    ),
-                  )
                 ],
               ),
             ),
           ),
-        ),
-
+        ],
+      ),
     );
   }
 }

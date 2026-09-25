@@ -5,7 +5,7 @@ import '../core/index.dart';
 import '../providers/quran.dart';
 
 class SimplePageInfo extends StatelessWidget {
-  const SimplePageInfo({Key? key}) : super(key: key);
+  const SimplePageInfo({super.key});
 
   @override
   Widget build(BuildContext context) {

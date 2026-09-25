@@ -5,15 +5,18 @@ import 'package:provider/provider.dart';
 import '../core/index.dart';
 
 class Marker extends StatelessWidget {
-  const Marker({Key? key, this.left = 20}) : super(key: key);
+  const Marker({super.key, this.left = 20, this.alwaysShow = false});
 
   final double left;
+
+  /// Show even when the reader is not on the bookmarked page.
+  final bool alwaysShow;
 
   @override
   Widget build(BuildContext context) {
     final bookMark = Provider.of<BookMarkProvider>(context);
 
-    if (bookMark.isMarkedPage) {
+    if (alwaysShow || bookMark.isMarkedPage) {
       return Positioned(
         left: left,
         top: 0,

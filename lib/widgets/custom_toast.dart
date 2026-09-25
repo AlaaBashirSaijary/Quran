@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:quranapplication/providers/toast.dart';
 import 'package:provider/provider.dart';
 
+import '../core/index.dart';
+
 import '../providers/quran.dart';
 
 class CustomToast extends StatelessWidget {
-  const CustomToast({Key? key}) : super(key: key);
+  const CustomToast({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +22,8 @@ class CustomToast extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(30),
-            color: Colors.pinkAccent,
+            color: Theme.of(context).colorScheme.overlay,
+            border: Border.all(color: Theme.of(context).colorScheme.gold),
           ),
           child: Text(
             quran.hizbText,
