@@ -6,11 +6,11 @@ import '../core/index.dart';
 
 class CustomContainer extends StatelessWidget {
   const CustomContainer({
-    Key? key,
+    super.key,
     required this.child,
     this.padding = EdgeInsets.zero,
     this.offsetY = 1,
-  }) : super(key: key);
+  });
 
   final Widget child;
   final EdgeInsets padding;
@@ -39,7 +39,8 @@ class CustomContainer extends StatelessWidget {
                     color: colorScheme.overlay,
                     border: Border.all(
                       width: 1.5,
-                      color: colorScheme.gold.withValues(alpha: isDark ? 0.6 : 0.8),
+                      color: colorScheme.gold
+                          .withValues(alpha: isDark ? 0.6 : 0.8),
                     ),
                     boxShadow: const [
                       BoxShadow(

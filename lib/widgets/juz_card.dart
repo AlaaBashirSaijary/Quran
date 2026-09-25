@@ -11,8 +11,7 @@ const vDiv = VerticalDiv(color: _divColor);
 const hDiv = HorizontalDiv(color: _divColor);
 
 class JuzCard extends StatelessWidget {
-  const JuzCard({Key? key, required this.juz, this.isTab = false})
-      : super(key: key);
+  const JuzCard({super.key, required this.juz, this.isTab = false});
 
   final int juz;
   final bool isTab;
@@ -115,12 +114,11 @@ class JuzCard extends StatelessWidget {
 
 class CustomText extends StatelessWidget {
   const CustomText(this.text,
-      {Key? key,
+      {super.key,
       this.fontSize,
       required this.page,
       required this.isTab,
-      this.fontWeight})
-      : super(key: key);
+      this.fontWeight});
 
   final String text;
   final double? fontSize;

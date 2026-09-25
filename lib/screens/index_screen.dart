@@ -33,7 +33,7 @@ void openQuranPage(BuildContext context, int page, {required bool isTab}) {
 }
 
 class IndexScreen extends StatelessWidget {
-  const IndexScreen({Key? key, this.isTab = false}) : super(key: key);
+  const IndexScreen({super.key, this.isTab = false});
 
   final bool isTab;
 
@@ -50,8 +50,10 @@ class IndexScreen extends StatelessWidget {
           IconButton(
             tooltip: AppConstant.goToBookMark,
             icon: const Icon(Icons.bookmark_rounded),
-            onPressed: () =>
-                openQuranPage(context, bookMark.markPage, isTab: isTab),
+            onPressed: () {
+              final page = bookMark.markPageOrNotify(context);
+              if (page != null) openQuranPage(context, page, isTab: isTab);
+            },
           ),
           if (isTab)
             IconButton(

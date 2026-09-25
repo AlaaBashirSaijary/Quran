@@ -14,7 +14,7 @@ import '../widgets/page_number.dart';
 import '../widgets/simple_page_info.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +81,11 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ),
                 const Marker(),
-                if (!overlay.isShowOverlay) const CustomToast(),
+                Consumer<ShowOverlayProvider>(
+                  builder: (context, overlay, child) =>
+                      overlay.isShowOverlay ? const SizedBox.shrink() : child!,
+                  child: const CustomToast(),
+                ),
                 const InfoOverlay(),
               ],
             ),

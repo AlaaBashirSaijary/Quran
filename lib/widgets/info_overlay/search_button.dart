@@ -4,7 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import '../../core/index.dart';
 
 class SearchButton extends StatelessWidget {
-  const SearchButton({Key? key}) : super(key: key);
+  const SearchButton({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +29,10 @@ class SearchButton extends StatelessWidget {
           ),
           SvgPicture.asset(
             AppAsset.search,
-            color: AppColor.greenDark,
+            colorFilter: const ColorFilter.mode(
+              AppColor.greenDark,
+              BlendMode.srcIn,
+            ),
           ),
         ],
       ),

@@ -76,7 +76,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               alignment: AlignmentDirectional.topEnd,
               child: TextButton(
                 onPressed: _finish,
-                child: Text('تخطٍّ', style: TextStyle(color: colorScheme.gold)),
+                child: Text('تخطَّ', style: TextStyle(color: colorScheme.gold)),
               ),
             ),
             Expanded(

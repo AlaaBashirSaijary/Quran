@@ -3,7 +3,7 @@ import 'package:flutter_svg/svg.dart';
 
 class CustomButton extends StatelessWidget {
   const CustomButton({
-    Key? key,
+    super.key,
     required this.onPrimary,
     required this.text,
     required this.onPressed,
@@ -11,7 +11,7 @@ class CustomButton extends StatelessWidget {
     this.primary,
     this.svgIcon,
     this.borderRadius = 5,
-  }) : super(key: key);
+  });
 
   final bool isFilled;
   final Color? primary;

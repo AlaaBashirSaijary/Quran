@@ -24,8 +24,9 @@ class _SplashScreenState extends State<SplashScreen> {
           widget.prefs.getBool(OnboardingScreen.seenKey) ?? false;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (_) =>
-              seenOnboarding ? const MainTabsScreen() : const OnboardingScreen(),
+          builder: (_) => seenOnboarding
+              ? const MainTabsScreen()
+              : const OnboardingScreen(),
         ),
       );
     });

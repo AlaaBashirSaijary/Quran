@@ -4,7 +4,7 @@ import '../quran/quran.dart';
 import 'invert_color.dart';
 
 class QuranPage extends StatelessWidget {
-  const QuranPage({Key? key, required this.pageIndex}) : super(key: key);
+  const QuranPage({super.key, required this.pageIndex});
 
   final int pageIndex;
 

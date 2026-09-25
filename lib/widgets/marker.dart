@@ -5,8 +5,7 @@ import 'package:provider/provider.dart';
 import '../core/index.dart';
 
 class Marker extends StatelessWidget {
-  const Marker({Key? key, this.left = 20, this.alwaysShow = false})
-      : super(key: key);
+  const Marker({super.key, this.left = 20, this.alwaysShow = false});
 
   final double left;
 

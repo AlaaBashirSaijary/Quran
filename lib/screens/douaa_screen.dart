@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/index.dart';
 
 class DouaaScreen extends StatelessWidget {
-  const DouaaScreen({Key? key}) : super(key: key);
+  const DouaaScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

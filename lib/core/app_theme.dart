@@ -54,9 +54,7 @@ class AppTheme {
           (states) => TextStyle(
             fontFamily: fontFamily,
             fontSize: 13,
-            fontWeight: states.contains(WidgetState.selected)
-                ? _bold
-                : _medium,
+            fontWeight: states.contains(WidgetState.selected) ? _bold : _medium,
             color: states.contains(WidgetState.selected)
                 ? colorScheme.primary
                 : onBg.withValues(alpha: 0.6),
@@ -83,7 +81,8 @@ class AppTheme {
             TextStyle(fontWeight: _semiBold, fontSize: 32, color: onBg),
         headlineMedium:
             TextStyle(fontWeight: _semiBold, fontSize: 24, color: onBg),
-        headlineSmall: TextStyle(fontWeight: _medium, fontSize: 20, color: onBg),
+        headlineSmall:
+            TextStyle(fontWeight: _medium, fontSize: 20, color: onBg),
         titleLarge: TextStyle(fontWeight: _semiBold, fontSize: 18, color: onBg),
         titleMedium: TextStyle(fontWeight: _medium, fontSize: 16, color: onBg),
         //

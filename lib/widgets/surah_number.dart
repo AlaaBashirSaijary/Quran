@@ -4,7 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import '../core/index.dart';
 
 class SurahNumber extends StatelessWidget {
-  const SurahNumber({Key? key, required this.number}) : super(key: key);
+  const SurahNumber({super.key, required this.number});
 
   final int number;
 
@@ -16,7 +16,7 @@ class SurahNumber extends StatelessWidget {
       children: [
         SvgPicture.asset(
           AppAsset.surahNumber,
-          color: colorScheme.gold,
+          colorFilter: ColorFilter.mode(colorScheme.gold, BlendMode.srcIn),
         ),
         Padding(
           padding: const EdgeInsets.only(top: 3),

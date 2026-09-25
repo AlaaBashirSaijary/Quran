@@ -30,7 +30,8 @@ class SearchResults {
   bool get isEmpty => surahs.isEmpty && ayahs.isEmpty;
 }
 
-final _marks = RegExp('[\u0610-\u061A\u064B-\u065F\u06D6-\u06E4\u06E8-\u06ED\u0640]');
+final _marks =
+    RegExp('[\u0610-\u061A\u064B-\u065F\u06D6-\u06E4\u06E8-\u06ED\u0640]');
 final _alefs = RegExp('[\u0621\u0622\u0623\u0625\u0627\u0671]');
 final _spaces = RegExp(r'\s+');
 
@@ -45,7 +46,8 @@ String normalizeArabic(String text) {
       .replaceAll('\u0648\u0670', '')
       .replaceAll('\u0670', '')
       .replaceAll('\u06E5', '') // small waw: لَهُۥ
-      .replaceAll(RegExp('[\u06E6\u06E7]'), '\u064A') // small yeh: إِبۡرَٰهِـۧمَ
+      .replaceAll(
+          RegExp('[\u06E6\u06E7]'), '\u064A') // small yeh: إِبۡرَٰهِـۧمَ
       .replaceAll(_alefs, '')
       .replaceAll('\u0649', '\u064A') // ى -> ي
       .replaceAll('\u0629', '\u0647') // ة -> ه

@@ -7,7 +7,7 @@ import '../core/index.dart';
 import '../providers/quran.dart';
 
 class CustomToast extends StatelessWidget {
-  const CustomToast({Key? key}) : super(key: key);
+  const CustomToast({super.key});
 
   @override
   Widget build(BuildContext context) {

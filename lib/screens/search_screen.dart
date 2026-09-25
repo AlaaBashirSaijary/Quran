@@ -7,7 +7,7 @@ import '../widgets/surah_number.dart';
 import 'index_screen.dart';
 
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({Key? key, this.isTab = false}) : super(key: key);
+  const SearchScreen({super.key, this.isTab = false});
 
   /// Opened from the main tabs rather than from inside the reader.
   final bool isTab;

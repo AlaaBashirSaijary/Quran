@@ -48,7 +48,7 @@ void main() {
 
     expect(find.text('التالي'), findsOneWidget);
 
-    await tester.tap(find.text('تخطٍّ'));
+    await tester.tap(find.text('تخطَّ'));
     await tester.pumpAndSettle();
 
     expect(find.text('فهرس السور'), findsOneWidget);
@@ -58,7 +58,8 @@ void main() {
   testWidgets('sebha moves to the next zikr after 33 taps', (tester) async {
     SharedPreferences.setMockInitialValues({});
     await tester.pumpWidget(
-      const MaterialApp(home: Directionality(
+      const MaterialApp(
+          home: Directionality(
         textDirection: TextDirection.rtl,
         child: SebhaTab(),
       )),
@@ -159,5 +160,30 @@ void main() {
     test('ignores queries shorter than two letters', () {
       expect(search.search('ا').isEmpty, isTrue);
     });
+  });
+
+  test('there is no bookmark until one is saved', () async {
+    SharedPreferences.setMockInitialValues({});
+    final bookMark = BookMarkProvider(await SharedPreferences.getInstance())
+      ..update(1);
+
+    expect(bookMark.markPage, isNull);
+    expect(bookMark.isMarkedPage, isFalse);
+    expect(isMarkedSurah(bookMark.markPage, 1), isFalse);
+  });
+
+  test('a bookmark marks every surah on its page', () async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    BookMarkProvider(prefs)
+      ..update(293)
+      ..changeMark();
+
+    // Page 293 ends Al-Isra and begins Al-Kahf.
+    final markPage = BookMarkProvider(prefs).markPage;
+    expect(markPage, 293);
+    expect(isMarkedSurah(markPage, 17), isTrue);
+    expect(isMarkedSurah(markPage, 18), isTrue);
+    expect(isMarkedSurah(markPage, 19), isFalse);
   });
 }

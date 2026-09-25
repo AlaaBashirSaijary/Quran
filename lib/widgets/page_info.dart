@@ -6,7 +6,7 @@ import '../providers/quran.dart';
 import 'info_overlay/info_text.dart';
 
 class PageInfo extends StatelessWidget {
-  const PageInfo({Key? key}) : super(key: key);
+  const PageInfo({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -1,11 +1,11 @@
 {
-    "name": "quranapplication",
-    "short_name": "quranapplication",
+    "name": "طريق الجنة",
+    "short_name": "طريق الجنة",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#1F5E3B",
     "theme_color": "#1F5E3B",
-    "description": "A new Flutter project.",
+    "description": "طريق الجنة - القرآن الكريم والأحاديث والسبحة",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
@@ -31,5 +31,7 @@
             "type": "image/png",
             "purpose": "maskable"
         }
-    ]
+    ],
+    "lang": "ar",
+    "dir": "rtl"
 }

@@ -53,7 +53,7 @@ Future<void> main() async {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key, required this.prefs}) : super(key: key);
+  const MyApp({super.key, required this.prefs});
 
   final SharedPreferences prefs;
 

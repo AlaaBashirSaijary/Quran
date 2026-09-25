@@ -1,5 +1,5 @@
-class HadithModel{
+class HadithModel {
   String title;
-  List<String>content;
-  HadithModel({required this.title,required this.content});
+  List<String> content;
+  HadithModel({required this.title, required this.content});
 }

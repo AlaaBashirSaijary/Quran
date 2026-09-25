@@ -15,7 +15,7 @@ import '../vertical_divider.dart';
 import 'search_button.dart';
 
 class BottomOverlay extends StatelessWidget {
-  const BottomOverlay({Key? key}) : super(key: key);
+  const BottomOverlay({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -24,8 +24,10 @@ class BottomOverlay extends StatelessWidget {
     final themeListenFalse = Provider.of<ThemeProvider>(context, listen: false);
     final overlay = Provider.of<ShowOverlayProvider>(context, listen: false);
 
-    void _goToBookMark() {
-      quran.goToPage(bookMark.markPage);
+    void goToBookMark() {
+      final page = bookMark.markPageOrNotify(context);
+      if (page == null) return;
+      quran.goToPage(page);
       overlay.toggleisShowOverlay();
     }
 
@@ -56,7 +58,7 @@ class BottomOverlay extends StatelessWidget {
                 Expanded(
                   flex: 5,
                   child: TextButton.icon(
-                    onPressed: _goToBookMark,
+                    onPressed: goToBookMark,
                     icon: SvgPicture.asset(AppAsset.saveFilled),
                     label: const FittedBox(
                       child: Text(

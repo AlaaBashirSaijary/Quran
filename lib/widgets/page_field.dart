@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class PageField extends StatefulWidget {
-  const PageField({Key? key, required this.onChanged, required this.onSubmitted}) : super(key: key);
+  const PageField(
+      {super.key, required this.onChanged, required this.onSubmitted});
 
   final void Function(String) onChanged;
   final void Function(String) onSubmitted;

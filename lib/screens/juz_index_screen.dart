@@ -8,7 +8,7 @@ import '../widgets/juz_card.dart';
 import 'index_screen.dart';
 
 class JuzIndexScreen extends StatelessWidget {
-  const JuzIndexScreen({Key? key, this.isTab = false}) : super(key: key);
+  const JuzIndexScreen({super.key, this.isTab = false});
 
   /// Opened from the main tabs rather than from inside the reader.
   final bool isTab;
@@ -25,8 +25,10 @@ class JuzIndexScreen extends StatelessWidget {
           IconButton(
             tooltip: AppConstant.goToBookMark,
             icon: const Icon(Icons.bookmark_rounded),
-            onPressed: () =>
-                openQuranPage(context, bookMark.markPage, isTab: isTab),
+            onPressed: () {
+              final page = bookMark.markPageOrNotify(context);
+              if (page != null) openQuranPage(context, page, isTab: isTab);
+            },
           ),
         ],
       ),

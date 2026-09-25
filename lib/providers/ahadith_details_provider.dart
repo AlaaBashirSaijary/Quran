@@ -10,6 +10,8 @@ class AhadithDetailsProvider extends ChangeNotifier {
     final hadithFile = await rootBundle.loadString('assets/ahadeth.txt');
     ahadithData = hadithFile
         .replaceAll('\uFEFF', '')
+        // Tatweel was used to stretch words (أمـيـر), which reads as noise
+        .replaceAll('\u0640', '')
         .split('#')
         .map((hadith) => hadith.trim())
         .where((hadith) => hadith.isNotEmpty)
