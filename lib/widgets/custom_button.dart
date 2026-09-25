@@ -23,10 +23,7 @@ class CustomButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textStyle = TextStyle(
-      color: onPrimary,
-      fontSize: 15,
-    );
+    final textStyle = TextStyle(color: onPrimary, fontSize: 15);
     return GestureDetector(
       onTap: onPressed,
       child: Container(
@@ -43,10 +40,7 @@ class CustomButton extends StatelessWidget {
               SvgPicture.asset(svgIcon!),
               const SizedBox(width: 5),
             ],
-            Text(
-              text,
-              style: textStyle,
-            ),
+            Text(text, style: textStyle),
           ],
         ),
       ),

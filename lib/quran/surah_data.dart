@@ -5,7 +5,7 @@ var surah = [
     "aya": 7,
     "english": "The Opening",
     "place": "مكية",
-    "arabic": "الفاتحة"
+    "arabic": "الفاتحة",
   },
   {
     "id": 2,
@@ -13,7 +13,7 @@ var surah = [
     "aya": 286,
     "english": "The Cow",
     "place": "مدنية",
-    "arabic": "البقرة"
+    "arabic": "البقرة",
   },
   {
     "id": 3,
@@ -21,7 +21,7 @@ var surah = [
     "aya": 200,
     "english": "The Family of Imran",
     "place": "مدنية",
-    "arabic": "آل عمران"
+    "arabic": "آل عمران",
   },
   {
     "id": 4,
@@ -29,7 +29,7 @@ var surah = [
     "aya": 176,
     "english": "The Women",
     "place": "مدنية",
-    "arabic": "النساء"
+    "arabic": "النساء",
   },
   {
     "id": 5,
@@ -37,7 +37,7 @@ var surah = [
     "aya": 120,
     "english": "The Table",
     "place": "مدنية",
-    "arabic": "المائدة"
+    "arabic": "المائدة",
   },
   {
     "id": 6,
@@ -45,7 +45,7 @@ var surah = [
     "aya": 165,
     "english": "The Cattle",
     "place": "مكية",
-    "arabic": "الأنعام"
+    "arabic": "الأنعام",
   },
   {
     "id": 7,
@@ -53,7 +53,7 @@ var surah = [
     "aya": 206,
     "english": "The Heights",
     "place": "مكية",
-    "arabic": "الأعراف"
+    "arabic": "الأعراف",
   },
   {
     "id": 8,
@@ -61,7 +61,7 @@ var surah = [
     "aya": 75,
     "english": "The Spoils of War",
     "place": "مدنية",
-    "arabic": "الأنفال"
+    "arabic": "الأنفال",
   },
   {
     "id": 9,
@@ -69,7 +69,7 @@ var surah = [
     "aya": 129,
     "english": "The Repentance",
     "place": "مدنية",
-    "arabic": "التوبة"
+    "arabic": "التوبة",
   },
   {
     "id": 10,
@@ -77,7 +77,7 @@ var surah = [
     "aya": 109,
     "english": "Jonah",
     "place": "مكية",
-    "arabic": "يونس"
+    "arabic": "يونس",
   },
   {
     "id": 11,
@@ -85,7 +85,7 @@ var surah = [
     "aya": 123,
     "english": "Hud",
     "place": "مكية",
-    "arabic": "هود"
+    "arabic": "هود",
   },
   {
     "id": 12,
@@ -93,7 +93,7 @@ var surah = [
     "aya": 111,
     "english": "Joseph",
     "place": "مكية",
-    "arabic": "يوسف"
+    "arabic": "يوسف",
   },
   {
     "id": 13,
@@ -101,7 +101,7 @@ var surah = [
     "aya": 43,
     "english": "The Thunder",
     "place": "مدنية",
-    "arabic": "الرعد"
+    "arabic": "الرعد",
   },
   {
     "id": 14,
@@ -109,7 +109,7 @@ var surah = [
     "aya": 52,
     "english": "Abraham",
     "place": "مكية",
-    "arabic": "ابراهيم"
+    "arabic": "ابراهيم",
   },
   {
     "id": 15,
@@ -117,7 +117,7 @@ var surah = [
     "aya": 99,
     "english": "The Stoneland",
     "place": "مكية",
-    "arabic": "الحجر"
+    "arabic": "الحجر",
   },
   {
     "id": 16,
@@ -125,7 +125,7 @@ var surah = [
     "aya": 128,
     "english": "The Honey Bee",
     "place": "مكية",
-    "arabic": "النحل"
+    "arabic": "النحل",
   },
   {
     "id": 17,
@@ -133,7 +133,7 @@ var surah = [
     "aya": 111,
     "english": "The Night Journey",
     "place": "مكية",
-    "arabic": "الإسراء"
+    "arabic": "الإسراء",
   },
   {
     "id": 18,
@@ -141,7 +141,7 @@ var surah = [
     "aya": 110,
     "english": "The Cave",
     "place": "مكية",
-    "arabic": "الكهف"
+    "arabic": "الكهف",
   },
   {
     "id": 19,
@@ -149,7 +149,7 @@ var surah = [
     "aya": 98,
     "english": "Mary",
     "place": "مكية",
-    "arabic": "مريم"
+    "arabic": "مريم",
   },
   {
     "id": 20,
@@ -157,7 +157,7 @@ var surah = [
     "aya": 135,
     "english": "Ta Ha",
     "place": "مكية",
-    "arabic": "طه"
+    "arabic": "طه",
   },
   {
     "id": 21,
@@ -165,7 +165,7 @@ var surah = [
     "aya": 112,
     "english": "The Prophets",
     "place": "مكية",
-    "arabic": "الأنبياء"
+    "arabic": "الأنبياء",
   },
   {
     "id": 22,
@@ -173,7 +173,7 @@ var surah = [
     "aya": 78,
     "english": "The Pilgrimage",
     "place": "مدنية",
-    "arabic": "الحج"
+    "arabic": "الحج",
   },
   {
     "id": 23,
@@ -181,7 +181,7 @@ var surah = [
     "aya": 118,
     "english": "The Believers",
     "place": "مكية",
-    "arabic": "المؤمنون"
+    "arabic": "المؤمنون",
   },
   {
     "id": 24,
@@ -189,7 +189,7 @@ var surah = [
     "aya": 64,
     "english": "The Light",
     "place": "مدنية",
-    "arabic": "النور"
+    "arabic": "النور",
   },
   {
     "id": 25,
@@ -197,7 +197,7 @@ var surah = [
     "aya": 77,
     "english": "The Criterion",
     "place": "مكية",
-    "arabic": "الفرقان"
+    "arabic": "الفرقان",
   },
   {
     "id": 26,
@@ -205,7 +205,7 @@ var surah = [
     "aya": 227,
     "english": "The Poets",
     "place": "مكية",
-    "arabic": "الشعراء"
+    "arabic": "الشعراء",
   },
   {
     "id": 27,
@@ -213,7 +213,7 @@ var surah = [
     "aya": 93,
     "english": "The Ant",
     "place": "مكية",
-    "arabic": "النمل"
+    "arabic": "النمل",
   },
   {
     "id": 28,
@@ -221,7 +221,7 @@ var surah = [
     "aya": 88,
     "english": "The Narrations",
     "place": "مكية",
-    "arabic": "القصص"
+    "arabic": "القصص",
   },
   {
     "id": 29,
@@ -229,7 +229,7 @@ var surah = [
     "aya": 69,
     "english": "The Spider",
     "place": "مكية",
-    "arabic": "العنكبوت"
+    "arabic": "العنكبوت",
   },
   {
     "id": 30,
@@ -237,7 +237,7 @@ var surah = [
     "aya": 60,
     "english": "Rome",
     "place": "مكية",
-    "arabic": "الروم"
+    "arabic": "الروم",
   },
   {
     "id": 31,
@@ -245,7 +245,7 @@ var surah = [
     "aya": 34,
     "english": "Luqman",
     "place": "مكية",
-    "arabic": "لقمان"
+    "arabic": "لقمان",
   },
   {
     "id": 32,
@@ -253,7 +253,7 @@ var surah = [
     "aya": 30,
     "english": "The Prostration",
     "place": "مكية",
-    "arabic": "السجدة"
+    "arabic": "السجدة",
   },
   {
     "id": 33,
@@ -261,7 +261,7 @@ var surah = [
     "aya": 73,
     "english": "The Clans",
     "place": "مدنية",
-    "arabic": "الأحزاب"
+    "arabic": "الأحزاب",
   },
   {
     "id": 34,
@@ -269,7 +269,7 @@ var surah = [
     "aya": 54,
     "english": "Sheba",
     "place": "مكية",
-    "arabic": "سبإ"
+    "arabic": "سبإ",
   },
   {
     "id": 35,
@@ -277,7 +277,7 @@ var surah = [
     "aya": 45,
     "english": "The Originator",
     "place": "مكية",
-    "arabic": "فاطر"
+    "arabic": "فاطر",
   },
   {
     "id": 36,
@@ -285,7 +285,7 @@ var surah = [
     "aya": 83,
     "english": "Ya Sin",
     "place": "مكية",
-    "arabic": "يس"
+    "arabic": "يس",
   },
   {
     "id": 37,
@@ -293,7 +293,7 @@ var surah = [
     "aya": 182,
     "english": "Those Who Set The Ranks",
     "place": "مكية",
-    "arabic": "الصافات"
+    "arabic": "الصافات",
   },
   {
     "id": 38,
@@ -301,7 +301,7 @@ var surah = [
     "aya": 88,
     "english": "Ṣād",
     "place": "مكية",
-    "arabic": "ص"
+    "arabic": "ص",
   },
   {
     "id": 39,
@@ -309,7 +309,7 @@ var surah = [
     "aya": 75,
     "english": "The Crowds",
     "place": "مكية",
-    "arabic": "الزمر"
+    "arabic": "الزمر",
   },
   {
     "id": 40,
@@ -317,7 +317,7 @@ var surah = [
     "aya": 85,
     "english": "The Forgiver",
     "place": "مكية",
-    "arabic": "غافر"
+    "arabic": "غافر",
   },
   {
     "id": 41,
@@ -325,7 +325,7 @@ var surah = [
     "aya": 54,
     "english": "Expounded",
     "place": "مكية",
-    "arabic": "فصلت"
+    "arabic": "فصلت",
   },
   {
     "id": 42,
@@ -333,7 +333,7 @@ var surah = [
     "aya": 53,
     "english": "The Consultation",
     "place": "مكية",
-    "arabic": "الشورى"
+    "arabic": "الشورى",
   },
   {
     "id": 43,
@@ -341,7 +341,7 @@ var surah = [
     "aya": 89,
     "english": "The Gold Adornments",
     "place": "مكية",
-    "arabic": "الزخرف"
+    "arabic": "الزخرف",
   },
   {
     "id": 44,
@@ -349,7 +349,7 @@ var surah = [
     "aya": 59,
     "english": "The Smoke",
     "place": "مكية",
-    "arabic": "الدخان"
+    "arabic": "الدخان",
   },
   {
     "id": 45,
@@ -357,7 +357,7 @@ var surah = [
     "aya": 37,
     "english": "The Kneeling Down",
     "place": "مكية",
-    "arabic": "الجاثية"
+    "arabic": "الجاثية",
   },
   {
     "id": 46,
@@ -365,7 +365,7 @@ var surah = [
     "aya": 35,
     "english": "Winding Sand tracts",
     "place": "مكية",
-    "arabic": "الأحقاف"
+    "arabic": "الأحقاف",
   },
   {
     "id": 47,
@@ -373,7 +373,7 @@ var surah = [
     "aya": 38,
     "english": "Muhammad",
     "place": "مدنية",
-    "arabic": "محمد"
+    "arabic": "محمد",
   },
   {
     "id": 48,
@@ -381,7 +381,7 @@ var surah = [
     "aya": 29,
     "english": "The Victory",
     "place": "مدنية",
-    "arabic": "الفتح"
+    "arabic": "الفتح",
   },
   {
     "id": 49,
@@ -389,7 +389,7 @@ var surah = [
     "aya": 18,
     "english": "The Private Apartments",
     "place": "مدنية",
-    "arabic": "الحجرات"
+    "arabic": "الحجرات",
   },
   {
     "id": 50,
@@ -397,7 +397,7 @@ var surah = [
     "aya": 45,
     "english": "Q̈āf",
     "place": "مكية",
-    "arabic": "ق"
+    "arabic": "ق",
   },
   {
     "id": 51,
@@ -405,7 +405,7 @@ var surah = [
     "aya": 60,
     "english": "The Wind That Scatter",
     "place": "مكية",
-    "arabic": "الذاريات"
+    "arabic": "الذاريات",
   },
   {
     "id": 52,
@@ -413,7 +413,7 @@ var surah = [
     "aya": 49,
     "english": "The Mount",
     "place": "مكية",
-    "arabic": "الطور"
+    "arabic": "الطور",
   },
   {
     "id": 53,
@@ -421,7 +421,7 @@ var surah = [
     "aya": 62,
     "english": "The Star",
     "place": "مكية",
-    "arabic": "النجم"
+    "arabic": "النجم",
   },
   {
     "id": 54,
@@ -429,7 +429,7 @@ var surah = [
     "aya": 55,
     "english": "The Moon",
     "place": "مكية",
-    "arabic": "القمر"
+    "arabic": "القمر",
   },
   {
     "id": 55,
@@ -437,7 +437,7 @@ var surah = [
     "aya": 78,
     "english": "The Most Merciful",
     "place": "مدنية",
-    "arabic": "الرحمن"
+    "arabic": "الرحمن",
   },
   {
     "id": 56,
@@ -445,7 +445,7 @@ var surah = [
     "aya": 96,
     "english": "The Inevitable",
     "place": "مكية",
-    "arabic": "الواقعة"
+    "arabic": "الواقعة",
   },
   {
     "id": 57,
@@ -453,7 +453,7 @@ var surah = [
     "aya": 29,
     "english": "The Iron",
     "place": "مدنية",
-    "arabic": "الحديد"
+    "arabic": "الحديد",
   },
   {
     "id": 58,
@@ -461,7 +461,7 @@ var surah = [
     "aya": 22,
     "english": "The Pleading",
     "place": "مدنية",
-    "arabic": "المجادلة"
+    "arabic": "المجادلة",
   },
   {
     "id": 59,
@@ -469,7 +469,7 @@ var surah = [
     "aya": 24,
     "english": "The Mustering",
     "place": "Manidah",
-    "arabic": "الحشر"
+    "arabic": "الحشر",
   },
   {
     "id": 60,
@@ -477,7 +477,7 @@ var surah = [
     "aya": 13,
     "english": "The Examined One",
     "place": "مدنية",
-    "arabic": "الممتحنة"
+    "arabic": "الممتحنة",
   },
   {
     "id": 61,
@@ -485,7 +485,7 @@ var surah = [
     "aya": 14,
     "english": "The Ranks",
     "place": "مدنية",
-    "arabic": "الصف"
+    "arabic": "الصف",
   },
   {
     "id": 62,
@@ -493,7 +493,7 @@ var surah = [
     "aya": 11,
     "english": "Congregation (Friday)",
     "place": "مدنية",
-    "arabic": "الجمعة"
+    "arabic": "الجمعة",
   },
   {
     "id": 63,
@@ -501,7 +501,7 @@ var surah = [
     "aya": 11,
     "english": "The Hypocrites",
     "place": "مدنية",
-    "arabic": "المنافقون"
+    "arabic": "المنافقون",
   },
   {
     "id": 64,
@@ -509,7 +509,7 @@ var surah = [
     "aya": 18,
     "english": "The Cheating",
     "place": "مدنية",
-    "arabic": "التغابن"
+    "arabic": "التغابن",
   },
   {
     "id": 65,
@@ -517,7 +517,7 @@ var surah = [
     "aya": 12,
     "english": "Divorce",
     "place": "مدنية",
-    "arabic": "الطلاق"
+    "arabic": "الطلاق",
   },
   {
     "id": 66,
@@ -525,7 +525,7 @@ var surah = [
     "aya": 12,
     "english": "The Prohibition",
     "place": "مدنية",
-    "arabic": "التحريم"
+    "arabic": "التحريم",
   },
   {
     "id": 67,
@@ -533,7 +533,7 @@ var surah = [
     "aya": 30,
     "english": "The Dominion",
     "place": "مكية",
-    "arabic": "الملك"
+    "arabic": "الملك",
   },
   {
     "id": 68,
@@ -541,7 +541,7 @@ var surah = [
     "aya": 52,
     "english": "The Pen",
     "place": "مكية",
-    "arabic": "القلم"
+    "arabic": "القلم",
   },
   {
     "id": 69,
@@ -549,7 +549,7 @@ var surah = [
     "aya": 52,
     "english": "The Sure Reality",
     "place": "مكية",
-    "arabic": "الحاقة"
+    "arabic": "الحاقة",
   },
   {
     "id": 70,
@@ -557,7 +557,7 @@ var surah = [
     "aya": 44,
     "english": "The Ways of Ascent",
     "place": "مكية",
-    "arabic": "المعارج"
+    "arabic": "المعارج",
   },
   {
     "id": 71,
@@ -565,7 +565,7 @@ var surah = [
     "aya": 28,
     "english": "Noah",
     "place": "مكية",
-    "arabic": "نوح"
+    "arabic": "نوح",
   },
   {
     "id": 72,
@@ -573,7 +573,7 @@ var surah = [
     "aya": 28,
     "english": "The Jinn",
     "place": "makkah",
-    "arabic": "الجن"
+    "arabic": "الجن",
   },
   {
     "id": 73,
@@ -581,7 +581,7 @@ var surah = [
     "aya": 20,
     "english": "The Enfolded One",
     "place": "مكية",
-    "arabic": "المزمل"
+    "arabic": "المزمل",
   },
   {
     "id": 74,
@@ -589,7 +589,7 @@ var surah = [
     "aya": 56,
     "english": "The One Wrapped Up",
     "place": "مكية",
-    "arabic": "المدثر"
+    "arabic": "المدثر",
   },
   {
     "id": 75,
@@ -597,7 +597,7 @@ var surah = [
     "aya": 40,
     "english": "Resurrection",
     "place": "مكية",
-    "arabic": "القيامة"
+    "arabic": "القيامة",
   },
   {
     "id": 76,
@@ -605,7 +605,7 @@ var surah = [
     "aya": 31,
     "english": "The Human",
     "place": "مدنية",
-    "arabic": "الانسان"
+    "arabic": "الانسان",
   },
   {
     "id": 77,
@@ -613,7 +613,7 @@ var surah = [
     "aya": 50,
     "english": "Those Sent Forth",
     "place": "مكية",
-    "arabic": "المرسلات"
+    "arabic": "المرسلات",
   },
   {
     "id": 78,
@@ -621,7 +621,7 @@ var surah = [
     "aya": 40,
     "english": "The Great News",
     "place": "مكية",
-    "arabic": "النبإ"
+    "arabic": "النبإ",
   },
   {
     "id": 79,
@@ -629,7 +629,7 @@ var surah = [
     "aya": 46,
     "english": "Those Who Tear Out",
     "place": "مكية",
-    "arabic": "النازعات"
+    "arabic": "النازعات",
   },
   {
     "id": 80,
@@ -637,7 +637,7 @@ var surah = [
     "aya": 42,
     "english": "He Frowned",
     "place": "مكية",
-    "arabic": "عبس"
+    "arabic": "عبس",
   },
   {
     "id": 81,
@@ -645,7 +645,7 @@ var surah = [
     "aya": 29,
     "english": "The Folding Up",
     "place": "مكية",
-    "arabic": "التكوير"
+    "arabic": "التكوير",
   },
   {
     "id": 82,
@@ -653,7 +653,7 @@ var surah = [
     "aya": 19,
     "english": "The Overthrowing",
     "place": "مكية",
-    "arabic": "الإنفطار"
+    "arabic": "الإنفطار",
   },
   {
     "id": 83,
@@ -661,7 +661,7 @@ var surah = [
     "aya": 36,
     "english": "The Cleaving Asunder",
     "place": "مكية",
-    "arabic": "المطففين"
+    "arabic": "المطففين",
   },
   {
     "id": 84,
@@ -669,7 +669,7 @@ var surah = [
     "aya": 25,
     "english": "The Dealers in Fraud",
     "place": "مكية",
-    "arabic": "الإنشقاق"
+    "arabic": "الإنشقاق",
   },
   {
     "id": 85,
@@ -677,7 +677,7 @@ var surah = [
     "aya": 22,
     "english": "The Constellations",
     "place": "مكية",
-    "arabic": "البروج"
+    "arabic": "البروج",
   },
   {
     "id": 86,
@@ -685,7 +685,7 @@ var surah = [
     "aya": 17,
     "english": "The Morning Star",
     "place": "مكية",
-    "arabic": "الطارق"
+    "arabic": "الطارق",
   },
   {
     "id": 87,
@@ -693,7 +693,7 @@ var surah = [
     "aya": 19,
     "english": "The Most High",
     "place": "مكية",
-    "arabic": "الأعلى"
+    "arabic": "الأعلى",
   },
   {
     "id": 88,
@@ -701,7 +701,7 @@ var surah = [
     "aya": 26,
     "english": "The Overwhelming Event",
     "place": "مكية",
-    "arabic": "الغاشية"
+    "arabic": "الغاشية",
   },
   {
     "id": 89,
@@ -709,7 +709,7 @@ var surah = [
     "aya": 30,
     "english": "The Daybreak",
     "place": "مكية",
-    "arabic": "الفجر"
+    "arabic": "الفجر",
   },
   {
     "id": 90,
@@ -717,7 +717,7 @@ var surah = [
     "aya": 20,
     "english": "The City",
     "place": "مكية",
-    "arabic": "البلد"
+    "arabic": "البلد",
   },
   {
     "id": 91,
@@ -725,7 +725,7 @@ var surah = [
     "aya": 15,
     "english": "The Sun",
     "place": "مكية",
-    "arabic": "الشمس"
+    "arabic": "الشمس",
   },
   {
     "id": 92,
@@ -733,7 +733,7 @@ var surah = [
     "aya": 21,
     "english": "The Night",
     "place": "مكية",
-    "arabic": "الليل"
+    "arabic": "الليل",
   },
   {
     "id": 93,
@@ -741,7 +741,7 @@ var surah = [
     "aya": 11,
     "english": "The Glorious Morning Light",
     "place": "مكية",
-    "arabic": "الضحى"
+    "arabic": "الضحى",
   },
   {
     "id": 94,
@@ -749,7 +749,7 @@ var surah = [
     "aya": 8,
     "english": "The Opening Up of the Heart",
     "place": "مكية",
-    "arabic": "الشرح"
+    "arabic": "الشرح",
   },
   {
     "id": 95,
@@ -757,7 +757,7 @@ var surah = [
     "aya": 8,
     "english": "The Fig Tree",
     "place": "مكية",
-    "arabic": "التين"
+    "arabic": "التين",
   },
   {
     "id": 96,
@@ -765,7 +765,7 @@ var surah = [
     "aya": 19,
     "english": "The Clinging Clot",
     "place": "مكية",
-    "arabic": "العلق"
+    "arabic": "العلق",
   },
   {
     "id": 97,
@@ -773,7 +773,7 @@ var surah = [
     "aya": 5,
     "english": "The Night of Honor",
     "place": "مكية",
-    "arabic": "القدر"
+    "arabic": "القدر",
   },
   {
     "id": 98,
@@ -781,7 +781,7 @@ var surah = [
     "aya": 8,
     "english": "The Clear Evidence",
     "place": "مدنية",
-    "arabic": "البينة"
+    "arabic": "البينة",
   },
   {
     "id": 99,
@@ -789,7 +789,7 @@ var surah = [
     "aya": 8,
     "english": "The Earthquake",
     "place": "مدنية",
-    "arabic": "الزلزلة"
+    "arabic": "الزلزلة",
   },
   {
     "id": 100,
@@ -797,7 +797,7 @@ var surah = [
     "aya": 11,
     "english": "The Courser",
     "place": "مكية",
-    "arabic": "العاديات"
+    "arabic": "العاديات",
   },
   {
     "id": 101,
@@ -805,7 +805,7 @@ var surah = [
     "aya": 11,
     "english": "The Striking Hour",
     "place": "مكية",
-    "arabic": "القارعة"
+    "arabic": "القارعة",
   },
   {
     "id": 102,
@@ -813,7 +813,7 @@ var surah = [
     "aya": 8,
     "english": "The Piling Up",
     "place": "مكية",
-    "arabic": "التكاثر"
+    "arabic": "التكاثر",
   },
   {
     "id": 103,
@@ -821,7 +821,7 @@ var surah = [
     "aya": 3,
     "english": "The Time",
     "place": "مكية",
-    "arabic": "العصر"
+    "arabic": "العصر",
   },
   {
     "id": 104,
@@ -829,7 +829,7 @@ var surah = [
     "aya": 9,
     "english": "The Scandalmonger",
     "place": "مكية",
-    "arabic": "الهمزة"
+    "arabic": "الهمزة",
   },
   {
     "id": 105,
@@ -837,7 +837,7 @@ var surah = [
     "aya": 5,
     "english": "The Elephant",
     "place": "مكية",
-    "arabic": "الفيل"
+    "arabic": "الفيل",
   },
   {
     "id": 106,
@@ -845,7 +845,7 @@ var surah = [
     "aya": 4,
     "english": "The Quraysh",
     "place": "مكية",
-    "arabic": "قريش"
+    "arabic": "قريش",
   },
   {
     "id": 107,
@@ -853,7 +853,7 @@ var surah = [
     "aya": 7,
     "english": "The Neighbourly Assistance",
     "place": "مكية",
-    "arabic": "الماعون"
+    "arabic": "الماعون",
   },
   {
     "id": 108,
@@ -861,7 +861,7 @@ var surah = [
     "aya": 3,
     "english": "Abundance",
     "place": "مكية",
-    "arabic": "الكوثر"
+    "arabic": "الكوثر",
   },
   {
     "id": 109,
@@ -869,7 +869,7 @@ var surah = [
     "aya": 6,
     "english": "The Disbelievers",
     "place": "مكية",
-    "arabic": "الكافرون"
+    "arabic": "الكافرون",
   },
   {
     "id": 110,
@@ -877,7 +877,7 @@ var surah = [
     "aya": 3,
     "english": "The Help",
     "place": "مدنية",
-    "arabic": "النصر"
+    "arabic": "النصر",
   },
   {
     "id": 111,
@@ -885,7 +885,7 @@ var surah = [
     "aya": 5,
     "english": "The Plaited Rope",
     "place": "مكية",
-    "arabic": "اللهب"
+    "arabic": "اللهب",
   },
   {
     "id": 112,
@@ -893,7 +893,7 @@ var surah = [
     "aya": 4,
     "english": "Purity of Faith",
     "place": "مكية",
-    "arabic": "الإخلاص"
+    "arabic": "الإخلاص",
   },
   {
     "id": 113,
@@ -901,7 +901,7 @@ var surah = [
     "aya": 5,
     "english": "The Rising Dawn",
     "place": "مكية",
-    "arabic": "الفلق"
+    "arabic": "الفلق",
   },
   {
     "id": 114,
@@ -909,6 +909,6 @@ var surah = [
     "aya": 6,
     "english": "Mankind",
     "place": "مكية",
-    "arabic": "الناس"
-  }
+    "arabic": "الناس",
+  },
 ];

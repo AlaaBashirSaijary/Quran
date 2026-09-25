@@ -16,12 +16,13 @@ class AhadithDetailsProvider extends ChangeNotifier {
         .map((hadith) => hadith.trim())
         .where((hadith) => hadith.isNotEmpty)
         .map((hadith) {
-      final lines = hadith.split('\n').map((line) => line.trim()).toList();
-      return HadithModel(
-        title: lines.first,
-        content: lines.skip(1).where((line) => line.isNotEmpty).toList(),
-      );
-    }).toList();
+          final lines = hadith.split('\n').map((line) => line.trim()).toList();
+          return HadithModel(
+            title: lines.first,
+            content: lines.skip(1).where((line) => line.isNotEmpty).toList(),
+          );
+        })
+        .toList();
     notifyListeners();
   }
 }

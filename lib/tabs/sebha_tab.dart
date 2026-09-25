@@ -175,12 +175,13 @@ class _PrayerSteps extends StatelessWidget {
                 margin: const EdgeInsets.symmetric(horizontal: 3),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(3),
-                  color: i < sebha.stepIndex ||
+                  color:
+                      i < sebha.stepIndex ||
                           (i == sebha.stepIndex && sebha.afterPrayerDone)
                       ? colorScheme.gold
                       : i == sebha.stepIndex
-                          ? colorScheme.primary
-                          : colorScheme.div,
+                      ? colorScheme.primary
+                      : colorScheme.div,
                 ),
               ),
             ),
@@ -222,15 +223,16 @@ class _Counter extends StatelessWidget {
               child: Text(
                 done ? 'تقبّل الله منك' : text,
                 textAlign: TextAlign.center,
-                style: (text.length > 30
-                        ? textTheme.titleLarge
-                        : textTheme.displaySmall)
-                    ?.copyWith(
-                  fontFamily: AppTheme.secondaryFontFamily,
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.primary,
-                  height: 1.5,
-                ),
+                style:
+                    (text.length > 30
+                            ? textTheme.titleLarge
+                            : textTheme.displaySmall)
+                        ?.copyWith(
+                          fontFamily: AppTheme.secondaryFontFamily,
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.primary,
+                          height: 1.5,
+                        ),
               ),
             ),
           ),
@@ -283,8 +285,9 @@ class _Counter extends StatelessWidget {
                                 : 'من ${sebha.currentTarget}',
                             style: TextStyle(
                               fontSize: 16,
-                              color:
-                                  colorScheme.onPrimary.withValues(alpha: 0.8),
+                              color: colorScheme.onPrimary.withValues(
+                                alpha: 0.8,
+                              ),
                             ),
                           ),
                           if (sebha.mode == SebhaMode.free && sebha.rounds > 0)

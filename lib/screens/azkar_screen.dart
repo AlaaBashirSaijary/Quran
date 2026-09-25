@@ -27,8 +27,9 @@ class _AzkarScreenState extends State<AzkarScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           final suggested = suggestedCategory(DateTime.now());
-          final highlight =
-              categories.where((c) => c.id == suggested).firstOrNull;
+          final highlight = categories
+              .where((c) => c.id == suggested)
+              .firstOrNull;
 
           return ListView(
             padding: const EdgeInsets.all(16),

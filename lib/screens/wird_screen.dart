@@ -141,10 +141,7 @@ class WirdScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 20),
-                _WeekChart(
-                  values: reading.lastDays(),
-                  goal: reading.goal,
-                ),
+                _WeekChart(values: reading.lastDays(), goal: reading.goal),
                 const SizedBox(height: 12),
                 Row(
                   children: [
@@ -187,8 +184,8 @@ class WirdScreen extends StatelessWidget {
                   finished
                       ? 'أتممت الختمة، تقبّل الله منك'
                       : 'بمعدل ${_pages(reading.goal)} يومياً تختم خلال '
-                          '${_days(reading.daysToFinish)} '
-                          '(${_date(reading.estimatedFinish)})',
+                            '${_days(reading.daysToFinish)} '
+                            '(${_date(reading.estimatedFinish)})',
                   style: TextStyle(color: colorScheme.pageNumber),
                 ),
                 if (reading.khatmas > 0) ...[
@@ -337,11 +334,11 @@ class _WeekChart extends StatelessWidget {
                         i == values.length - 1
                             ? 'اليوم'
                             : _dayNames[today
-                                    .subtract(
-                                      Duration(days: values.length - 1 - i),
-                                    )
-                                    .weekday -
-                                1],
+                                      .subtract(
+                                        Duration(days: values.length - 1 - i),
+                                      )
+                                      .weekday -
+                                  1],
                         style: TextStyle(
                           fontSize: 11,
                           color: colorScheme.pageNumber,

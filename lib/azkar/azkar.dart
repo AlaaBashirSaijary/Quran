@@ -32,15 +32,15 @@ class AzkarCategory {
   final List<Dhikr> items;
 
   IconData get icon => switch (id) {
-        'morning' => Icons.wb_sunny_rounded,
-        'evening' => Icons.nights_stay_rounded,
-        'afterPrayer' => Icons.mosque_rounded,
-        'sleep' => Icons.bedtime_rounded,
-        'waking' => Icons.alarm_rounded,
-        'tasabeeh' => Icons.auto_awesome_rounded,
-        'quranDuas' => Icons.menu_book_rounded,
-        _ => Icons.volunteer_activism_rounded,
-      };
+    'morning' => Icons.wb_sunny_rounded,
+    'evening' => Icons.nights_stay_rounded,
+    'afterPrayer' => Icons.mosque_rounded,
+    'sleep' => Icons.bedtime_rounded,
+    'waking' => Icons.alarm_rounded,
+    'tasabeeh' => Icons.auto_awesome_rounded,
+    'quranDuas' => Icons.menu_book_rounded,
+    _ => Icons.volunteer_activism_rounded,
+  };
 }
 
 List<AzkarCategory>? _azkar;
@@ -81,7 +81,7 @@ String? suggestedCategory(DateTime now) {
 /// progress survives leaving the screen and starts fresh the next day.
 class AzkarProgress {
   AzkarProgress(this.prefs, this.category, {DateTime Function()? clock})
-      : _clock = clock ?? DateTime.now {
+    : _clock = clock ?? DateTime.now {
     final saved = prefs.getStringList(_key);
     _remaining = saved != null && saved.length == category.items.length
         ? [for (final value in saved) int.tryParse(value) ?? 0]

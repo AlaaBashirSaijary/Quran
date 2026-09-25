@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
 class PageField extends StatefulWidget {
-  const PageField(
-      {super.key, required this.onChanged, required this.onSubmitted});
+  const PageField({
+    super.key,
+    required this.onChanged,
+    required this.onSubmitted,
+  });
 
   final void Function(String) onChanged;
   final void Function(String) onSubmitted;
@@ -52,11 +55,6 @@ class _PageFieldState extends State<PageField> {
   }
 
   OutlineInputBorder _inputBorder(Color color) {
-    return OutlineInputBorder(
-      borderSide: BorderSide(
-        color: color,
-        width: 3,
-      ),
-    );
+    return OutlineInputBorder(borderSide: BorderSide(color: color, width: 3));
   }
 }

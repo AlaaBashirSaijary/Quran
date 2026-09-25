@@ -6,10 +6,7 @@ class Page {
   int get hizb => (hizbQuarter / 4).fixedRound;
   int get juz => (hizbQuarter / 8).fixedRound;
 
-  Page({
-    required this.surah,
-    required this.hizbQuarter,
-  });
+  Page({required this.surah, required this.hizbQuarter});
 }
 
 List<Page> quranPages = [
@@ -616,5 +613,5 @@ List<Page> quranPages = [
   Page(surah: 103, hizbQuarter: 240),
   Page(surah: 106, hizbQuarter: 240),
   Page(surah: 109, hizbQuarter: 240),
-  Page(surah: 112, hizbQuarter: 240)
+  Page(surah: 112, hizbQuarter: 240),
 ];

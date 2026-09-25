@@ -25,7 +25,8 @@ class _GoToPagePopupState extends State<GoToPagePopup> {
   Widget build(BuildContext context) {
     final quran = Provider.of<Quran>(context, listen: false);
     final mQ = MediaQuery.of(context);
-    final isLandscape = mQ.size.aspectRatio > 0.55 &&
+    final isLandscape =
+        mQ.size.aspectRatio > 0.55 &&
         mQ.size.height - mQ.viewInsets.bottom < 280;
 
     int typedPage(String page) {
@@ -85,11 +86,7 @@ class _GoToPagePopupState extends State<GoToPagePopup> {
 }
 
 class ActionButtons extends StatelessWidget {
-  const ActionButtons(
-    this.goToPage, {
-    super.key,
-    required this.textC,
-  });
+  const ActionButtons(this.goToPage, {super.key, required this.textC});
 
   final String textC;
   final Function(String) goToPage;
@@ -124,10 +121,7 @@ class ActionButtons extends StatelessWidget {
 }
 
 class PageInfo extends StatelessWidget {
-  const PageInfo({
-    super.key,
-    required this.currentPage,
-  });
+  const PageInfo({super.key, required this.currentPage});
 
   final int currentPage;
 

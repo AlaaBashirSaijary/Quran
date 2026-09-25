@@ -37,21 +37,16 @@ class JuzCard extends StatelessWidget {
               vDiv,
               Expanded(
                 flex: 6,
-                child: Column(
-                  children: [
-                    hizbPart(1),
-                    hDiv,
-                    hizbPart(2),
-                  ],
-                ),
+                child: Column(children: [hizbPart(1), hDiv, hizbPart(2)]),
               ),
               vDiv,
               Expanded(
-                  child: CustomText(
-                '${getJuzPage(juz)}',
-                page: getJuzPage(juz),
-                isTab: isTab,
-              ))
+                child: CustomText(
+                  '${getJuzPage(juz)}',
+                  page: getJuzPage(juz),
+                  isTab: isTab,
+                ),
+              ),
             ],
           ),
         ),
@@ -68,9 +63,7 @@ class JuzCard extends StatelessWidget {
             child: CustomText(
               '${AppConstant.hizb} ${getHizb(juz: juz, hizb: hizb)}',
               isTab: isTab,
-              page: getHizbPage(
-                getHizb(juz: juz, hizb: hizb),
-              ),
+              page: getHizbPage(getHizb(juz: juz, hizb: hizb)),
             ),
           ),
           vDiv,
@@ -80,7 +73,10 @@ class JuzCard extends StatelessWidget {
               'ربع',
               isTab: isTab,
               page: getHizbQuarterPage(
-                getHizbQuarter(hizb: getHizb(juz: juz, hizb: hizb), quarter: 1),
+                getHizbQuarter(
+                  hizb: getHizb(juz: juz, hizb: hizb),
+                  quarter: 1,
+                ),
               ),
             ),
           ),
@@ -91,7 +87,10 @@ class JuzCard extends StatelessWidget {
               'نصف',
               isTab: isTab,
               page: getHizbQuarterPage(
-                getHizbQuarter(hizb: getHizb(juz: juz, hizb: hizb), quarter: 2),
+                getHizbQuarter(
+                  hizb: getHizb(juz: juz, hizb: hizb),
+                  quarter: 2,
+                ),
               ),
             ),
           ),
@@ -102,7 +101,10 @@ class JuzCard extends StatelessWidget {
               '3 أرباع',
               isTab: isTab,
               page: getHizbQuarterPage(
-                getHizbQuarter(hizb: getHizb(juz: juz, hizb: hizb), quarter: 3),
+                getHizbQuarter(
+                  hizb: getHizb(juz: juz, hizb: hizb),
+                  quarter: 3,
+                ),
               ),
             ),
           ),
@@ -113,12 +115,14 @@ class JuzCard extends StatelessWidget {
 }
 
 class CustomText extends StatelessWidget {
-  const CustomText(this.text,
-      {super.key,
-      this.fontSize,
-      required this.page,
-      required this.isTab,
-      this.fontWeight});
+  const CustomText(
+    this.text, {
+    super.key,
+    this.fontSize,
+    required this.page,
+    required this.isTab,
+    this.fontWeight,
+  });
 
   final String text;
   final double? fontSize;
@@ -131,9 +135,7 @@ class CustomText extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return TextButton(
-      style: TextButton.styleFrom(
-        minimumSize: Size.infinite,
-      ),
+      style: TextButton.styleFrom(minimumSize: Size.infinite),
       onPressed: () => openQuranPage(context, page, isTab: isTab),
       child: FittedBox(
         fit: BoxFit.scaleDown,

@@ -30,8 +30,9 @@ class SearchResults {
   bool get isEmpty => surahs.isEmpty && ayahs.isEmpty;
 }
 
-final _marks =
-    RegExp('[\u0610-\u061A\u064B-\u065F\u06D6-\u06E4\u06E8-\u06ED\u0640]');
+final _marks = RegExp(
+  '[\u0610-\u061A\u064B-\u065F\u06D6-\u06E4\u06E8-\u06ED\u0640]',
+);
 final _alefs = RegExp('[\u0621\u0622\u0623\u0625\u0627\u0671]');
 final _spaces = RegExp(r'\s+');
 
@@ -47,7 +48,9 @@ String normalizeArabic(String text) {
       .replaceAll('\u0670', '')
       .replaceAll('\u06E5', '') // small waw: لَهُۥ
       .replaceAll(
-          RegExp('[\u06E6\u06E7]'), '\u064A') // small yeh: إِبۡرَٰهِـۧمَ
+        RegExp('[\u06E6\u06E7]'),
+        '\u064A',
+      ) // small yeh: إِبۡرَٰهِـۧمَ
       .replaceAll(_alefs, '')
       .replaceAll('\u0649', '\u064A') // ى -> ي
       .replaceAll('\u0629', '\u0647') // ة -> ه
@@ -72,12 +75,14 @@ class QuranSearch {
     for (final line in file.split('\n')) {
       if (line.isEmpty) continue;
       final parts = line.split('|');
-      ayahs.add(Ayah(
-        surah: int.parse(parts[0]),
-        number: int.parse(parts[1]),
-        page: int.parse(parts[2]),
-        text: parts[3],
-      ));
+      ayahs.add(
+        Ayah(
+          surah: int.parse(parts[0]),
+          number: int.parse(parts[1]),
+          page: int.parse(parts[2]),
+          text: parts[3],
+        ),
+      );
     }
     return QuranSearch._(ayahs, [for (final ayah in ayahs) _Words(ayah.text)]);
   }

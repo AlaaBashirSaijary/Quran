@@ -14,10 +14,7 @@ class TopOverlay extends StatelessWidget {
       padding: const EdgeInsets.all(10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: const [
-          PageInfo(),
-          PageSide(),
-        ],
+        children: const [PageInfo(), PageSide()],
       ),
     );
   }

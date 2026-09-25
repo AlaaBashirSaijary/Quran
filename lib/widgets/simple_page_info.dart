@@ -13,10 +13,7 @@ class SimplePageInfo extends StatelessWidget {
     final isLandscape = MediaQuery.of(context).size.aspectRatio > 0.55;
     final colorScheme = Theme.of(context).colorScheme;
 
-    final textStyle = TextStyle(
-      fontSize: 14,
-      color: colorScheme.infoText,
-    );
+    final textStyle = TextStyle(fontSize: 14, color: colorScheme.infoText);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 15),
       child: Row(

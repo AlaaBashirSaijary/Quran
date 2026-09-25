@@ -42,7 +42,7 @@ class BottomOverlay extends StatelessWidget {
                   onPrimary: Colors.white,
                   primary: bookMark.markButtonColor,
                   svgIcon: AppAsset.saveFilled,
-                )
+                ),
               ],
             ),
           ),
@@ -57,10 +57,7 @@ class BottomOverlay extends StatelessWidget {
                     onPressed: openBookmarks,
                     icon: SvgPicture.asset(AppAsset.saveFilled),
                     label: const FittedBox(
-                      child: Text(
-                        AppConstant.bookmarks,
-                        style: textStyle,
-                      ),
+                      child: Text(AppConstant.bookmarks, style: textStyle),
                     ),
                   ),
                 ),
@@ -78,19 +75,17 @@ class BottomOverlay extends StatelessWidget {
                     },
                     icon: SvgPicture.asset(AppAsset.page),
                     label: const FittedBox(
-                      child: Text(
-                        AppConstant.changePage,
-                        style: textStyle,
-                      ),
+                      child: Text(AppConstant.changePage, style: textStyle),
                     ),
                   ),
                 ),
                 const VerticalDiv(),
                 IconButton(
                   icon: SvgPicture.asset(
-                      Theme.of(context).brightness == Brightness.dark
-                          ? AppAsset.sun
-                          : AppAsset.moon),
+                    Theme.of(context).brightness == Brightness.dark
+                        ? AppAsset.sun
+                        : AppAsset.moon,
+                  ),
                   onPressed: () {
                     themeListenFalse.toggleTheme(!themeListenFalse.isDarkMode);
                   },
@@ -109,10 +104,7 @@ class BottomOverlay extends StatelessWidget {
                       Navigator.of(context).pushNamed('/index');
                     },
                     icon: SvgPicture.asset(AppAsset.index),
-                    label: const Text(
-                      AppConstant.index,
-                      style: textStyle,
-                    ),
+                    label: const Text(AppConstant.index, style: textStyle),
                   ),
                 ),
                 const VerticalDiv(),
@@ -122,10 +114,7 @@ class BottomOverlay extends StatelessWidget {
                       Navigator.of(context).pushNamed('/juz-index');
                     },
                     icon: SvgPicture.asset(AppAsset.part),
-                    label: const Text(
-                      AppConstant.ajzaa,
-                      style: textStyle,
-                    ),
+                    label: const Text(AppConstant.ajzaa, style: textStyle),
                   ),
                 ),
                 const VerticalDiv(),
@@ -137,10 +126,7 @@ class BottomOverlay extends StatelessWidget {
                     icon: SvgPicture.asset(AppAsset.hand),
                     label: const FittedBox(
                       child: FittedBox(
-                        child: Text(
-                          AppConstant.douaa,
-                          style: textStyle,
-                        ),
+                        child: Text(AppConstant.douaa, style: textStyle),
                       ),
                     ),
                   ),
@@ -154,7 +140,4 @@ class BottomOverlay extends StatelessWidget {
   }
 }
 
-const textStyle = TextStyle(
-  color: Colors.white,
-  fontSize: 15,
-);
+const textStyle = TextStyle(color: Colors.white, fontSize: 15);

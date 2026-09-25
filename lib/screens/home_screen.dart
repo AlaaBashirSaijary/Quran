@@ -30,8 +30,9 @@ class HomeScreen extends StatelessWidget {
       child: GestureDetector(
         onTap: overlay.toggleisShowOverlay,
         child: Scaffold(
-          backgroundColor:
-              isLandscape && size.width > 500 ? colorScheme.scaffoldBg : null,
+          backgroundColor: isLandscape && size.width > 500
+              ? colorScheme.scaffoldBg
+              : null,
           body: Center(
             child: Stack(
               alignment: Alignment.center,
@@ -52,16 +53,17 @@ class HomeScreen extends StatelessWidget {
                   child: CarouselSlider.builder(
                     carouselController: quran.carouselController,
                     options: CarouselOptions(
-                        enableInfiniteScroll: false,
-                        height: double.infinity,
-                        initialPage: quran.currentPage - 1,
-                        viewportFraction: 1,
-                        enlargeCenterPage: false,
-                        onPageChanged: (int newIndex, _) {
-                          quranListenFalse.changePage(newIndex);
-                        }),
+                      enableInfiniteScroll: false,
+                      height: double.infinity,
+                      initialPage: quran.currentPage - 1,
+                      viewportFraction: 1,
+                      enlargeCenterPage: false,
+                      onPageChanged: (int newIndex, _) {
+                        quranListenFalse.changePage(newIndex);
+                      },
+                    ),
                     itemCount: quranPages.length,
-                    itemBuilder: (_, pageIndex, __) {
+                    itemBuilder: (_, pageIndex, _) {
                       return isLandscape || isKeyboardOpen
                           ? ListView(
                               children: [
