@@ -63,7 +63,9 @@ class TextCard extends StatelessWidget {
           Clipboard.setData(ClipboardData(text: text));
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
-            ..showSnackBar(const SnackBar(content: Text('نُسخ النص')));
+            ..showSnackBar(
+              SnackBar(content: Text(tr('نُسخ النص', 'Text copied'))),
+            );
         },
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -83,6 +85,7 @@ class TextCard extends StatelessWidget {
               ],
               Text(
                 text,
+                textDirection: TextDirection.rtl,
                 style: TextStyle(
                   fontFamily: quranFont ? AppTheme.secondaryFontFamily : null,
                   fontSize: context.contentSize(quranFont ? 22 : 18),
@@ -104,13 +107,13 @@ class SectionListScreen extends StatefulWidget {
     super.key,
     required this.title,
     required this.sections,
-    this.searchHint = 'ابحث في العناوين',
+    this.searchHint,
     this.searchTexts = false,
   });
 
   final String title;
   final Future<List<TextSection>> sections;
-  final String searchHint;
+  final String? searchHint;
 
   /// Also match the texts themselves, not only the titles.
   final bool searchTexts;
@@ -157,7 +160,9 @@ class _SectionListScreenState extends State<SectionListScreen> {
               TextField(
                 onChanged: (v) => setState(() => _query = v),
                 decoration: InputDecoration(
-                  hintText: widget.searchHint,
+                  hintText:
+                      widget.searchHint ??
+                      tr('ابحث في العناوين', 'Search the titles'),
                   prefixIcon: Icon(
                     Icons.search_rounded,
                     color: colorScheme.gold,
@@ -197,7 +202,10 @@ class _SectionListScreenState extends State<SectionListScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Text(
-                    'في النصوص (${textHits.length})',
+                    tr(
+                      'في النصوص (${textHits.length})',
+                      'In the texts (${textHits.length})',
+                    ),
                     style: TextStyle(color: colorScheme.pageNumber),
                   ),
                 ),
@@ -219,6 +227,7 @@ class _SectionListScreenState extends State<SectionListScreen> {
   }
 
   static String _count(int n) {
+    if (isEnglish) return n == 1 ? '1 text' : '$n texts';
     if (n == 1) return 'نص واحد';
     if (n == 2) return 'نصّان';
     if (n <= 10) return '$n نصوص';
@@ -233,7 +242,9 @@ class NamesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(title: const Text('أسماء الله الحسنى')),
+      appBar: AppBar(
+        title: Text(tr('أسماء الله الحسنى', 'The Beautiful Names of Allah')),
+      ),
       body: FutureBuilder<List<String>>(
         future: loadNames(),
         builder: (context, snapshot) {
@@ -254,7 +265,10 @@ class NamesScreen extends StatelessWidget {
               if (i == names.length) {
                 return Center(
                   child: Text(
-                    'القائمة المشهورة للأسماء الحسنى',
+                    tr(
+                      'القائمة المشهورة للأسماء الحسنى',
+                      'The well-known list of the Beautiful Names',
+                    ),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 12,
@@ -280,6 +294,7 @@ class NamesScreen extends StatelessWidget {
                         child: FittedBox(
                           child: Text(
                             names[i],
+                            textDirection: TextDirection.rtl,
                             style: TextStyle(
                               fontFamily: AppTheme.secondaryFontFamily,
                               fontSize: 26,

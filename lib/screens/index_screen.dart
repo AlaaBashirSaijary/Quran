@@ -51,12 +51,12 @@ class IndexScreen extends StatelessWidget {
       appBar: AppBar(
         leading: isTab
             ? IconButton(
-                tooltip: 'الإعدادات',
+                tooltip: tr('الإعدادات', 'Settings'),
                 icon: const Icon(Icons.settings_rounded),
                 onPressed: () => SettingsScreen.open(context),
               )
             : null,
-        title: const Text(AppConstant.surahIndex),
+        title: Text(AppConstant.surahIndex),
         actions: [
           IconButton(
             tooltip: AppConstant.bookmarks,
@@ -131,7 +131,7 @@ class IndexScreen extends StatelessWidget {
                     visualDensity: const VisualDensity(horizontal: -3),
                     leading: SurahNumber(number: surahNumber),
                     title: Text(
-                      getSurahNameArabic(surahNumber),
+                      surahNameOf(surahNumber),
                       style: TextStyle(
                         fontFamily: AppTheme.secondaryFontFamily,
                         fontSize: 24,
@@ -203,12 +203,12 @@ class _ContinueReadingCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'متابعة القراءة',
+                      tr('متابعة القراءة', 'Continue reading'),
                       style: TextStyle(color: colorScheme.gold, fontSize: 14),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'سورة $surahName',
+                      tr('سورة $surahName', 'Surah $surahName'),
                       style: const TextStyle(
                         fontFamily: AppTheme.secondaryFontFamily,
                         color: Colors.white,

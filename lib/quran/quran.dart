@@ -1,5 +1,6 @@
 import 'page_data.dart';
 import 'surah_data.dart';
+import '../core/language.dart';
 
 /// Whether a bookmarked page shows part of [surahNumber]: either the surah
 /// the page opens with, or one that begins further down it.
@@ -16,26 +17,32 @@ String gethizbText(int page) {
   final hizb = currentPage.hizb;
   switch (currentPage.hizbQuarter % 4) {
     case 0:
-      return '¾ الحزب $hizb';
+      return tr('¾ الحزب $hizb', '¾ Hizb $hizb');
     case 2:
-      return '¼ الحزب $hizb';
+      return tr('¼ الحزب $hizb', '¼ Hizb $hizb');
     case 3:
-      return '½ الحزب $hizb';
+      return tr('½ الحزب $hizb', '½ Hizb $hizb');
     default:
-      return 'الحزب $hizb';
+      return tr('الحزب $hizb', 'Hizb $hizb');
   }
 }
 
 String getSurahData(int surahNumber) {
-  return '${getPlaceOfRevelation(surahNumber)}, آياتها ${getNumberOfAyahs(surahNumber)}';
+  return tr(
+    '${getPlaceOfRevelation(surahNumber)}, آياتها ${getNumberOfAyahs(surahNumber)}',
+    '${getPlaceOfRevelation(surahNumber)}, ${getNumberOfAyahs(surahNumber)} ayahs',
+  );
 }
 
 String getSurahDataByPage(int page) {
-  return '${getPlaceOfRevelationByPage(page)}, آياتها ${getNumberOfAyahsByPage(page)}';
+  return tr(
+    '${getPlaceOfRevelationByPage(page)}, آياتها ${getNumberOfAyahsByPage(page)}',
+    '${getPlaceOfRevelationByPage(page)}, ${getNumberOfAyahsByPage(page)} ayahs',
+  );
 }
 
 String getSurahDataWithNameByPage(int page) {
-  return 'سورة ${getSurahName(page)} (${getSurahDataByPage(page)})';
+  return '${surahTitle(getSurahNumberByPage(page))} (${getSurahDataByPage(page)})';
 }
 
 // simple methods
@@ -44,7 +51,7 @@ int getSurahNumberByPage(int page) {
 }
 
 String getSurahName(int page) {
-  return getSurahNameArabic(getSurahNumberByPage(page));
+  return surahNameOf(getSurahNumberByPage(page));
 }
 
 int getNumberOfAyahsByPage(int page) {
@@ -59,8 +66,23 @@ String getSurahNameArabic(int surahNumber) {
   return surah[surahNumber - 1]['arabic'] as String;
 }
 
+/// The surah's name in the interface language (transliterated in English).
+String surahNameOf(int surahNumber) => isEnglish
+    ? surah[surahNumber - 1]['name'] as String
+    : getSurahNameArabic(surahNumber);
+
+/// "سورة الفاتحة" or "Surah Al Fatiha".
+String surahTitle(int surahNumber) => tr(
+  'سورة ${getSurahNameArabic(surahNumber)}',
+  'Surah ${surahNameOf(surahNumber)}',
+);
+
+/// "الآية 5" or "Ayah 5".
+String ayahLabel(int ayah) => tr('الآية $ayah', 'Ayah $ayah');
+
 String getPlaceOfRevelation(int surahNumber) {
-  return surah[surahNumber - 1]['place'] as String;
+  final place = surah[surahNumber - 1]['place'] as String;
+  return isEnglish ? (place == 'مكية' ? 'Meccan' : 'Medinan') : place;
 }
 
 String getPlaceOfRevelationByPage(int page) {

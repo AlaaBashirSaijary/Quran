@@ -20,7 +20,7 @@ class SearchButton extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
+          Text(
             AppConstant.searchAyah,
             style: TextStyle(
               color: AppColor.greenDark,

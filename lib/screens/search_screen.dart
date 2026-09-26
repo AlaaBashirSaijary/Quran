@@ -52,7 +52,7 @@ class _SearchScreenState extends State<SearchScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text(AppConstant.searchAyah)),
+      appBar: AppBar(title: Text(AppConstant.searchAyah)),
       body: Column(
         children: [
           Padding(
@@ -63,12 +63,15 @@ class _SearchScreenState extends State<SearchScreen> {
               onChanged: _onChanged,
               textInputAction: TextInputAction.search,
               decoration: InputDecoration(
-                hintText: 'اكتب كلمة من الآية أو اسم السورة',
+                hintText: tr(
+                  'اكتب كلمة من الآية أو اسم السورة',
+                  'Type a word from the ayah (in Arabic) or a surah name',
+                ),
                 prefixIcon: Icon(Icons.search_rounded, color: colorScheme.gold),
                 suffixIcon: _controller.text.isEmpty
                     ? null
                     : IconButton(
-                        tooltip: 'مسح',
+                        tooltip: tr('مسح', 'Clear'),
                         icon: const Icon(Icons.close_rounded),
                         onPressed: () {
                           _controller.clear();
@@ -110,13 +113,16 @@ class _SearchScreenState extends State<SearchScreen> {
     if (results == null || _controller.text.trim().length < 2) {
       return _Message(
         icon: Icons.manage_search_rounded,
-        text: 'ابحث في القرآن الكريم بكلمة أو جزء من آية',
+        text: tr(
+          'ابحث في القرآن الكريم بكلمة أو جزء من آية',
+          'Search the Quran for a word or part of an ayah (in Arabic)',
+        ),
       );
     }
     if (results.isEmpty) {
-      return const _Message(
+      return _Message(
         icon: Icons.search_off_rounded,
-        text: 'لا توجد نتائج',
+        text: tr('لا توجد نتائج', 'No results'),
       );
     }
 
@@ -131,7 +137,7 @@ class _SearchScreenState extends State<SearchScreen> {
               child: ListTile(
                 leading: SurahNumber(number: surah),
                 title: Text(
-                  'سورة ${getSurahNameArabic(surah)}',
+                  surahTitle(surah),
                   style: const TextStyle(
                     fontFamily: AppTheme.secondaryFontFamily,
                     fontSize: 22,
@@ -147,8 +153,14 @@ class _SearchScreenState extends State<SearchScreen> {
           padding: const EdgeInsets.only(bottom: 10),
           child: Text(
             results.totalAyahs > results.ayahs.length
-                ? 'عدد الآيات: ${results.totalAyahs} (تُعرض أول ${results.ayahs.length})'
-                : 'عدد الآيات: ${results.totalAyahs}',
+                ? tr(
+                    'عدد الآيات: ${results.totalAyahs} (تُعرض أول ${results.ayahs.length})',
+                    'Ayahs: ${results.totalAyahs} (showing the first ${results.ayahs.length})',
+                  )
+                : tr(
+                    'عدد الآيات: ${results.totalAyahs}',
+                    'Ayahs: ${results.totalAyahs}',
+                  ),
             style: TextStyle(color: colorScheme.pageNumber),
           ),
         ),
@@ -166,6 +178,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     children: [
                       Text(
                         ayah.text,
+                        textDirection: TextDirection.rtl,
                         style: TextStyle(
                           fontFamily: AppTheme.secondaryFontFamily,
                           fontSize: context.contentSize(22),
@@ -178,7 +191,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         children: [
                           Expanded(
                             child: Text(
-                              'سورة ${getSurahNameArabic(ayah.surah)} · الآية ${ayah.number} · ${AppConstant.page} ${ayah.page}',
+                              '${surahTitle(ayah.surah)} · ${ayahLabel(ayah.number)} · ${AppConstant.page} ${ayah.page}',
                               style: TextStyle(
                                 color: colorScheme.gold,
                                 fontSize: 13,
@@ -192,7 +205,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               focusAyah: ayah,
                             ),
                             icon: const Icon(Icons.menu_book_rounded, size: 18),
-                            label: const Text('التفسير'),
+                            label: Text(tr('التفسير', 'Tafsir')),
                           ),
                         ],
                       ),

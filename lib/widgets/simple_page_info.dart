@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../core/index.dart';
 import '../providers/quran.dart';
+import '../quran/quran.dart';
 
 class SimplePageInfo extends StatelessWidget {
   const SimplePageInfo({super.key});
@@ -23,7 +24,7 @@ class SimplePageInfo extends StatelessWidget {
             Text('${AppConstant.page} ${quran.currentPage}', style: textStyle),
           Text('${AppConstant.juz} ${quran.juz}', style: textStyle),
           Text(quran.hizbText, style: textStyle),
-          Text(quran.surahName, style: textStyle),
+          Text(getSurahNameArabic(quran.surahNumber), style: textStyle),
         ],
       ),
     );

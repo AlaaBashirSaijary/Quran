@@ -34,6 +34,7 @@ class HadithDetails extends StatelessWidget {
                       padding: const EdgeInsets.only(bottom: 8),
                       child: Text(
                         line,
+                        textDirection: TextDirection.rtl,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: context.contentSize(19),

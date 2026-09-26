@@ -5,26 +5,38 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:just_audio/just_audio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../core/language.dart';
 
 /// Verse-by-verse recitations from the alquran.cloud API (Islamic Network).
 const _api = 'https://api.alquran.cloud/v1';
 
 class Reciter {
-  const Reciter(this.id, this.name);
+  const Reciter(this.id, this.arabicName, this.englishName);
 
   final String id;
-  final String name;
+  final String arabicName;
+  final String englishName;
+
+  String get name => tr(arabicName, englishName);
 }
 
 /// Used until (or if) the full list can be fetched.
 const defaultReciters = [
-  Reciter('ar.alafasy', 'مشاري راشد العفاسي'),
-  Reciter('ar.husary', 'محمود خليل الحصري'),
-  Reciter('ar.minshawi', 'محمد صديق المنشاوي'),
-  Reciter('ar.abdulbasitmurattal', 'عبد الباسط عبد الصمد (مرتل)'),
-  Reciter('ar.abdurrahmaansudais', 'عبد الرحمن السديس'),
-  Reciter('ar.mahermuaiqly', 'ماهر المعيقلي'),
-  Reciter('ar.saoodshuraym', 'سعود الشريم'),
+  Reciter('ar.alafasy', 'مشاري راشد العفاسي', 'Mishary Rashid Alafasy'),
+  Reciter('ar.husary', 'محمود خليل الحصري', 'Mahmoud Khalil Al-Husary'),
+  Reciter('ar.minshawi', 'محمد صديق المنشاوي', 'Mohamed Siddiq Al-Minshawi'),
+  Reciter(
+    'ar.abdulbasitmurattal',
+    'عبد الباسط عبد الصمد (مرتل)',
+    'Abdul Basit Abdul Samad (Murattal)',
+  ),
+  Reciter(
+    'ar.abdurrahmaansudais',
+    'عبد الرحمن السديس',
+    'Abdurrahman As-Sudais',
+  ),
+  Reciter('ar.mahermuaiqly', 'ماهر المعيقلي', 'Maher Al-Muaiqly'),
+  Reciter('ar.saoodshuraym', 'سعود الشريم', 'Saud Ash-Shuraim'),
 ];
 
 class AyahAudio {
@@ -58,7 +70,11 @@ List<Reciter> parseReciters(String body) {
   return [
     for (final e in list)
       if (e['language'] == 'ar' && e['format'] == 'audio')
-        Reciter(e['identifier'] as String, e['name'] as String),
+        Reciter(
+          e['identifier'] as String,
+          e['name'] as String,
+          (e['englishName'] as String?) ?? e['name'] as String,
+        ),
   ];
 }
 
@@ -115,7 +131,7 @@ class RecitationProvider extends ChangeNotifier {
 
   Reciter get reciter => reciters.firstWhere(
     (r) => r.id == reciterId,
-    orElse: () => Reciter(reciterId, reciterId),
+    orElse: () => Reciter(reciterId, reciterId, reciterId),
   );
 
   AudioPlayer get _audio {
@@ -156,7 +172,10 @@ class RecitationProvider extends ChangeNotifier {
       await _playCurrent();
     } catch (_) {
       status = RecitationStatus.error;
-      error = 'تعذّر التشغيل، تحقق من الإنترنت';
+      error = tr(
+        'تعذّر التشغيل، تحقق من الإنترنت',
+        'Could not play. Check your internet connection.',
+      );
       notifyListeners();
     }
   }

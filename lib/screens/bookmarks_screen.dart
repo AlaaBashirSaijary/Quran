@@ -27,7 +27,7 @@ class BookmarksScreen extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text(AppConstant.bookmarks)),
+      appBar: AppBar(title: Text(AppConstant.bookmarks)),
       body: bookmarks.isEmpty
           ? Center(
               child: Padding(
@@ -82,7 +82,7 @@ class BookmarksScreen extends StatelessWidget {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: const Text(AppConstant.bookmarkRemoved),
+          content: Text(AppConstant.bookmarkRemoved),
           action: SnackBarAction(
             label: AppConstant.undo,
             onPressed: () => provider.restore(bookmark),
@@ -127,7 +127,7 @@ class _BookmarkCard extends StatelessWidget {
         onTap: onTap,
         leading: Icon(Icons.bookmark_rounded, color: colorScheme.gold),
         title: Text(
-          'سورة ${getSurahName(bookmark.page)}',
+          surahTitle(getSurahNumberByPage(bookmark.page)),
           style: const TextStyle(
             fontFamily: AppTheme.secondaryFontFamily,
             fontSize: 22,
@@ -140,7 +140,7 @@ class _BookmarkCard extends StatelessWidget {
           style: TextStyle(color: colorScheme.pageNumber, fontSize: 13),
         ),
         trailing: IconButton(
-          tooltip: 'حذف',
+          tooltip: tr('حذف', 'Delete'),
           icon: const Icon(Icons.close_rounded),
           onPressed: onDelete,
         ),
@@ -153,8 +153,8 @@ class _BookmarkCard extends StatelessWidget {
     final today = DateTime(now.year, now.month, now.day);
     final day = DateTime(date.year, date.month, date.day);
     final days = today.difference(day).inDays;
-    if (days == 0) return 'اليوم';
-    if (days == 1) return 'أمس';
+    if (days == 0) return tr('اليوم', 'Today');
+    if (days == 1) return tr('أمس', 'Yesterday');
     return '${date.year}/${date.month}/${date.day}';
   }
 }

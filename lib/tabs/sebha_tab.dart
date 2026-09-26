@@ -15,10 +15,10 @@ class SebhaTab extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('السبحة'),
+        title: Text(tr('السبحة', 'Tasbeeh')),
         actions: [
           IconButton(
-            tooltip: 'بدء من جديد',
+            tooltip: tr('بدء من جديد', 'Start over'),
             icon: const Icon(Icons.restart_alt_rounded),
             onPressed: sebha.resetRound,
           ),
@@ -29,11 +29,14 @@ class SebhaTab extends StatelessWidget {
               if (value == 'add') _showAddZikr(context);
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(value: 'add', child: Text('إضافة ذكر')),
+              PopupMenuItem(
+                value: 'add',
+                child: Text(tr('إضافة ذكر', 'Add a dhikr')),
+              ),
               CheckedPopupMenuItem(
                 value: 'vibration',
                 checked: sebha.vibration,
-                child: const Text('الاهتزاز'),
+                child: Text(tr('الاهتزاز', 'Vibration')),
               ),
             ],
           ),
@@ -45,16 +48,16 @@ class SebhaTab extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: SegmentedButton<SebhaMode>(
-              segments: const [
+              segments: [
                 ButtonSegment(
                   value: SebhaMode.free,
                   icon: Icon(Icons.all_inclusive_rounded),
-                  label: Text('ذكر حر'),
+                  label: Text(tr('ذكر حر', 'Free')),
                 ),
                 ButtonSegment(
                   value: SebhaMode.afterPrayer,
                   icon: Icon(Icons.mosque_rounded),
-                  label: Text('بعد الصلاة'),
+                  label: Text(tr('بعد الصلاة', 'After prayer')),
                 ),
               ],
               selected: {sebha.mode},
@@ -74,14 +77,19 @@ class SebhaTab extends StatelessWidget {
               TextButton.icon(
                 onPressed: sebha.currentCount == 0 ? null : sebha.undo,
                 icon: const Icon(Icons.undo_rounded),
-                label: const Text('تراجع'),
+                label: Text(tr('تراجع', 'Undo')),
               ),
               if (sebha.mode == SebhaMode.free) ...[
                 const SizedBox(width: 8),
                 TextButton.icon(
                   onPressed: () => _showTargetPicker(context, sebha.selected),
                   icon: const Icon(Icons.flag_rounded),
-                  label: Text('الهدف ${sebha.selected.target}'),
+                  label: Text(
+                    tr(
+                      'الهدف ${sebha.selected.target}',
+                      'Target ${sebha.selected.target}',
+                    ),
+                  ),
                 ),
               ],
             ],
@@ -91,12 +99,12 @@ class SebhaTab extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               children: [
-                _Stat(label: 'اليوم', value: sebha.today),
+                _Stat(label: tr('اليوم', 'Today'), value: sebha.today),
                 const SizedBox(width: 10),
-                _Stat(label: 'المجموع', value: sebha.total),
+                _Stat(label: tr('المجموع', 'Total'), value: sebha.total),
                 const SizedBox(width: 10),
                 _Stat(
-                  label: 'أيام متتالية',
+                  label: tr('أيام متتالية', 'Day streak'),
                   value: sebha.streak,
                   icon: Icons.local_fire_department_rounded,
                   color: colorScheme.gold,
@@ -147,7 +155,7 @@ class _ZikrChips extends StatelessWidget {
             ),
           ActionChip(
             avatar: Icon(Icons.add_rounded, color: colorScheme.gold),
-            label: const Text('ذكر جديد'),
+            label: Text(tr('ذكر جديد', 'New dhikr')),
             onPressed: () => _showAddZikr(context),
           ),
         ],
@@ -221,7 +229,9 @@ class _Counter extends StatelessWidget {
             height: 96,
             child: Center(
               child: Text(
-                done ? 'تقبّل الله منك' : text,
+                done
+                    ? tr('تقبّل الله منك', 'May Allah accept it from you')
+                    : text,
                 textAlign: TextAlign.center,
                 style:
                     (text.length > 30
@@ -263,8 +273,10 @@ class _Counter extends StatelessWidget {
                     child: Semantics(
                       button: true,
                       liveRegion: true,
-                      label: 'عدّاد التسبيح',
-                      onTapHint: done ? 'البدء من جديد' : 'تسبيحة',
+                      label: tr('عدّاد التسبيح', 'Tasbeeh counter'),
+                      onTapHint: done
+                          ? tr('البدء من جديد', 'Start over')
+                          : tr('تسبيحة', 'Count'),
                       child: Center(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
@@ -286,8 +298,14 @@ class _Counter extends StatelessWidget {
                               ),
                             Text(
                               done
-                                  ? 'اضغط للبدء من جديد'
-                                  : 'من ${sebha.currentTarget}',
+                                  ? tr(
+                                      'اضغط للبدء من جديد',
+                                      'Tap to start over',
+                                    )
+                                  : tr(
+                                      'من ${sebha.currentTarget}',
+                                      'of ${sebha.currentTarget}',
+                                    ),
                               style: TextStyle(
                                 fontSize: 16,
                                 color: colorScheme.onPrimary.withValues(
@@ -300,7 +318,10 @@ class _Counter extends StatelessWidget {
                               Padding(
                                 padding: const EdgeInsets.only(top: 4),
                                 child: Text(
-                                  'الجولة ${sebha.rounds + 1}',
+                                  tr(
+                                    'الجولة ${sebha.rounds + 1}',
+                                    'Round ${sebha.rounds + 1}',
+                                  ),
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: colorScheme.gold,
@@ -380,7 +401,7 @@ Future<void> _showAddZikr(BuildContext context) async {
   final added = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
-      title: const Text('إضافة ذكر'),
+      title: Text(tr('إضافة ذكر', 'Add a dhikr')),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -389,25 +410,29 @@ Future<void> _showAddZikr(BuildContext context) async {
             autofocus: true,
             maxLines: 3,
             minLines: 1,
-            decoration: const InputDecoration(labelText: 'نص الذكر'),
+            decoration: InputDecoration(
+              labelText: tr('نص الذكر', 'Dhikr text'),
+            ),
           ),
           const SizedBox(height: 12),
           TextField(
             controller: targetController,
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            decoration: const InputDecoration(labelText: 'العدد المطلوب'),
+            decoration: InputDecoration(
+              labelText: tr('العدد المطلوب', 'Target count'),
+            ),
           ),
         ],
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: const Text(AppConstant.cancel),
+          child: Text(AppConstant.cancel),
         ),
         FilledButton(
           onPressed: () => Navigator.pop(context, true),
-          child: const Text('إضافة'),
+          child: Text(tr('إضافة', 'Add')),
         ),
       ],
     ),
@@ -430,7 +455,7 @@ Future<void> _showTargetPicker(BuildContext context, Zikr zikr) async {
   final target = await showDialog<int>(
     context: context,
     builder: (context) => AlertDialog(
-      title: Text('عدد «${zikr.text}»'),
+      title: Text(tr('عدد «${zikr.text}»', 'Count for “${zikr.text}”')),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -449,19 +474,21 @@ Future<void> _showTargetPicker(BuildContext context, Zikr zikr) async {
             controller: controller,
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            decoration: const InputDecoration(labelText: 'عدد آخر'),
+            decoration: InputDecoration(
+              labelText: tr('عدد آخر', 'Other number'),
+            ),
           ),
         ],
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text(AppConstant.cancel),
+          child: Text(AppConstant.cancel),
         ),
         FilledButton(
           onPressed: () =>
               Navigator.pop(context, int.tryParse(controller.text)),
-          child: const Text('حفظ'),
+          child: Text(tr('حفظ', 'Save')),
         ),
       ],
     ),
@@ -479,16 +506,16 @@ Future<void> _confirmRemove(
   final remove = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
-      title: const Text('حذف الذكر؟'),
+      title: Text(tr('حذف الذكر؟', 'Delete this dhikr?')),
       content: Text(zikr.text),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: const Text(AppConstant.cancel),
+          child: Text(AppConstant.cancel),
         ),
         FilledButton(
           onPressed: () => Navigator.pop(context, true),
-          child: const Text('حذف'),
+          child: Text(tr('حذف', 'Delete')),
         ),
       ],
     ),

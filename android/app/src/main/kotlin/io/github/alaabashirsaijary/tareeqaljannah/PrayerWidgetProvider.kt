@@ -25,8 +25,10 @@ class PrayerWidgetProvider : HomeWidgetProvider() {
       appWidgetIds: IntArray,
       widgetData: SharedPreferences,
   ) {
-    val times = readTimes(widgetData.getString("prayer_times", null))
-    val place = placeOf(widgetData.getString("prayer_times", null))
+    val json = widgetData.getString("prayer_times", null)
+    val times = readTimes(json)
+    val place = placeOf(json)
+    val english = isEnglish(json)
     val now = System.currentTimeMillis()
     val next = times.firstOrNull { it.second > now }
     val today = Calendar.getInstance()
@@ -45,12 +47,21 @@ class PrayerWidgetProvider : HomeWidgetProvider() {
           HomeWidgetLaunchIntent.getActivity(context, MainActivity::class.java),
       )
       if (next == null) {
-        views.setTextViewText(R.id.widget_next_name, "مواقيت الصلاة")
+        views.setTextViewText(
+            R.id.widget_next_name,
+            if (english) "Prayer Times" else "مواقيت الصلاة",
+        )
         views.setTextViewText(R.id.widget_next_time, "")
-        views.setTextViewText(R.id.widget_place, "افتح التطبيق لتحديد موقعك")
+        views.setTextViewText(
+            R.id.widget_place,
+            if (english) "Open the app to set your location" else "افتح التطبيق لتحديد موقعك",
+        )
         views.setTextViewText(R.id.widget_today, "")
       } else {
-        views.setTextViewText(R.id.widget_next_name, "الصلاة القادمة: ${next.first}")
+        views.setTextViewText(
+            R.id.widget_next_name,
+            (if (english) "Next prayer: " else "الصلاة القادمة: ") + next.first,
+        )
         views.setTextViewText(R.id.widget_next_time, format.format(Date(next.second)))
         views.setTextViewText(R.id.widget_place, place ?: "")
         views.setTextViewText(
@@ -72,6 +83,15 @@ class PrayerWidgetProvider : HomeWidgetProvider() {
       }
     } catch (e: Exception) {
       emptyList()
+    }
+  }
+
+  private fun isEnglish(json: String?): Boolean {
+    if (json == null) return false
+    return try {
+      JSONObject(json).optBoolean("en", false)
+    } catch (e: Exception) {
+      false
     }
   }
 

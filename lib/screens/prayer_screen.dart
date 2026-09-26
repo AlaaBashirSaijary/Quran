@@ -21,16 +21,16 @@ class PrayerScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('مواقيت الصلاة'),
+        title: Text(tr('مواقيت الصلاة', 'Prayer Times')),
         actions: [
           IconButton(
-            tooltip: 'التنبيهات',
+            tooltip: tr('التنبيهات', 'Notifications'),
             icon: const Icon(Icons.notifications_active_rounded),
             onPressed: () => NotificationSettingsScreen.open(context),
           ),
           if (prayer.hasLocation)
             IconButton(
-              tooltip: 'الإعدادات',
+              tooltip: tr('الإعدادات', 'Settings'),
               icon: const Icon(Icons.tune_rounded),
               onPressed: () => _showSettings(context),
             ),
@@ -57,14 +57,20 @@ class _ChooseLocation extends StatelessWidget {
           children: [
             Icon(Icons.mosque_rounded, size: 80, color: colorScheme.gold),
             const SizedBox(height: 16),
-            const Text(
-              'لحساب مواقيت الصلاة نحتاج إلى معرفة مدينتك',
+            Text(
+              tr(
+                'لحساب مواقيت الصلاة نحتاج إلى معرفة مدينتك',
+                'To calculate prayer times we need to know your city',
+              ),
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
-              'تُحسب المواقيت على هاتفك دون إنترنت، ولا يُرسل موقعك إلى أي جهة.',
+              tr(
+                'تُحسب المواقيت على هاتفك دون إنترنت، ولا يُرسل موقعك إلى أي جهة.',
+                'Times are calculated on your phone without internet, and your location is never sent anywhere.',
+              ),
               textAlign: TextAlign.center,
               style: TextStyle(color: colorScheme.pageNumber),
             ),
@@ -82,7 +88,7 @@ class _ChooseLocation extends StatelessWidget {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.my_location_rounded),
-                label: const Text('استخدام موقعي'),
+                label: Text(tr('استخدام موقعي', 'Use my location')),
               ),
             ),
             const SizedBox(height: 12),
@@ -91,7 +97,7 @@ class _ChooseLocation extends StatelessWidget {
               child: OutlinedButton.icon(
                 onPressed: () => _pickCity(context),
                 icon: const Icon(Icons.location_city_rounded),
-                label: const Text('اختيار مدينة'),
+                label: Text(tr('اختيار مدينة', 'Choose a city')),
               ),
             ),
             if (prayer.error != null) ...[
@@ -176,7 +182,7 @@ class _TimesState extends State<_Times> {
               ),
               const SizedBox(height: 12),
               Text(
-                'الصلاة القادمة: ${next.name}',
+                tr('الصلاة القادمة: ${next.name}', 'Next prayer: ${next.name}'),
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 20,
@@ -198,7 +204,7 @@ class _TimesState extends State<_Times> {
                 ),
               ),
               Text(
-                'عند ${_time(next.time)}',
+                tr('عند ${_time(next.time)}', 'At ${_time(next.time)}'),
                 style: const TextStyle(color: Colors.white70),
               ),
             ],
@@ -224,8 +230,13 @@ class _TimesState extends State<_Times> {
           child: prayer.nearKaaba
               ? ListTile(
                   leading: Icon(Icons.mosque_rounded, color: colorScheme.gold),
-                  title: const Text('اتجاه القبلة'),
-                  subtitle: const Text('أنت قريب من المسجد الحرام'),
+                  title: Text(tr('اتجاه القبلة', 'Qibla Direction')),
+                  subtitle: Text(
+                    tr(
+                      'أنت قريب من المسجد الحرام',
+                      'You are close to the Sacred Mosque',
+                    ),
+                  ),
                 )
               : ListTile(
                   leading: Transform.rotate(
@@ -235,9 +246,12 @@ class _TimesState extends State<_Times> {
                       color: colorScheme.gold,
                     ),
                   ),
-                  title: const Text('اتجاه القبلة'),
+                  title: Text(tr('اتجاه القبلة', 'Qibla Direction')),
                   subtitle: Text(
-                    '${prayer.qibla.toStringAsFixed(0)}° من الشمال باتجاه عقارب الساعة',
+                    tr(
+                      '${prayer.qibla.toStringAsFixed(0)}° من الشمال باتجاه عقارب الساعة',
+                      '${prayer.qibla.toStringAsFixed(0)}° clockwise from north',
+                    ),
                   ),
                   trailing: Icon(
                     Icons.explore_rounded,
@@ -248,8 +262,8 @@ class _TimesState extends State<_Times> {
         ),
         const SizedBox(height: 12),
         Text(
-          'طريقة الحساب: ${prayer.method.name}'
-          '${prayer.hanafiAsr ? ' · العصر على المذهب الحنفي' : ''}',
+          '${tr('طريقة الحساب', 'Calculation method')}: ${prayer.method.name}'
+          '${prayer.hanafiAsr ? tr(' · العصر على المذهب الحنفي', ' · Hanafi Asr') : ''}',
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 12, color: colorScheme.pageNumber),
         ),
@@ -292,7 +306,7 @@ class _TimeRow extends StatelessWidget {
           if (isCurrent) ...[
             const SizedBox(width: 8),
             Text(
-              'الآن',
+              tr('الآن', 'Now'),
               style: TextStyle(fontSize: 12, color: colorScheme.gold),
             ),
           ],
@@ -313,10 +327,10 @@ class _TimeRow extends StatelessWidget {
 
 String _two(int n) => n.toString().padLeft(2, '0');
 
-/// 12-hour clock with ص/م.
+/// 12-hour clock with ص/م (AM/PM).
 String _time(DateTime t) {
   final hour = t.hour % 12 == 0 ? 12 : t.hour % 12;
-  return '$hour:${_two(t.minute)} ${t.hour < 12 ? 'ص' : 'م'}';
+  return '$hour:${_two(t.minute)} ${t.hour < 12 ? tr('ص', 'AM') : tr('م', 'PM')}';
 }
 
 String _countdown(Duration d) =>
@@ -333,10 +347,10 @@ Future<void> _pickCity(BuildContext context) async {
       builder: (context, controller) => ListView(
         controller: controller,
         children: [
-          const Padding(
+          Padding(
             padding: EdgeInsets.all(16),
             child: Text(
-              'اختر مدينتك',
+              tr('اختر مدينتك', 'Choose your city'),
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
@@ -366,7 +380,7 @@ Future<void> _showSettings(BuildContext context) {
           children: [
             ListTile(
               leading: const Icon(Icons.my_location_rounded),
-              title: const Text('تحديث موقعي'),
+              title: Text(tr('تحديث موقعي', 'Update my location')),
               subtitle: prayer.error == null ? null : Text(prayer.error!),
               trailing: prayer.locating
                   ? const SizedBox(
@@ -379,22 +393,27 @@ Future<void> _showSettings(BuildContext context) {
             ),
             ListTile(
               leading: const Icon(Icons.location_city_rounded),
-              title: const Text('اختيار مدينة'),
+              title: Text(tr('اختيار مدينة', 'Choose a city')),
               subtitle: Text(prayer.placeName ?? ''),
               onTap: () => _pickCity(context),
             ),
             SwitchListTile(
               secondary: const Icon(Icons.wb_twilight_rounded),
-              title: const Text('العصر على المذهب الحنفي'),
-              subtitle: const Text('يتأخر وقت العصر (ظل المثلين)'),
+              title: Text(tr('العصر على المذهب الحنفي', 'Hanafi Asr')),
+              subtitle: Text(
+                tr(
+                  'يتأخر وقت العصر (ظل المثلين)',
+                  'Later Asr (shadow twice the length)',
+                ),
+              ),
               value: prayer.hanafiAsr,
               onChanged: prayer.setHanafiAsr,
             ),
             const Divider(),
-            const Padding(
+            Padding(
               padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
               child: Text(
-                'طريقة الحساب',
+                tr('طريقة الحساب', 'Calculation method'),
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
@@ -445,8 +464,8 @@ class _Occasions extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               for (final (label, notes) in [
-                ('اليوم', today),
-                ('غداً', tomorrow),
+                (tr('اليوم', 'Today'), today),
+                (tr('غداً', 'Tomorrow'), tomorrow),
               ])
                 if (notes.isNotEmpty)
                   Padding(
@@ -471,7 +490,7 @@ class _Occasions extends StatelessWidget {
                                     color: colorScheme.primary,
                                   ),
                                 ),
-                                TextSpan(text: notes.join('، ')),
+                                TextSpan(text: notes.join(tr('، ', ', '))),
                               ],
                             ),
                           ),

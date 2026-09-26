@@ -17,7 +17,9 @@ class NawawiScreen extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('الأربعون النووية')),
+      appBar: AppBar(
+        title: Text(tr('الأربعون النووية', 'Al-Nawawi’s Forty Hadith')),
+      ),
       body: provider.ahadithData.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : ListView.separated(
@@ -72,19 +74,22 @@ class AhadithTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('الأحاديث النبوية')),
+      appBar: AppBar(title: Text(tr('الأحاديث النبوية', 'Hadith'))),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           _BookCard(
-            title: 'الأربعون النووية',
-            subtitle: 'للإمام النووي',
+            title: tr('الأربعون النووية', 'Al-Nawawi’s Forty Hadith'),
+            subtitle: tr('للإمام النووي', 'By Imam al-Nawawi'),
             icon: Icons.format_quote_rounded,
             builder: (context) => const NawawiScreen(),
           ),
           _BookCard(
-            title: 'الأربعون القدسية',
-            subtitle: 'أحاديث يرويها النبي صلى الله عليه وسلم عن ربه',
+            title: tr('الأربعون القدسية', 'Forty Hadith Qudsi'),
+            subtitle: tr(
+              'أحاديث يرويها النبي صلى الله عليه وسلم عن ربه',
+              'Hadith the Prophet (peace be upon him) narrated from his Lord',
+            ),
             icon: Icons.auto_awesome_rounded,
             builder: (context) => FutureBuilder<List<String>>(
               future: loadQudsi(),
@@ -93,25 +98,34 @@ class AhadithTab extends StatelessWidget {
                       body: Center(child: CircularProgressIndicator()),
                     )
                   : TextListScreen(
-                      title: 'الأربعون القدسية',
+                      title: tr('الأربعون القدسية', 'Forty Hadith Qudsi'),
                       texts: snapshot.data!,
                     ),
             ),
           ),
           _BookCard(
-            title: 'رياض الصالحين',
-            subtitle: 'للإمام النووي · 1896 حديثاً في 20 كتاباً',
+            title: tr('رياض الصالحين', 'Riyad as-Salihin'),
+            subtitle: tr(
+              'للإمام النووي · 1896 حديثاً في 20 كتاباً',
+              'By Imam al-Nawawi · 1896 hadith in 20 books',
+            ),
             icon: Icons.local_florist_rounded,
             builder: (context) => SectionListScreen(
-              title: 'رياض الصالحين',
+              title: tr('رياض الصالحين', 'Riyad as-Salihin'),
               sections: loadRiyad(),
-              searchHint: 'ابحث في الكتب والأحاديث',
+              searchHint: tr(
+                'ابحث في الكتب والأحاديث',
+                'Search the books and hadith (in Arabic)',
+              ),
               searchTexts: true,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'نصوص الأربعين القدسية ورياض الصالحين من sunnah.com',
+            tr(
+              'نصوص الأربعين القدسية ورياض الصالحين من sunnah.com',
+              'Texts of the Forty Qudsi and Riyad as-Salihin from sunnah.com',
+            ),
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 12,

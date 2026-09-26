@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import '../core/app_extension.dart';
 import '../quran/quran.dart';
 import '../quran/search.dart';
+import '../core/language.dart';
 
 /// A titled group of texts: a book of hadith, or a chapter of du'a.
 class TextSection {
@@ -96,9 +97,9 @@ Future<List<TextSection>> loadRuqyah() async {
     for (final (surah, from, to) in ruqyahPassages)
       TextSection(
         from == 1 && to == quran.ayahsOfSurah(surah).length
-            ? 'سورة ${getSurahNameArabic(surah)}'
-            : 'سورة ${getSurahNameArabic(surah)} · '
-                  '${from == to ? 'الآية $from' : 'الآيتان $from–$to'}',
+            ? surahTitle(surah)
+            : '${surahTitle(surah)} · '
+                  '${from == to ? ayahLabel(from) : tr('الآيتان $from–$to', 'Ayahs $from–$to')}',
         [
           [
             for (final a in quran.ayahsOfSurah(surah))

@@ -6,6 +6,7 @@ import '../notifications/notification_screen.dart';
 import 'azkar_screen.dart';
 import 'index_screen.dart';
 import 'prayer_screen.dart';
+import '../core/language.dart';
 
 class MainTabsScreen extends StatefulWidget {
   const MainTabsScreen({super.key});
@@ -35,28 +36,28 @@ class _MainTabsScreenState extends State<MainTabsScreen> {
           selectedIndex: _selectedIndex,
           onDestinationSelected: (index) =>
               setState(() => _selectedIndex = index),
-          destinations: const [
+          destinations: [
             NavigationDestination(
               icon: ImageIcon(AssetImage('assets/ic_quran.png')),
-              label: 'القرآن',
+              label: tr('القرآن', 'Quran'),
             ),
             NavigationDestination(
               icon: Icon(Icons.mosque_outlined),
               selectedIcon: Icon(Icons.mosque_rounded),
-              label: 'الصلاة',
+              label: tr('الصلاة', 'Prayer'),
             ),
             NavigationDestination(
               icon: Icon(Icons.volunteer_activism_outlined),
               selectedIcon: Icon(Icons.volunteer_activism_rounded),
-              label: 'الأذكار',
+              label: tr('الأذكار', 'Azkar'),
             ),
             NavigationDestination(
               icon: ImageIcon(AssetImage('assets/ic_sebha.png')),
-              label: 'السبحة',
+              label: tr('السبحة', 'Tasbeeh'),
             ),
             NavigationDestination(
               icon: ImageIcon(AssetImage('assets/ic_ahadeth.png')),
-              label: 'الأحاديث',
+              label: tr('الأحاديث', 'Hadith'),
             ),
           ],
         ),

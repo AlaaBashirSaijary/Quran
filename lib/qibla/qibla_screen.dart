@@ -90,16 +90,21 @@ class _QiblaScreenState extends State<QiblaScreen> {
 
     Widget body;
     if (qibla == null) {
-      body = const _Message(
+      body = _Message(
         icon: Icons.location_off_rounded,
-        text: 'اختر مدينتك في تبويب الصلاة أولاً لمعرفة اتجاه القبلة.',
+        text: tr(
+          'اختر مدينتك في تبويب الصلاة أولاً لمعرفة اتجاه القبلة.',
+          'Choose your city in the Prayer tab first to find the qibla.',
+        ),
       );
     } else if (_noSensor && heading == null) {
       body = _Message(
         icon: Icons.explore_off_rounded,
-        text:
-            'لا يمكن قراءة البوصلة على هذا الجهاز.\n'
-            'القبلة على ${qibla.toStringAsFixed(0)}° من الشمال باتجاه عقارب الساعة.',
+        text: tr(
+          'لا يمكن قراءة البوصلة على هذا الجهاز.\n'
+              'القبلة على ${qibla.toStringAsFixed(0)}° من الشمال باتجاه عقارب الساعة.',
+          'The compass cannot be read on this device.\nThe qibla is ${qibla.toStringAsFixed(0)}° clockwise from north.',
+        ),
       );
     } else if (heading == null) {
       body = const Center(child: CircularProgressIndicator());
@@ -114,10 +119,16 @@ class _QiblaScreenState extends State<QiblaScreen> {
         children: [
           Text(
             aligned
-                ? 'أنت متجه إلى القبلة'
+                ? tr('أنت متجه إلى القبلة', 'You are facing the qibla')
                 : turn > 0
-                ? 'استدر ${turn.abs().round()}° إلى اليمين'
-                : 'استدر ${turn.abs().round()}° إلى اليسار',
+                ? tr(
+                    'استدر ${turn.abs().round()}° إلى اليمين',
+                    'Turn ${turn.abs().round()}° to the right',
+                  )
+                : tr(
+                    'استدر ${turn.abs().round()}° إلى اليسار',
+                    'Turn ${turn.abs().round()}° to the left',
+                  ),
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 24,
@@ -133,9 +144,12 @@ class _QiblaScreenState extends State<QiblaScreen> {
           ),
           const SizedBox(height: 24),
           Text(
-            'ضع الهاتف أفقياً بعيداً عن المعادن والمغناطيس. إن بدا الاتجاه '
-            'غير مستقر فحرّك الهاتف في الهواء على شكل رقم 8 لمعايرة البوصلة. '
-            'البوصلة تشير إلى الشمال المغناطيسي، وقد يختلف عن الحقيقي بضع درجات.',
+            tr(
+              'ضع الهاتف أفقياً بعيداً عن المعادن والمغناطيس. إن بدا الاتجاه '
+                  'غير مستقر فحرّك الهاتف في الهواء على شكل رقم 8 لمعايرة البوصلة. '
+                  'البوصلة تشير إلى الشمال المغناطيسي، وقد يختلف عن الحقيقي بضع درجات.',
+              'Hold the phone flat, away from metal and magnets. If the direction seems unsteady, move the phone in a figure 8 to calibrate the compass. The compass points to magnetic north, which may differ from true north by a few degrees.',
+            ),
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 12, color: colorScheme.pageNumber),
           ),
@@ -144,7 +158,7 @@ class _QiblaScreenState extends State<QiblaScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('اتجاه القبلة')),
+      appBar: AppBar(title: Text(tr('اتجاه القبلة', 'Qibla Direction'))),
       body: body,
     );
   }
@@ -186,11 +200,11 @@ class _Dial extends StatelessWidget {
                 ),
                 child: Stack(
                   children: [
-                    for (final (angle, label) in const [
-                      (0.0, 'شمال'),
-                      (90.0, 'شرق'),
-                      (180.0, 'جنوب'),
-                      (270.0, 'غرب'),
+                    for (final (angle, label) in [
+                      (0.0, tr('شمال', 'N')),
+                      (90.0, tr('شرق', 'E')),
+                      (180.0, tr('جنوب', 'S')),
+                      (270.0, tr('غرب', 'W')),
                     ])
                       _AtAngle(
                         angle: angle,

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import '../core/language.dart';
 
 const _app = 'tareeq-aljannah';
 const _format = 1;
@@ -45,14 +46,24 @@ Future<int> importBackup(SharedPreferences prefs, String json) async {
   try {
     backup = jsonDecode(json) as Map<String, dynamic>;
   } catch (_) {
-    throw const BackupException('الملف ليس نسخة احتياطية صالحة.');
+    throw BackupException(
+      tr('الملف ليس نسخة احتياطية صالحة.', 'The file is not a valid backup.'),
+    );
   }
   if (backup['app'] != _app || backup['data'] is! Map) {
-    throw const BackupException('هذا الملف ليس نسخة احتياطية من طريق الجنة.');
+    throw BackupException(
+      tr(
+        'هذا الملف ليس نسخة احتياطية من طريق الجنة.',
+        'This file is not a Tareeq Al-Jannah backup.',
+      ),
+    );
   }
   if ((backup['format'] as int? ?? 0) > _format) {
-    throw const BackupException(
-      'النسخة الاحتياطية من إصدار أحدث من التطبيق. حدّث التطبيق أولاً.',
+    throw BackupException(
+      tr(
+        'النسخة الاحتياطية من إصدار أحدث من التطبيق. حدّث التطبيق أولاً.',
+        'The backup is from a newer version of the app. Update the app first.',
+      ),
     );
   }
 

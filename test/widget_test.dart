@@ -13,6 +13,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:quranapplication/azkar/azkar.dart';
 import 'package:quranapplication/main.dart';
+import 'package:quranapplication/core/language.dart';
 import 'package:quranapplication/prayer/prayer.dart';
 import 'package:quranapplication/providers/ahadith_details_provider.dart';
 import 'package:quranapplication/providers/bookmark.dart';
@@ -75,6 +76,45 @@ void main() {
     await tester.tap(find.text('تراجع'));
     await tester.pump();
     expect(find.text('2'), findsWidgets);
+  });
+
+  testWidgets('the interface can be switched to English', (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'seenOnboarding': true,
+      SettingsProvider.languageKey: 'en',
+    });
+    addTearDown(() => appLanguage = AppLanguage.ar);
+    final prefs = await SharedPreferences.getInstance();
+    await tester.pumpWidget(buildApp(prefs));
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Surah Index'), findsOneWidget);
+    expect(find.text('Al Fatiha'), findsOneWidget);
+    expect(
+      Directionality.of(tester.element(find.text('Surah Index'))),
+      TextDirection.ltr,
+    );
+
+    await tester.tap(find.text('Tasbeeh').last);
+    await tester.pumpAndSettle();
+    // The dhikr itself stays in Arabic.
+    expect(find.text('سبحان الله'), findsWidgets);
+    expect(find.text('of 33'), findsOneWidget);
+  });
+
+  test('prayer and place names follow the interface language', () async {
+    SharedPreferences.setMockInitialValues({});
+    addTearDown(() => appLanguage = AppLanguage.ar);
+    final prayer = PrayerProvider(await SharedPreferences.getInstance())
+      ..setCity(cities.firstWhere((c) => c.arabicName == 'دمشق'));
+    final day = DateTime(2026, 9, 25);
+    expect(prayer.placeName, 'دمشق');
+    expect(prayer.timesOn(day).first.name, 'الفجر');
+    appLanguage = AppLanguage.en;
+    expect(prayer.placeName, 'Damascus');
+    expect(prayer.timesOn(day).first.name, 'Fajr');
+    expect(prayer.method.name, 'Muslim World League');
   });
 
   testWidgets('main screens label their tap targets for screen readers', (
@@ -500,7 +540,7 @@ void main() {
       return prayer;
     }
 
-    City city(String name) => cities.firstWhere((c) => c.name == name);
+    City city(String name) => cities.firstWhere((c) => c.arabicName == name);
 
     test('no location until one is chosen', () async {
       SharedPreferences.setMockInitialValues({});
@@ -530,7 +570,9 @@ void main() {
     test('dhuhr is near solar noon', () async {
       // At longitude 0 solar noon is 12:00 UTC give or take the equation
       // of time (under 17 minutes).
-      final prayer = await at(const City('Greenwich', 51.48, 0, 'mwl'));
+      final prayer = await at(
+        const City('Greenwich', 'Greenwich', 51.48, 0, 'mwl'),
+      );
       final dhuhr = prayer.timesOn(DateTime(2026, 6, 21))[2].time.toUtc();
       final noon = DateTime.utc(2026, 6, 21, 12);
       expect(dhuhr.difference(noon).inMinutes.abs(), lessThan(17));
@@ -590,7 +632,7 @@ void main() {
         expect((await at(city('لندن'))).qibla, closeTo(118.99, 0.05));
         expect((await at(city('دمشق'))).qibla, closeTo(164.55, 0.05));
         final jakarta = await at(
-          const City('Jakarta', -6.2088, 106.8456, 'mwl'),
+          const City('Jakarta', 'Jakarta', -6.2088, 106.8456, 'mwl'),
         );
         expect(jakarta.qibla, closeTo(295.15, 0.05));
       },
@@ -691,7 +733,7 @@ void main() {
       SharedPreferences.setMockInitialValues(values);
       final prefs = await SharedPreferences.getInstance();
       final prayer = PrayerProvider(prefs)
-        ..setCity(cities.firstWhere((c) => c.name == 'دمشق'));
+        ..setCity(cities.firstWhere((c) => c.arabicName == 'دمشق'));
       return (prayer, NotificationSettings(prefs));
     }
 

@@ -3,6 +3,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 import '../core/index.dart';
+import '../main.dart';
+import '../providers/settings_provider.dart';
 import 'main_tabs_screen.dart';
 
 class _Slide {
@@ -13,21 +15,33 @@ class _Slide {
   final String subtitle;
 }
 
-const _slides = [
+List<_Slide> get _slides => [
   _Slide(
     Icons.menu_book_rounded,
-    'اقرأ القرآن الكريم وتدبّره',
-    'مصحف كامل يعمل دون إنترنت ويحفظ موضع قراءتك',
+    tr('اقرأ القرآن الكريم وتدبّره', 'Read and reflect on the Quran'),
+    tr(
+      'مصحف كامل يعمل دون إنترنت ويحفظ موضع قراءتك',
+      'The complete mushaf, offline, remembering where you stopped',
+    ),
   ),
   _Slide(
     Icons.format_quote_rounded,
-    'أحاديث الرسول صلى الله عليه وسلم',
-    'الأربعون النووية بين يديك في أي وقت',
+    tr(
+      'أحاديث الرسول صلى الله عليه وسلم',
+      'The hadith of the Prophet (peace be upon him)',
+    ),
+    tr(
+      'الأربعون النووية بين يديك في أي وقت',
+      'Al-Nawawi’s Forty and more, whenever you need them',
+    ),
   ),
   _Slide(
     Icons.favorite_rounded,
-    'أذكار ليطمئن قلبك',
-    'سبحة إلكترونية تعينك على الذكر',
+    tr('أذكار ليطمئن قلبك', 'Azkar to bring your heart peace'),
+    tr(
+      'سبحة إلكترونية تعينك على الذكر',
+      'A tasbeeh counter to help you remember Allah',
+    ),
   ),
 ];
 
@@ -61,6 +75,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
+  Future<void> _switchLanguage() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      SettingsProvider.languageKey,
+      (isEnglish ? AppLanguage.ar : AppLanguage.en).name,
+    );
+    if (mounted) AppRoot.restart(context);
+  }
+
   void _next() {
     if (isLastPage) {
       _finish();
@@ -81,12 +104,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            Align(
-              alignment: AlignmentDirectional.topEnd,
-              child: TextButton(
-                onPressed: _finish,
-                child: Text('تخطَّ', style: TextStyle(color: colorScheme.gold)),
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                TextButton.icon(
+                  onPressed: _switchLanguage,
+                  icon: Icon(Icons.translate_rounded, color: colorScheme.gold),
+                  label: Text(
+                    isEnglish ? AppLanguage.ar.label : AppLanguage.en.label,
+                    style: TextStyle(color: colorScheme.gold),
+                  ),
+                ),
+                TextButton(
+                  onPressed: _finish,
+                  child: Text(
+                    tr('تخطَّ', 'Skip'),
+                    style: TextStyle(color: colorScheme.gold),
+                  ),
+                ),
+              ],
             ),
             Expanded(
               child: PageView.builder(
@@ -157,7 +193,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 width: double.infinity,
                 child: FilledButton(
                   onPressed: _next,
-                  child: Text(isLastPage ? 'ابدأ' : 'التالي'),
+                  child: Text(
+                    isLastPage ? tr('ابدأ', 'Start') : tr('التالي', 'Next'),
+                  ),
                 ),
               ),
             ),
