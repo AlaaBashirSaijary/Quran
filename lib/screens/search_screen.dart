@@ -5,6 +5,7 @@ import '../quran/quran.dart';
 import '../quran/search.dart';
 import '../widgets/surah_number.dart';
 import 'index_screen.dart';
+import '../providers/settings_provider.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key, this.isTab = false});
@@ -165,7 +166,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         ayah.text,
                         style: TextStyle(
                           fontFamily: AppTheme.secondaryFontFamily,
-                          fontSize: 22,
+                          fontSize: context.contentSize(22),
                           height: 1.8,
                           color: colorScheme.onSurface,
                         ),

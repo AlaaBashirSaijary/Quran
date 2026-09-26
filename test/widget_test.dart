@@ -9,42 +9,16 @@ import 'package:quranapplication/providers/ahadith_details_provider.dart';
 import 'package:quranapplication/providers/bookmark.dart';
 import 'package:quranapplication/providers/quran.dart';
 import 'package:quranapplication/providers/reading_provider.dart';
-import 'package:quranapplication/providers/show_overlay_provider.dart';
 import 'package:quranapplication/providers/theme_provider.dart';
-import 'package:quranapplication/providers/toast.dart';
 import 'package:quranapplication/quran/quran.dart';
 import 'package:quranapplication/quran/search.dart';
 import 'package:quranapplication/providers/sebha_provider.dart';
+import 'package:quranapplication/settings/backup.dart';
+import 'package:quranapplication/providers/settings_provider.dart';
 import 'package:quranapplication/tabs/sebha_tab.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-Widget buildApp(SharedPreferences prefs) {
-  return MultiProvider(
-    providers: [
-      ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
-      ChangeNotifierProvider(create: (_) => ShowOverlayProvider()),
-      ChangeNotifierProvider(create: (_) => Quran(prefs)),
-      ChangeNotifierProxyProvider<Quran, BookMarkProvider>(
-        create: (_) => BookMarkProvider(prefs),
-        update: (_, quran, previous) => previous!..update(quran.currentPage),
-      ),
-      ChangeNotifierProxyProvider<Quran, ToastProvider>(
-        create: (_) => ToastProvider(),
-        update: (_, quran, previous) => previous!..update(quran.hizbQuarter),
-      ),
-      ChangeNotifierProxyProvider<Quran, ReadingProvider>(
-        create: (_) => ReadingProvider(prefs),
-        update: (_, quran, previous) => previous!..update(quran.currentPage),
-      ),
-      ChangeNotifierProvider(create: (_) => PrayerProvider(prefs)),
-      ChangeNotifierProvider(create: (_) => SebhaProvider(prefs)),
-      ChangeNotifierProvider(
-        create: (_) => AhadithDetailsProvider()..loadHadithFile(),
-      ),
-    ],
-    child: MyApp(prefs: prefs),
-  );
-}
+Widget buildApp(SharedPreferences prefs) => AppRoot(prefs: prefs);
 
 void main() {
   testWidgets('first launch shows onboarding, then the main tabs', (
@@ -570,6 +544,79 @@ void main() {
       expect(again.placeName, 'القاهرة');
       expect(again.method.id, 'egyptian');
       expect(again.hanafiAsr, isTrue);
+    });
+  });
+
+  group('Settings and backup', () {
+    testWidgets('content text follows the chosen size', (tester) async {
+      SharedPreferences.setMockInitialValues({'settings.textScale': 1.5});
+      final prefs = await SharedPreferences.getInstance();
+      late double size;
+      await tester.pumpWidget(
+        ChangeNotifierProvider(
+          create: (_) => SettingsProvider(prefs),
+          child: Builder(
+            builder: (context) {
+              size = context.contentSize(20);
+              return const SizedBox();
+            },
+          ),
+        ),
+      );
+      expect(size, 30);
+    });
+
+    test('text size is saved', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      expect(SettingsProvider(prefs).textScale, 1.0);
+      SettingsProvider(prefs).setTextScale(1.3);
+      expect(SettingsProvider(prefs).textScale, 1.3);
+    });
+
+    test('a backup restores every kind of saved value', () async {
+      SharedPreferences.setMockInitialValues({
+        'bookmarks': ['50|1000', '293|2000'],
+        'wird.goal': 10,
+        'settings.textScale': 1.15,
+        'prayer.hanafi': true,
+        'prayer.place': 'دمشق',
+      });
+      final prefs = await SharedPreferences.getInstance();
+      final backup = exportBackup(prefs, now: DateTime(2026, 9, 26));
+
+      await prefs.clear();
+      await prefs.setInt('sebha.total', 999);
+      final restored = await importBackup(prefs, backup);
+
+      expect(restored, 5);
+      expect(prefs.getStringList('bookmarks'), ['50|1000', '293|2000']);
+      expect(prefs.getInt('wird.goal'), 10);
+      expect(prefs.getDouble('settings.textScale'), 1.15);
+      expect(prefs.getBool('prayer.hanafi'), isTrue);
+      expect(prefs.getString('prayer.place'), 'دمشق');
+      expect(
+        prefs.getInt('sebha.total'),
+        isNull,
+        reason: 'replaced, not merged',
+      );
+      expect(BookMarkProvider(prefs).pages, {50, 293});
+    });
+
+    test('a file that is not a backup changes nothing', () async {
+      SharedPreferences.setMockInitialValues({'wird.goal': 5});
+      final prefs = await SharedPreferences.getInstance();
+      for (final bad in [
+        'not json',
+        '{"app": "other", "data": {}}',
+        '{"app": "tareeq-aljannah", "format": 99, "data": {}}',
+      ]) {
+        await expectLater(
+          importBackup(prefs, bad),
+          throwsA(isA<BackupException>()),
+        );
+      }
+      expect(prefs.getInt('wird.goal'), 5);
     });
   });
 }

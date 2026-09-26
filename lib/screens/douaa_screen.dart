@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/index.dart';
+import '../providers/settings_provider.dart';
 
 class DouaaScreen extends StatelessWidget {
   const DouaaScreen({super.key});
@@ -11,16 +12,16 @@ class DouaaScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('دُعَاءُ خَتْمِ القُرْآن')),
       body: ListView(
         padding: const EdgeInsets.all(16),
-        children: const [
+        children: [
           Card(
             child: Padding(
-              padding: EdgeInsets.all(20),
+              padding: const EdgeInsets.all(20),
               child: Text(
                 AppConstant.douaaKhatmQuran,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontFamily: AppTheme.secondaryFontFamily,
-                  fontSize: 25,
+                  fontSize: context.contentSize(25),
                   height: 1.6,
                 ),
               ),

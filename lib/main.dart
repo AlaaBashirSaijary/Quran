@@ -10,6 +10,7 @@ import 'providers/bookmark.dart';
 import 'providers/quran.dart';
 import 'providers/reading_provider.dart';
 import 'providers/sebha_provider.dart';
+import 'providers/settings_provider.dart';
 import 'providers/show_overlay_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/toast.dart';
@@ -24,44 +25,75 @@ Future<void> main() async {
 
   final prefs = await SharedPreferences.getInstance();
 
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider<ThemeProvider>(
-          create: (context) => ThemeProvider(prefs),
-        ),
-        ChangeNotifierProvider<ShowOverlayProvider>(
-          create: (context) => ShowOverlayProvider(),
-        ),
-        ChangeNotifierProvider<Quran>(create: (context) => Quran(prefs)),
-        ChangeNotifierProxyProvider<Quran, BookMarkProvider>(
-          create: (context) => BookMarkProvider(prefs),
-          update: (context, value, previous) =>
-              previous!..update(value.currentPage),
-        ),
-        ChangeNotifierProxyProvider<Quran, ToastProvider>(
-          create: (context) => ToastProvider(),
-          update: (context, value, previous) =>
-              previous!..update(value.hizbQuarter),
-        ),
-        ChangeNotifierProxyProvider<Quran, ReadingProvider>(
-          create: (context) => ReadingProvider(prefs),
-          update: (context, value, previous) =>
-              previous!..update(value.currentPage),
-        ),
-        ChangeNotifierProvider<PrayerProvider>(
-          create: (context) => PrayerProvider(prefs),
-        ),
-        ChangeNotifierProvider<SebhaProvider>(
-          create: (context) => SebhaProvider(prefs),
-        ),
-        ChangeNotifierProvider<AhadithDetailsProvider>(
-          create: (context) => AhadithDetailsProvider()..loadHadithFile(),
-        ),
-      ],
-      child: MyApp(prefs: prefs),
-    ),
-  );
+  runApp(AppRoot(prefs: prefs));
+}
+
+/// Builds the providers from saved data. [restart] rebuilds them, which is
+/// how a restored backup takes effect without closing the app.
+class AppRoot extends StatefulWidget {
+  const AppRoot({super.key, required this.prefs});
+
+  final SharedPreferences prefs;
+
+  static void restart(BuildContext context) {
+    context.findAncestorStateOfType<_AppRootState>()?.restart();
+  }
+
+  @override
+  State<AppRoot> createState() => _AppRootState();
+}
+
+class _AppRootState extends State<AppRoot> {
+  Key _key = UniqueKey();
+
+  void restart() => setState(() => _key = UniqueKey());
+
+  @override
+  Widget build(BuildContext context) {
+    final prefs = widget.prefs;
+    return KeyedSubtree(
+      key: _key,
+      child: MultiProvider(
+        providers: [
+          ChangeNotifierProvider<ThemeProvider>(
+            create: (context) => ThemeProvider(prefs),
+          ),
+          ChangeNotifierProvider<SettingsProvider>(
+            create: (context) => SettingsProvider(prefs),
+          ),
+          ChangeNotifierProvider<ShowOverlayProvider>(
+            create: (context) => ShowOverlayProvider(),
+          ),
+          ChangeNotifierProvider<Quran>(create: (context) => Quran(prefs)),
+          ChangeNotifierProxyProvider<Quran, BookMarkProvider>(
+            create: (context) => BookMarkProvider(prefs),
+            update: (context, value, previous) =>
+                previous!..update(value.currentPage),
+          ),
+          ChangeNotifierProxyProvider<Quran, ToastProvider>(
+            create: (context) => ToastProvider(),
+            update: (context, value, previous) =>
+                previous!..update(value.hizbQuarter),
+          ),
+          ChangeNotifierProxyProvider<Quran, ReadingProvider>(
+            create: (context) => ReadingProvider(prefs),
+            update: (context, value, previous) =>
+                previous!..update(value.currentPage),
+          ),
+          ChangeNotifierProvider<PrayerProvider>(
+            create: (context) => PrayerProvider(prefs),
+          ),
+          ChangeNotifierProvider<SebhaProvider>(
+            create: (context) => SebhaProvider(prefs),
+          ),
+          ChangeNotifierProvider<AhadithDetailsProvider>(
+            create: (context) => AhadithDetailsProvider()..loadHadithFile(),
+          ),
+        ],
+        child: MyApp(prefs: prefs),
+      ),
+    );
+  }
 }
 
 class MyApp extends StatelessWidget {

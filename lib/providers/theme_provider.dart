@@ -28,7 +28,11 @@ class ThemeProvider with ChangeNotifier {
   }
 
   void toggleTheme(bool newValue) {
-    themeMode = newValue ? ThemeMode.dark : ThemeMode.light;
+    setThemeMode(newValue ? ThemeMode.dark : ThemeMode.light);
+  }
+
+  void setThemeMode(ThemeMode mode) {
+    themeMode = mode;
     notifyListeners();
     prefs.setString(_key, themeMode.name);
   }
