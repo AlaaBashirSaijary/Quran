@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/services.dart';
 
+import '../core/app_extension.dart';
 import 'search.dart';
 
 /// Tafsir of one ayah, or of consecutive ayahs explained together.
@@ -36,7 +37,12 @@ class Tafsir {
       for (var s = 0; s < data.length; s++)
         [
           for (final g in data[s] as List)
-            TafsirEntry(s + 1, g[0] as int, g[1] as int, g[2] as String),
+            TafsirEntry(
+              s + 1,
+              g[0] as int,
+              g[1] as int,
+              expandLigatures(g[2] as String),
+            ),
         ],
     ]);
   }

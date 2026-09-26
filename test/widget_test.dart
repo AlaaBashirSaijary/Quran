@@ -1,3 +1,4 @@
+import 'package:quranapplication/content/library.dart';
 import 'package:quranapplication/audio/recitation.dart';
 import 'package:quranapplication/hifz/hifz.dart';
 import 'package:quranapplication/quran/tafsir.dart';
@@ -836,6 +837,11 @@ void main() {
       expect(tafsir.of(114, 6).text, isNotEmpty);
     });
 
+    test('the ﷺ ligature, missing from the fonts, is spelled out', () {
+      expect(tafsir.of(1, 7).text, isNot(contains('\uFDFA')));
+      expect(tafsir.of(1, 7).text, contains('رسول الله صلى الله عليه وسلم'));
+    });
+
     test('every ayah of the Quran has a tafsir', () {
       for (var page = 1; page <= 604; page++) {
         for (final ayah in quran.ayahsOnPage(page)) {
@@ -1004,6 +1010,67 @@ void main() {
       final again = RecitationProvider(prefs);
       expect(again.reciter.name, 'محمود خليل الحصري');
       expect([again.repeat, again.continuous], [3, false]);
+    });
+  });
+
+  group('Hadith and du\'a library', () {
+    setUpAll(TestWidgetsFlutterBinding.ensureInitialized);
+
+    test(
+      'Riyad as-Salihin has 1896 hadiths in 20 books, Miscellany first',
+      () async {
+        final books = await loadRiyad();
+        expect(books, hasLength(20));
+        expect(books.fold<int>(0, (n, b) => n + b.texts.length), 1896);
+        expect(books.first.title, 'كتاب المقدمات');
+        expect(books.first.texts.first, contains('إنما الأعمال بالنيات'));
+        for (final b in books) {
+          for (final t in b.texts) {
+            expect(t, isNot(contains('\u200f')));
+            expect(t, isNot(contains('\u0640')));
+          }
+        }
+      },
+    );
+
+    test('forty hadith qudsi', () async {
+      expect(await loadQudsi(), hasLength(40));
+    });
+
+    test(
+      'occasion du\'as leave out the daily azkar and the introduction',
+      () async {
+        final all = await loadHisn();
+        final occasions = await loadOccasionDuas();
+        expect(all, hasLength(134));
+        final titles = occasions.map((s) => s.title).toSet();
+        expect(titles, contains('دعاء السفر'));
+        expect(titles, contains('دعاء الكرب'));
+        expect(titles, isNot(contains('المقدمة')));
+        expect(titles, isNot(contains('أذكار الصباح والمساء')));
+        expect(occasions.length, all.length - 5);
+      },
+    );
+
+    test('ruqyah has the Quranic passages and the prophetic words', () async {
+      final ruqyah = await loadRuqyah();
+      expect(ruqyah, hasLength(ruqyahPassages.length + 4));
+      expect(ruqyah.first.title, 'سورة الفاتحة');
+      expect(ruqyah.first.texts.single, contains('﴿7﴾'));
+      expect(ruqyah[1].title, 'سورة البقرة · الآية 255');
+      expect(ruqyah[2].title, 'سورة البقرة · الآيتان 285–286');
+      expect(ruqyah.last.texts, isNotEmpty);
+    });
+
+    test('ninety-nine distinct names with corrected diacritics', () async {
+      final names = await loadNames();
+      expect(names, hasLength(99));
+      expect(names.toSet(), hasLength(99));
+      expect(names, contains('ٱلرَّافِعُ'));
+      expect(
+        names.any((n) => n.contains('ٱلْرَّ') || n.contains('ٱلْشَّ')),
+        isFalse,
+      );
     });
   });
 }
