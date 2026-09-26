@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../azkar/azkar.dart';
+import '../content/library.dart';
+import '../content/text_screens.dart';
 import '../core/index.dart';
 import '../providers/settings_provider.dart';
 
@@ -50,6 +52,58 @@ class _AzkarScreenState extends State<AzkarScreen> {
                   for (final category in categories)
                     _CategoryTile(category: category),
                 ],
+              ),
+              const SizedBox(height: 16),
+              _LinkTile(
+                icon: Icons.volunteer_activism_rounded,
+                title: 'أدعية المناسبات',
+                subtitle: 'السفر، المطر، الكرب، المرض، المسجد، الطعام وغيرها',
+                builder: (context) => SectionListScreen(
+                  title: 'أدعية المناسبات',
+                  sections: loadOccasionDuas(),
+                  searchHint: 'ابحث عن مناسبة أو دعاء',
+                  searchTexts: true,
+                ),
+              ),
+              _LinkTile(
+                icon: Icons.shield_moon_rounded,
+                title: 'الرقية الشرعية',
+                subtitle: 'من القرآن الكريم والسنة النبوية',
+                builder: (context) => FutureBuilder<List<TextSection>>(
+                  future: loadRuqyah(),
+                  builder: (context, snapshot) {
+                    final sections = snapshot.data;
+                    if (sections == null) {
+                      return const Scaffold(
+                        body: Center(child: CircularProgressIndicator()),
+                      );
+                    }
+                    return Scaffold(
+                      appBar: AppBar(title: const Text('الرقية الشرعية')),
+                      body: ListView(
+                        padding: const EdgeInsets.all(16),
+                        children: [
+                          for (final (i, s) in sections.indexed)
+                            for (final text in s.texts)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: TextCard(
+                                  text: text,
+                                  caption: s.title,
+                                  quranFont: i < ruqyahPassages.length,
+                                ),
+                              ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+              _LinkTile(
+                icon: Icons.star_rounded,
+                title: 'أسماء الله الحسنى',
+                subtitle: 'تسعة وتسعون اسماً',
+                builder: (context) => const NamesScreen(),
               ),
               const SizedBox(height: 16),
               Text(
@@ -351,3 +405,39 @@ class _DhikrCard extends StatelessWidget {
 
 /// Arabic counting: 3 to 10 take the plural, 11 and up the singular.
 String _countLabel(int n) => n <= 10 ? '$n أذكار' : '$n ذكراً';
+
+class _LinkTile extends StatelessWidget {
+  const _LinkTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.builder,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final WidgetBuilder builder;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: ListTile(
+          leading: Icon(icon, color: colorScheme.gold, size: 32),
+          title: Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          subtitle: Text(subtitle),
+          trailing: Icon(Icons.chevron_left_rounded, color: colorScheme.gold),
+          onTap: () =>
+              Navigator.push(context, MaterialPageRoute(builder: builder)),
+        ),
+      ),
+    );
+  }
+}

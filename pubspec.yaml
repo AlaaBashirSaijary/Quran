@@ -97,6 +97,7 @@ flutter:
   assets:
     - assets/quran-images/
     - assets/icons/
+    - assets/content/
     - assets/splash.png
     - assets/
 
