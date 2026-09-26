@@ -7,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/index.dart';
+import '../hijri/hijri.dart';
 import '../main.dart';
 import '../providers/settings_provider.dart';
 import '../providers/theme_provider.dart';
@@ -99,6 +100,58 @@ class SettingsScreen extends StatelessWidget {
                     ),
                     RadioListTile(value: ThemeMode.light, title: Text('فاتح')),
                     RadioListTile(value: ThemeMode.dark, title: Text('داكن')),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _Section(
+            title: 'التاريخ الهجري',
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+                child: Text(
+                  'يُحسب بتقويم أم القرى. إن كان بدء الشهر في بلدك يختلف '
+                  'بسبب رؤية الهلال فعدّله بيوم أو يومين.',
+                  style: TextStyle(color: colorScheme.pageNumber, fontSize: 13),
+                ),
+              ),
+              ListTile(
+                title: Text(
+                  hijriOf(
+                    DateTime.now(),
+                    offset: settings.hijriOffset,
+                  ).toString(),
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      tooltip: 'يوم قبل',
+                      icon: const Icon(Icons.remove_circle_outline_rounded),
+                      onPressed: settings.hijriOffset > -2
+                          ? () => settings.setHijriOffset(
+                              settings.hijriOffset - 1,
+                            )
+                          : null,
+                    ),
+                    Text(
+                      settings.hijriOffset == 0
+                          ? '0'
+                          : settings.hijriOffset > 0
+                          ? '+${settings.hijriOffset}'
+                          : '${settings.hijriOffset}',
+                    ),
+                    IconButton(
+                      tooltip: 'يوم بعد',
+                      icon: const Icon(Icons.add_circle_outline_rounded),
+                      onPressed: settings.hijriOffset < 2
+                          ? () => settings.setHijriOffset(
+                              settings.hijriOffset + 1,
+                            )
+                          : null,
+                    ),
                   ],
                 ),
               ),

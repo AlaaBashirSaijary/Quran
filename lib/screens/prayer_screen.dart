@@ -6,7 +6,11 @@ import 'package:provider/provider.dart';
 
 import '../core/index.dart';
 import '../notifications/notification_screen.dart';
+import '../hijri/hijri.dart' as hijri;
+import '../hijri/hijri.dart' show hijriOf, occasionsOn;
 import '../prayer/prayer.dart';
+import '../providers/settings_provider.dart';
+import '../qibla/qibla_screen.dart';
 
 class PrayerScreen extends StatelessWidget {
   const PrayerScreen({super.key});
@@ -133,6 +137,7 @@ class _TimesState extends State<_Times> {
   @override
   Widget build(BuildContext context) {
     final prayer = Provider.of<PrayerProvider>(context);
+    final settings = Provider.of<SettingsProvider>(context);
     final colorScheme = Theme.of(context).colorScheme;
     final times = prayer.timesOn(_now);
     final next = prayer.nextPrayer(_now);
@@ -163,6 +168,11 @@ class _TimesState extends State<_Times> {
                     style: TextStyle(color: colorScheme.gold),
                   ),
                 ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '${hijri.dayName(_now)} ${hijriOf(_now, offset: settings.hijriOffset)}',
+                style: const TextStyle(color: Colors.white70, fontSize: 13),
               ),
               const SizedBox(height: 12),
               Text(
@@ -209,6 +219,7 @@ class _TimesState extends State<_Times> {
           ),
         ),
         const SizedBox(height: 16),
+        _Occasions(now: _now, offset: settings.hijriOffset),
         Card(
           child: prayer.nearKaaba
               ? ListTile(
@@ -228,6 +239,11 @@ class _TimesState extends State<_Times> {
                   subtitle: Text(
                     '${prayer.qibla.toStringAsFixed(0)}° من الشمال باتجاه عقارب الساعة',
                   ),
+                  trailing: Icon(
+                    Icons.explore_rounded,
+                    color: colorScheme.primary,
+                  ),
+                  onTap: () => QiblaScreen.open(context),
                 ),
         ),
         const SizedBox(height: 12),
@@ -402,4 +418,71 @@ Future<void> _showSettings(BuildContext context) {
       ),
     ),
   );
+}
+
+/// Today's and tomorrow's days of note, if any.
+class _Occasions extends StatelessWidget {
+  const _Occasions({required this.now, required this.offset});
+
+  final DateTime now;
+  final int offset;
+
+  @override
+  Widget build(BuildContext context) {
+    final today = occasionsOn(now, offset: offset);
+    final tomorrow = occasionsOn(
+      now.add(const Duration(days: 1)),
+      offset: offset,
+    );
+    if (today.isEmpty && tomorrow.isEmpty) return const SizedBox.shrink();
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final (label, notes) in [
+                ('اليوم', today),
+                ('غداً', tomorrow),
+              ])
+                if (notes.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.event_available_rounded,
+                          size: 20,
+                          color: colorScheme.gold,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text.rich(
+                            TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: '$label: ',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: colorScheme.primary,
+                                  ),
+                                ),
+                                TextSpan(text: notes.join('، ')),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
