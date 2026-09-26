@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/index.dart';
 import '../model/hadith_model.dart';
+import '../providers/settings_provider.dart';
 
 class HadithDetails extends StatelessWidget {
   const HadithDetails({super.key, required this.hadith});
@@ -35,7 +36,7 @@ class HadithDetails extends StatelessWidget {
                         line,
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 19,
+                          fontSize: context.contentSize(19),
                           height: 1.9,
                           fontWeight: FontWeight.w400,
                           color: colorScheme.onSurface,

@@ -13,6 +13,7 @@ import '../quran/quran.dart';
 import '../widgets/surah_number.dart';
 import 'juz_index_screen.dart';
 import 'search_screen.dart';
+import 'settings_screen.dart';
 import 'wird_screen.dart';
 
 /// Opens the Quran reader at [page].
@@ -47,6 +48,13 @@ class IndexScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: isTab
+            ? IconButton(
+                tooltip: 'الإعدادات',
+                icon: const Icon(Icons.settings_rounded),
+                onPressed: () => SettingsScreen.open(context),
+              )
+            : null,
         title: const Text(AppConstant.surahIndex),
         actions: [
           IconButton(

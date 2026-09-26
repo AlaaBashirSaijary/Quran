@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../azkar/azkar.dart';
 import '../core/index.dart';
+import '../providers/settings_provider.dart';
 
 class AzkarScreen extends StatefulWidget {
   const AzkarScreen({super.key});
@@ -283,7 +284,7 @@ class _DhikrCard extends StatelessWidget {
                 Text(
                   dhikr.text,
                   style: TextStyle(
-                    fontSize: 19,
+                    fontSize: context.contentSize(19),
                     height: 1.9,
                     color: colorScheme.onSurface,
                   ),
@@ -293,7 +294,7 @@ class _DhikrCard extends StatelessWidget {
                   Text(
                     dhikr.virtue!,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: context.contentSize(13),
                       height: 1.6,
                       color: colorScheme.gold,
                     ),
