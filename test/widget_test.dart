@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:quranapplication/content/library.dart';
 import 'package:quranapplication/audio/recitation.dart';
 import 'package:quranapplication/hifz/hifz.dart';
@@ -14,6 +16,8 @@ import 'package:provider/provider.dart';
 import 'package:quranapplication/azkar/azkar.dart';
 import 'package:quranapplication/main.dart';
 import 'package:quranapplication/core/language.dart';
+import 'package:quranapplication/khatma/group_khatma.dart';
+import 'package:quranapplication/screens/group_khatma_screen.dart';
 import 'package:quranapplication/prayer/prayer.dart';
 import 'package:quranapplication/providers/ahadith_details_provider.dart';
 import 'package:quranapplication/providers/bookmark.dart';
@@ -76,6 +80,124 @@ void main() {
     await tester.tap(find.text('تراجع'));
     await tester.pump();
     expect(find.text('2'), findsWidgets);
+  });
+
+  group('Group khatma', () {
+    Future<GroupKhatmaProvider> fresh() async {
+      SharedPreferences.setMockInitialValues({});
+      return GroupKhatmaProvider(
+        await SharedPreferences.getInstance(),
+        random: Random(1),
+      );
+    }
+
+    test('the thirty juz are split into even consecutive runs', () {
+      expect(distributeJuz(1), everyElement(0));
+      final three = distributeJuz(3);
+      expect(three.sublist(0, 10), everyElement(0));
+      expect(three.sublist(10, 20), everyElement(1));
+      expect(three.sublist(20), everyElement(2));
+      final seven = distributeJuz(7);
+      for (var i = 1; i < 30; i++) {
+        expect(seven[i] - seven[i - 1], inInclusiveRange(0, 1));
+      }
+      final counts = [
+        for (var p = 0; p < 7; p++) seven.where((a) => a == p).length,
+      ];
+      expect(counts.reduce(min), greaterThanOrEqualTo(4));
+      expect(counts.reduce(max), lessThanOrEqualTo(5));
+      expect(distributeJuz(40).toSet(), hasLength(30));
+    });
+
+    test(
+      'a shared message lets another phone join, even inside chat text',
+      () async {
+        final organizer = await fresh();
+        final k = organizer.create('ختمة العائلة', ['أحمد', 'مريم', 'Sara']);
+        organizer.setDone(k, 3, true);
+        final message = khatmaMessage(k);
+        expect(message, contains('أحمد'));
+
+        final member = await fresh();
+        final pasted = '[26/09/2026, 20:01] Ahmad: $message\nthanks!';
+        expect(member.import(pasted), ImportResult.joined);
+        final joined = member.byId(k.id)!;
+        expect(joined.title, 'ختمة العائلة');
+        expect(joined.names, ['أحمد', 'مريم', 'Sara']);
+        expect(joined.nameOf(30), 'Sara');
+        expect(joined.done, {3});
+        expect(joined.myName, isNull, reason: 'the organizer’s choice stays');
+
+        member.setMyName(joined, 'مريم');
+        expect(member.import(message), ImportResult.updated);
+        expect(member.byId(k.id)!.myName, 'مريم');
+        expect(member.khatmas, hasLength(1));
+      },
+    );
+
+    test('progress messages mark juz done on the organizer’s phone', () async {
+      final organizer = await fresh();
+      final k = organizer.create('ختمة', ['أحمد', 'مريم']);
+      final member = await fresh()
+        ..import(khatmaMessage(k));
+      final copy = member.byId(k.id)!;
+      member
+        ..setDone(copy, 16, true)
+        ..setDone(copy, 17, true);
+
+      final report = doneMessage(copy, [16, 17]);
+      expect(organizer.import('Maryam: $report'), ImportResult.progress);
+      expect(organizer.byId(k.id)!.done, {16, 17});
+
+      expect((await fresh()).import(report), ImportResult.unknownKhatma);
+      expect(organizer.import('السلام عليكم'), ImportResult.invalid);
+      expect(organizer.import('khatma:v1:bm90LWpzb24'), ImportResult.invalid);
+    });
+
+    testWidgets('a khatma can be created from the screens', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final groups = GroupKhatmaProvider(await SharedPreferences.getInstance());
+      await tester.pumpWidget(
+        ChangeNotifierProvider.value(
+          value: groups,
+          child: const MaterialApp(
+            home: Directionality(
+              textDirection: TextDirection.rtl,
+              child: GroupKhatmaListScreen(),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('ختمة جديدة'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).first, 'ختمة رمضان');
+      for (final name in ['أحمد', 'مريم']) {
+        await tester.enterText(find.byType(TextField).at(1), name);
+        await tester.testTextInput.receiveAction(TextInputAction.done);
+        await tester.pump();
+      }
+      expect(find.text('الجزء 1–15'), findsOneWidget);
+      expect(find.text('الجزء 16–30'), findsOneWidget);
+      await tester.tap(find.text('إنشاء الختمة'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('ختمة رمضان'), findsOneWidget);
+      final k = groups.khatmas.single;
+      expect(k.myName, 'أحمد');
+      expect(k.juzOf('مريم'), hasLength(15));
+    });
+
+    test('khatmas are saved and reloaded', () async {
+      final groups = await fresh();
+      final k = groups.create('ختمة', ['أحمد', 'مريم'], myName: 'مريم')
+        ..done.add(1);
+      groups.reassign(k, 30, 0);
+      final reloaded = GroupKhatmaProvider(groups.prefs).byId(k.id)!;
+      expect(reloaded.myName, 'مريم');
+      expect(reloaded.done, {1});
+      expect(reloaded.nameOf(30), 'أحمد');
+      expect(reloaded.juzOf('مريم'), [for (var j = 16; j <= 29; j++) j]);
+    });
   });
 
   testWidgets('the interface can be switched to English', (tester) async {

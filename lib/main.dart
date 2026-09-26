@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'audio/recitation.dart';
 import 'core/index.dart';
 import 'hifz/hifz.dart';
+import 'khatma/group_khatma.dart';
 import 'notifications/notification_settings.dart';
 import 'prayer/prayer.dart';
 import 'providers/ahadith_details_provider.dart';
@@ -91,6 +92,9 @@ class _AppRootState extends State<AppRoot> {
           ),
           ChangeNotifierProvider<HifzProvider>(
             create: (context) => HifzProvider(prefs),
+          ),
+          ChangeNotifierProvider<GroupKhatmaProvider>(
+            create: (context) => GroupKhatmaProvider(prefs),
           ),
           ChangeNotifierProvider<RecitationProvider>(
             create: (context) => RecitationProvider(prefs),
