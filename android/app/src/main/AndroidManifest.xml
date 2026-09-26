@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Streaming recitations (everything else works offline). -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <!-- Approximate location is enough to calculate prayer times. -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <!-- Prayer, azkar and wird reminders: re-scheduled after a reboot, and

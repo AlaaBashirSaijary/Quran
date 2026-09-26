@@ -1,3 +1,4 @@
+import 'package:quranapplication/audio/recitation.dart';
 import 'package:quranapplication/hifz/hifz.dart';
 import 'package:quranapplication/quran/tafsir.dart';
 import 'package:quranapplication/hijri/hijri.dart';
@@ -939,6 +940,70 @@ void main() {
         HifzProvider(hifz.prefs, clock: () => now).isMemorised(1),
         isFalse,
       );
+    });
+  });
+
+  group('Recitation', () {
+    // Shapes of the alquran.cloud responses the app reads.
+    const pageBody = '''
+{"code":200,"status":"OK","data":{"number":1,"ayahs":[
+ {"number":1,"audio":"https://cdn.islamic.network/quran/audio/128/ar.alafasy/1.mp3",
+  "text":"...","surah":{"number":1,"name":"سُورَةُ ٱلْفَاتِحَةِ"},"numberInSurah":1,"page":1},
+ {"number":2,"audio":"https://cdn.islamic.network/quran/audio/128/ar.alafasy/2.mp3",
+  "text":"...","surah":{"number":1,"name":"سُورَةُ ٱلْفَاتِحَةِ"},"numberInSurah":2,"page":1}
+]}}''';
+    const editionsBody = '''
+{"code":200,"status":"OK","data":[
+ {"identifier":"ar.alafasy","language":"ar","name":"مشاري العفاسي","format":"audio","type":"versebyverse"},
+ {"identifier":"en.walk","language":"en","name":"Ibrahim Walk","format":"audio","type":"versebyverse"}
+]}''';
+
+    test('reads the ayahs and audio links of a page', () {
+      final ayahs = parsePageAudio(pageBody);
+      expect(ayahs.map((a) => '${a.surah}:${a.ayah}'), ['1:1', '1:2']);
+      expect(ayahs.first.url, endsWith('/ar.alafasy/1.mp3'));
+    });
+
+    test('keeps only Arabic recitations', () {
+      expect(parseReciters(editionsBody).map((r) => r.id), ['ar.alafasy']);
+    });
+
+    test('rejects an error response', () {
+      expect(
+        () => parsePageAudio('{"code":404,"status":"NOT FOUND","data":"x"}'),
+        throwsFormatException,
+      );
+    });
+
+    test('plays each ayah once, or repeats it', () {
+      const ayahs = [AyahAudio(1, 1, 'a'), AyahAudio(1, 2, 'b')];
+      final once = RecitationQueue(ayahs);
+      final order = [once.current.ayah];
+      while (once.advance()) {
+        order.add(once.current.ayah);
+      }
+      expect(order, [1, 2]);
+
+      final thrice = RecitationQueue(ayahs, repeat: 3);
+      final repeated = [thrice.current.ayah];
+      while (thrice.advance()) {
+        repeated.add(thrice.current.ayah);
+      }
+      expect(repeated, [1, 1, 1, 2, 2, 2]);
+    });
+
+    test('reciter and options are saved', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final recitation = RecitationProvider(prefs);
+      expect(recitation.reciterId, 'ar.alafasy');
+      recitation
+        ..setReciter('ar.husary')
+        ..setRepeat(3)
+        ..setContinuous(false);
+      final again = RecitationProvider(prefs);
+      expect(again.reciter.name, 'محمود خليل الحصري');
+      expect([again.repeat, again.continuous], [3, false]);
     });
   });
 }
