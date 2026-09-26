@@ -4,12 +4,14 @@ import 'package:provider/provider.dart';
 import '../core/index.dart';
 import '../prayer/prayer.dart';
 import '../providers/reading_provider.dart';
+import '../widget/prayer_widget.dart';
 import 'notification_service.dart';
 import 'notification_settings.dart';
 import 'planner.dart';
 
 /// Keeps the scheduled reminders in step with the prayer times, the
-/// reminder choices and today's wird. Place once near the app root.
+/// reminder choices and today's wird, and the home-screen widget in step
+/// with the prayer times. Place once near the app root.
 class NotificationSync extends StatefulWidget {
   const NotificationSync({super.key, required this.child});
 
@@ -25,7 +27,6 @@ class _NotificationSyncState extends State<NotificationSync> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (!NotificationService.supported) return;
     final prayer = Provider.of<PrayerProvider>(context);
     final settings = Provider.of<NotificationSettings>(context);
     final reading = Provider.of<ReadingProvider>(context);
@@ -41,6 +42,8 @@ class _NotificationSyncState extends State<NotificationSync> {
     ].join('|');
     if (signature == _last) return;
     _last = signature;
+    updatePrayerWidget(prayer, now);
+    if (!NotificationService.supported) return;
     NotificationService.instance.schedule(
       planNotifications(
         prayer: prayer,

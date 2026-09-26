@@ -24,24 +24,27 @@ class CustomButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textStyle = TextStyle(color: onPrimary, fontSize: 15);
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        height: 40,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(borderRadius),
-          color: primary,
-          border: isFilled ? null : Border.all(width: 2, color: onPrimary),
-        ),
-        child: Row(
-          children: [
-            if (svgIcon != null) ...[
-              SvgPicture.asset(svgIcon!),
-              const SizedBox(width: 5),
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        onTap: onPressed,
+        child: Container(
+          height: 40,
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(borderRadius),
+            color: primary,
+            border: isFilled ? null : Border.all(width: 2, color: onPrimary),
+          ),
+          child: Row(
+            children: [
+              if (svgIcon != null) ...[
+                SvgPicture.asset(svgIcon!),
+                const SizedBox(width: 5),
+              ],
+              Text(text, style: textStyle),
             ],
-            Text(text, style: textStyle),
-          ],
+          ),
         ),
       ),
     );

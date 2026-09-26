@@ -25,6 +25,7 @@ import 'package:quranapplication/providers/sebha_provider.dart';
 import 'package:quranapplication/settings/backup.dart';
 import 'package:quranapplication/providers/settings_provider.dart';
 import 'package:quranapplication/tabs/sebha_tab.dart';
+import 'package:quranapplication/widget/prayer_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Widget buildApp(SharedPreferences prefs) => AppRoot(prefs: prefs);
@@ -74,6 +75,30 @@ void main() {
     await tester.tap(find.text('تراجع'));
     await tester.pump();
     expect(find.text('2'), findsWidgets);
+  });
+
+  testWidgets('main screens label their tap targets for screen readers', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({'seenOnboarding': true});
+    final prefs = await SharedPreferences.getInstance();
+    final handle = tester.ensureSemantics();
+    await tester.pumpWidget(buildApp(prefs));
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pumpAndSettle();
+
+    for (final tab in ['القرآن', 'الأذكار', 'السبحة', 'الأحاديث', 'الصلاة']) {
+      final item = find.text(tab);
+      if (item.evaluate().isEmpty) continue;
+      await tester.tap(item.last);
+      await tester.pumpAndSettle();
+      await expectLater(
+        tester,
+        meetsGuideline(labeledTapTargetGuideline),
+        reason: tab,
+      );
+    }
+    handle.dispose();
   });
 
   group('Sebha', () {
@@ -526,6 +551,36 @@ void main() {
       final next = prayer.nextPrayer(isha.add(const Duration(minutes: 1)));
       expect(next.name, 'الفجر');
       expect(next.time.isAfter(isha), isTrue);
+    });
+
+    test('home widget gets five prayers a day for a week', () async {
+      final prayer = await at(city('دمشق'));
+      final now = DateTime(2026, 9, 25, 13);
+      final data = prayerWidgetData(prayer, now);
+      expect(data['place'], 'دمشق');
+      final times = data['times']! as List;
+      expect(times, hasLength(35));
+      expect(times.map((t) => (t as List)[0]).take(5), [
+        'الفجر',
+        'الظهر',
+        'العصر',
+        'المغرب',
+        'العشاء',
+      ]);
+      final millis = [for (final t in times) (t as List)[1] as int];
+      for (var i = 1; i < millis.length; i++) {
+        expect(millis[i], greaterThan(millis[i - 1]));
+      }
+      expect(
+        millis.first,
+        prayer.timesOn(now).first.time.millisecondsSinceEpoch,
+      );
+    });
+
+    test('home widget has no times without a location', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prayer = PrayerProvider(await SharedPreferences.getInstance());
+      expect(prayerWidgetData(prayer, DateTime(2026, 9, 25))['times'], isEmpty);
     });
 
     test(

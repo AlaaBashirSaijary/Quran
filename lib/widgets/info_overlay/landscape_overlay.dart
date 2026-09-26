@@ -63,18 +63,25 @@ class LandscapeOverlay extends StatelessWidget {
                 },
               ),
               IconButton(
+                tooltip: bookMark.isMarkedPage
+                    ? 'إزالة العلامة المرجعية'
+                    : 'إضافة علامة مرجعية',
                 icon: SvgPicture.asset(
                   bookMark.isMarkedPage ? AppAsset.saveFilled : AppAsset.save,
                 ),
                 onPressed: () => bookMark.toggleCurrentPage(context),
               ),
               IconButton(
+                tooltip: 'البحث في القرآن',
                 icon: SvgPicture.asset(AppAsset.search),
                 onPressed: () {
                   Navigator.pushNamed(context, '/search');
                 },
               ),
               IconButton(
+                tooltip: Theme.of(context).brightness == Brightness.dark
+                    ? 'الوضع النهاري'
+                    : 'الوضع الليلي',
                 icon: SvgPicture.asset(
                   Theme.of(context).brightness == Brightness.dark
                       ? AppAsset.sun
