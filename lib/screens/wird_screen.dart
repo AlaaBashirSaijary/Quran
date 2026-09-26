@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../core/index.dart';
 import '../providers/reading_provider.dart';
+import 'group_khatma_screen.dart';
 
 /// Compact daily-goal and khatma progress, shown on the Quran tab.
 class WirdCard extends StatelessWidget {
@@ -238,6 +239,33 @@ class WirdScreen extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            clipBehavior: Clip.antiAlias,
+            child: ListTile(
+              contentPadding: const EdgeInsets.all(16),
+              leading: Icon(
+                Icons.groups_rounded,
+                color: colorScheme.gold,
+                size: 36,
+              ),
+              title: Text(
+                tr('الختمة الجماعية', 'Group Khatma'),
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Text(
+                tr(
+                  'وزّعوا الأجزاء بينكم وتابعوا الإنجاز عبر واتساب',
+                  'Split the juz among you and follow progress over WhatsApp',
+                ),
+              ),
+              trailing: Icon(
+                Icons.chevron_left_rounded,
+                color: colorScheme.gold,
+              ),
+              onTap: () => GroupKhatmaListScreen.open(context),
             ),
           ),
           const SizedBox(height: 16),
