@@ -14,6 +14,7 @@ import '../widgets/surah_number.dart';
 import 'juz_index_screen.dart';
 import 'search_screen.dart';
 import 'settings_screen.dart';
+import 'hifz_screen.dart';
 import 'wird_screen.dart';
 
 /// Opens the Quran reader at [page].
@@ -109,6 +110,8 @@ class IndexScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     const WirdCard(),
+                    const SizedBox(height: 12),
+                    const HifzCard(),
                   ],
                 ),
               ),
