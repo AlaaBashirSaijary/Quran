@@ -1,3 +1,5 @@
+import 'package:quranapplication/hijri/hijri.dart';
+import 'package:quranapplication/qibla/compass.dart';
 import 'package:quranapplication/notifications/planner.dart';
 import 'package:quranapplication/notifications/notification_settings.dart';
 import 'package:adhan_dart/adhan_dart.dart';
@@ -729,6 +731,90 @@ void main() {
     test('minutes read naturally', () {
       expect(minutesLabel(5), '5 دقائق');
       expect(minutesLabel(30), '30 دقيقة');
+    });
+  });
+
+  group('Hijri calendar', () {
+    test('matches known Umm al-Qura dates', () {
+      final newYear = hijriOf(DateTime(2023, 7, 19));
+      expect([newYear.day, newYear.month, newYear.year], [1, 1, 1445]);
+      final eid = hijriOf(DateTime(2023, 4, 21));
+      expect([eid.day, eid.month, eid.year], [1, 10, 1444]);
+      expect(eid.toString(), '1 شوال 1444 هـ');
+    });
+
+    test('an offset shifts the date by whole days', () {
+      final before = hijriOf(DateTime(2023, 7, 19), offset: -1);
+      expect([before.month, before.year], [12, 1444]);
+      expect(
+        before.day,
+        greaterThanOrEqualTo(29),
+        reason: 'last day of the month',
+      );
+      final after = hijriOf(DateTime(2023, 7, 19), offset: 1);
+      expect([after.day, after.month, after.year], [2, 1, 1445]);
+    });
+
+    test('marks the days of note', () {
+      expect(occasionsOn(DateTime(2023, 4, 21)), contains('عيد الفطر المبارك'));
+      expect(
+        occasionsOn(DateTime(2023, 4, 21)),
+        isNot(contains('صيام الست من شوال')),
+        reason: 'no fasting on Eid',
+      );
+      // 9 Dhul Hijjah 1444 was 27 June 2023.
+      expect(occasionsOn(DateTime(2023, 6, 27)), contains('يوم عرفة'));
+      // 10 Muharram 1445 was 28 July 2023.
+      expect(occasionsOn(DateTime(2023, 7, 28)), contains('يوم عاشوراء'));
+    });
+
+    test('no fasting suggestions in the days of Tashreeq', () {
+      // 13 Dhul Hijjah 1444: a white day, but also Tashreeq.
+      final notes = occasionsOn(DateTime(2023, 7, 1));
+      expect(notes, contains('من أيام التشريق'));
+      expect(notes, isNot(contains('من الأيام البيض')));
+    });
+
+    test('Mondays and Thursdays outside Ramadan', () {
+      expect(occasionsOn(DateTime(2026, 9, 28)), contains('صيام يوم الاثنين'));
+      expect(occasionsOn(DateTime(2026, 10, 1)), contains('صيام يوم الخميس'));
+      expect(dayName(DateTime(2026, 9, 26)), 'السبت');
+    });
+  });
+
+  group('Qibla compass', () {
+    const flat = (0.0, 0.0, 9.8);
+
+    test('reads north and east with the phone flat', () {
+      // Field pointing along the phone's top edge (and down, as in the
+      // northern hemisphere): facing north.
+      expect(headingFrom(flat, (0, 20, -40)), closeTo(0, 0.001));
+      // North to the phone's left: facing east.
+      expect(headingFrom(flat, (-20, 0, -40)), closeTo(90, 0.001));
+      expect(headingFrom(flat, (0, -20, -40)), closeTo(180, 0.001));
+      expect(headingFrom(flat, (20, 0, -40)), closeTo(270, 0.001));
+    });
+
+    test('ignores tilt towards the user', () {
+      // Phone tilted 30° up, still facing north.
+      final g = (0.0, 9.8 * 0.5, 9.8 * 0.866);
+      expect(headingFrom(g, (0, 20, -40)), closeTo(0, 0.001));
+    });
+
+    test('no reading without gravity', () {
+      expect(headingFrom((0, 0, 0), (0, 20, -40)), isNull);
+    });
+
+    test('turn direction takes the short way round', () {
+      expect(turnTowards(10, 350), 20);
+      expect(turnTowards(350, 10), -20);
+      expect(turnTowards(165, 165), 0);
+    });
+
+    test('smoothing crosses 0 degrees without spinning', () {
+      final smoother = AngleSmoother(factor: 0.5);
+      smoother.add(350);
+      expect(smoother.add(10), closeTo(0, 0.001));
     });
   });
 }
