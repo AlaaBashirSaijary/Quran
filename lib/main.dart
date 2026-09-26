@@ -54,6 +54,9 @@ class _AppRootState extends State<AppRoot> {
   @override
   Widget build(BuildContext context) {
     final prefs = widget.prefs;
+    appLanguage = AppLanguage.fromCode(
+      prefs.getString(SettingsProvider.languageKey),
+    );
     return KeyedSubtree(
       key: _key,
       child: MultiProvider(
@@ -119,7 +122,7 @@ class MyApp extends StatelessWidget {
       builder: (context, theme, child) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
-          title: 'طريق الجنة',
+          title: tr('طريق الجنة', 'Tareeq Al-Jannah'),
           theme: AppTheme.lightThemeData,
           darkTheme: AppTheme.darkThemeData,
           themeMode: theme.themeMode,
@@ -129,8 +132,8 @@ class MyApp extends StatelessWidget {
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
           ],
-          supportedLocales: const [Locale("ar", "AE")],
-          locale: const Locale("ar", "AE"),
+          supportedLocales: [for (final l in AppLanguage.values) l.locale],
+          locale: appLanguage.locale,
           routes: {
             '/index': (context) => const IndexScreen(),
             '/juz-index': (context) => const JuzIndexScreen(),

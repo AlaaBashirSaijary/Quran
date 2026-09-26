@@ -18,7 +18,7 @@ class Quran extends ChangeNotifier {
 
   int get surahNumber => quranPages[currentPage - 1].surah;
 
-  String get surahName => getSurahNameArabic(surahNumber);
+  String get surahName => surahNameOf(surahNumber);
 
   int get juz => quranPages[currentPage - 1].juz;
 

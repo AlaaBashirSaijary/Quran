@@ -27,10 +27,10 @@ class RecitationBar extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final current = recitation.current;
     final title = switch (recitation.status) {
-      RecitationStatus.loading => 'جارٍ التحميل…',
+      RecitationStatus.loading => tr('جارٍ التحميل…', 'Loading…'),
       RecitationStatus.error => recitation.error ?? '',
       _ when current != null =>
-        'سورة ${getSurahNameArabic(current.surah)} · الآية ${current.ayah}',
+        '${surahTitle(current.surah)} · ${ayahLabel(current.ayah)}',
       _ => '',
     };
 
@@ -59,15 +59,15 @@ class RecitationBar extends StatelessWidget {
             )
           else if (recitation.status == RecitationStatus.error)
             IconButton(
-              tooltip: 'إعادة المحاولة',
+              tooltip: tr('إعادة المحاولة', 'Retry'),
               icon: const Icon(Icons.refresh_rounded, color: Colors.white),
               onPressed: () => startRecitation(context),
             )
           else
             IconButton(
               tooltip: recitation.status == RecitationStatus.playing
-                  ? 'إيقاف مؤقت'
-                  : 'تشغيل',
+                  ? tr('إيقاف مؤقت', 'Pause')
+                  : tr('تشغيل', 'Play'),
               icon: Icon(
                 recitation.status == RecitationStatus.playing
                     ? Icons.pause_rounded
@@ -98,12 +98,12 @@ class RecitationBar extends StatelessWidget {
             ),
           ),
           IconButton(
-            tooltip: 'إعدادات التلاوة',
+            tooltip: tr('إعدادات التلاوة', 'Recitation settings'),
             icon: const Icon(Icons.tune_rounded, color: Colors.white),
             onPressed: () => showRecitationSettings(context),
           ),
           IconButton(
-            tooltip: 'إيقاف',
+            tooltip: tr('إيقاف', 'Stop'),
             icon: const Icon(Icons.stop_rounded, color: Colors.white),
             onPressed: recitation.stop,
           ),
@@ -127,8 +127,8 @@ Future<void> showRecitationSettings(BuildContext context) {
           padding: const EdgeInsets.symmetric(vertical: 8),
           children: [
             ListTile(
-              title: const Text('تكرار كل آية'),
-              subtitle: const Text('مفيد للحفظ'),
+              title: Text(tr('تكرار كل آية', 'Repeat each ayah')),
+              subtitle: Text(tr('مفيد للحفظ', 'Helpful for memorizing')),
               trailing: SegmentedButton<int>(
                 segments: const [
                   ButtonSegment(value: 1, label: Text('1')),
@@ -141,15 +141,17 @@ Future<void> showRecitationSettings(BuildContext context) {
               ),
             ),
             SwitchListTile(
-              title: const Text('المتابعة إلى الصفحة التالية'),
+              title: Text(
+                tr('المتابعة إلى الصفحة التالية', 'Continue to the next page'),
+              ),
               value: recitation.continuous,
               onChanged: recitation.setContinuous,
             ),
             const Divider(),
-            const Padding(
+            Padding(
               padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
               child: Text(
-                'القارئ',
+                tr('القارئ', 'Reciter'),
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
@@ -168,7 +170,10 @@ Future<void> showRecitationSettings(BuildContext context) {
             Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
-                'تحتاج التلاوة إلى اتصال بالإنترنت. المصدر: alquran.cloud',
+                tr(
+                  'تحتاج التلاوة إلى اتصال بالإنترنت. المصدر: alquran.cloud',
+                  'Recitation needs an internet connection. Source: alquran.cloud',
+                ),
                 style: TextStyle(
                   fontSize: 12,
                   color: Theme.of(context).colorScheme.pageNumber,

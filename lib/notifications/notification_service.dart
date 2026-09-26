@@ -5,6 +5,7 @@ import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
 import 'planner.dart';
+import '../core/language.dart';
 
 /// Schedules the planned reminders with the system. Only Android and iOS
 /// are supported; elsewhere every call is a no-op.
@@ -103,10 +104,16 @@ class NotificationService {
 
   NotificationDetails _details(ReminderKind kind) {
     final (id, name) = switch (kind) {
-      ReminderKind.prayer => ('prayer', 'أوقات الصلاة'),
-      ReminderKind.beforePrayer => ('before_prayer', 'التذكير قبل الصلاة'),
-      ReminderKind.azkar => ('azkar', 'تذكير الأذكار'),
-      ReminderKind.wird => ('wird', 'تذكير الورد'),
+      ReminderKind.prayer => ('prayer', tr('أوقات الصلاة', 'Prayer times')),
+      ReminderKind.beforePrayer => (
+        'before_prayer',
+        tr('التذكير قبل الصلاة', 'Before the prayer'),
+      ),
+      ReminderKind.azkar => ('azkar', tr('تذكير الأذكار', 'Azkar reminders')),
+      ReminderKind.wird => (
+        'wird',
+        tr('تذكير الورد', 'Daily reading reminders'),
+      ),
     };
     return NotificationDetails(
       android: AndroidNotificationDetails(

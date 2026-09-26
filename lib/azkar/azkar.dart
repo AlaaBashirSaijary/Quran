@@ -4,6 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../core/language.dart';
+
+const _englishTitles = {
+  'morning': 'Morning Azkar',
+  'evening': 'Evening Azkar',
+  'afterPrayer': 'After the Prayer',
+  'sleep': 'Before Sleep',
+  'waking': 'Upon Waking',
+  'tasabeeh': 'Tasbeeh',
+  'quranDuas': 'Du‘as from the Quran',
+  'prophetsDuas': 'Du‘as of the Prophets',
+};
+
 class Dhikr {
   const Dhikr({
     required this.text,
@@ -28,8 +41,13 @@ class AzkarCategory {
   });
 
   final String id;
+
+  /// The Arabic title, as in assets/azkar.json.
   final String title;
   final List<Dhikr> items;
+
+  /// The title in the interface language.
+  String get label => isEnglish ? _englishTitles[id] ?? title : title;
 
   IconData get icon => switch (id) {
     'morning' => Icons.wb_sunny_rounded,

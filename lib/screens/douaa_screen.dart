@@ -9,7 +9,11 @@ class DouaaScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('دُعَاءُ خَتْمِ القُرْآن')),
+      appBar: AppBar(
+        title: Text(
+          tr('دُعَاءُ خَتْمِ القُرْآن', 'Du‘a for Completing the Quran'),
+        ),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -18,6 +22,7 @@ class DouaaScreen extends StatelessWidget {
               padding: const EdgeInsets.all(20),
               child: Text(
                 AppConstant.douaaKhatmQuran,
+                textDirection: TextDirection.rtl,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontFamily: AppTheme.secondaryFontFamily,

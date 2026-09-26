@@ -105,39 +105,48 @@ class _NotificationSettingsScreenState
     };
 
     return Scaffold(
-      appBar: AppBar(title: const Text('التنبيهات')),
+      appBar: AppBar(title: Text(tr('التنبيهات', 'Notifications'))),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           if (!NotificationService.supported)
             _Note(
               icon: Icons.info_outline_rounded,
-              text: 'التنبيهات تعمل على تطبيق الهاتف فقط.',
+              text: tr(
+                'التنبيهات تعمل على تطبيق الهاتف فقط.',
+                'Notifications work in the phone app only.',
+              ),
             ),
           if (!prayer.hasLocation)
             _Note(
               icon: Icons.location_off_rounded,
-              text:
-                  'اختر مدينتك في تبويب الصلاة لتفعيل تنبيهات الصلاة والأذكار.',
+              text: tr(
+                'اختر مدينتك في تبويب الصلاة لتفعيل تنبيهات الصلاة والأذكار.',
+                'Choose your city in the Prayer tab to turn on prayer and azkar reminders.',
+              ),
             ),
           if (!_exact)
             _Note(
               icon: Icons.alarm_off_rounded,
-              text:
-                  'قد تتأخر التنبيهات بضع دقائق. اسمح للتطبيق بضبط المنبّهات '
-                  'بدقة ليصلك التنبيه في وقته تماماً.',
+              text: tr(
+                'قد تتأخر التنبيهات بضع دقائق. اسمح للتطبيق بضبط المنبّهات '
+                    'بدقة ليصلك التنبيه في وقته تماماً.',
+                'Reminders may arrive a few minutes late. Allow the app to set exact alarms so they arrive right on time.',
+              ),
               action: TextButton(
                 onPressed: () async {
                   await NotificationService.instance.requestExactTimes();
                   _checkExact();
                 },
-                child: const Text('السماح'),
+                child: Text(tr('السماح', 'Allow')),
               ),
             ),
           Card(
             child: Column(
               children: [
-                const _Header('تنبيه دخول وقت الصلاة'),
+                _Header(
+                  tr('تنبيه دخول وقت الصلاة', 'When the prayer time begins'),
+                ),
                 for (final p in NotificationSettings.prayers)
                   SwitchListTile(
                     title: Text(names[p] ?? _fallbackName(p.name)),
@@ -145,7 +154,9 @@ class _NotificationSettingsScreenState
                     onChanged: (v) => settings.setPrayer(p, v),
                   ),
                 ListTile(
-                  title: const Text('تذكير قبل الصلاة'),
+                  title: Text(
+                    tr('تذكير قبل الصلاة', 'Reminder before the prayer'),
+                  ),
                   trailing: DropdownButton<int>(
                     value: settings.minutesBefore,
                     underline: const SizedBox(),
@@ -153,7 +164,9 @@ class _NotificationSettingsScreenState
                       for (final m in NotificationSettings.beforeOptions)
                         DropdownMenuItem(
                           value: m,
-                          child: Text(m == 0 ? 'بدون' : minutesLabel(m)),
+                          child: Text(
+                            m == 0 ? tr('بدون', 'None') : minutesLabel(m),
+                          ),
                         ),
                     ],
                     onChanged: (m) {
@@ -168,28 +181,37 @@ class _NotificationSettingsScreenState
           Card(
             child: Column(
               children: [
-                const _Header('الأذكار والورد'),
+                _Header(tr('الأذكار والورد', 'Azkar and daily reading')),
                 SwitchListTile(
-                  title: const Text('أذكار الصباح'),
-                  subtitle: const Text('بعد الفجر بعشرين دقيقة'),
+                  title: Text(tr('أذكار الصباح', 'Morning azkar')),
+                  subtitle: Text(
+                    tr('بعد الفجر بعشرين دقيقة', 'Twenty minutes after Fajr'),
+                  ),
                   value: settings.morningAzkar,
                   onChanged: settings.setMorningAzkar,
                 ),
                 SwitchListTile(
-                  title: const Text('أذكار المساء'),
-                  subtitle: const Text('بعد العصر بعشرين دقيقة'),
+                  title: Text(tr('أذكار المساء', 'Evening azkar')),
+                  subtitle: Text(
+                    tr('بعد العصر بعشرين دقيقة', 'Twenty minutes after Asr'),
+                  ),
                   value: settings.eveningAzkar,
                   onChanged: settings.setEveningAzkar,
                 ),
                 SwitchListTile(
-                  title: const Text('تذكير بالورد'),
-                  subtitle: const Text('لا يظهر إذا أتممت وردك'),
+                  title: Text(tr('تذكير بالورد', 'Daily reading reminder')),
+                  subtitle: Text(
+                    tr(
+                      'لا يظهر إذا أتممت وردك',
+                      'Not shown once you finish your daily reading',
+                    ),
+                  ),
                   value: settings.wird,
                   onChanged: settings.setWird,
                 ),
                 ListTile(
                   enabled: settings.wird,
-                  title: const Text('وقت تذكير الورد'),
+                  title: Text(tr('وقت تذكير الورد', 'Reading reminder time')),
                   trailing: Text(
                     _clock(settings.wirdMinutes),
                     style: TextStyle(
@@ -215,9 +237,12 @@ class _NotificationSettingsScreenState
           ),
           const SizedBox(height: 16),
           Text(
-            'تُجدول التنبيهات لأسبوع قادم وتتجدد كلما فتحت التطبيق. بعض الهواتف '
-            '(مثل شاومي وهواوي) توقف تنبيهات التطبيقات في الخلفية لتوفير '
-            'البطارية؛ إن لم تصلك التنبيهات فاستثنِ التطبيق من توفير البطارية.',
+            tr(
+              'تُجدول التنبيهات لأسبوع قادم وتتجدد كلما فتحت التطبيق. بعض الهواتف '
+                  '(مثل شاومي وهواوي) توقف تنبيهات التطبيقات في الخلفية لتوفير '
+                  'البطارية؛ إن لم تصلك التنبيهات فاستثنِ التطبيق من توفير البطارية.',
+              'Reminders are scheduled a week ahead and renewed whenever you open the app. Some phones (such as Xiaomi and Huawei) stop background notifications to save battery; if reminders do not arrive, exclude the app from battery saving.',
+            ),
             style: TextStyle(fontSize: 12, color: colorScheme.pageNumber),
           ),
         ],
@@ -226,18 +251,18 @@ class _NotificationSettingsScreenState
   }
 
   static String _fallbackName(String name) => switch (name) {
-    'fajr' => 'الفجر',
-    'dhuhr' => 'الظهر',
-    'asr' => 'العصر',
-    'maghrib' => 'المغرب',
-    _ => 'العشاء',
+    'fajr' => tr('الفجر', 'Fajr'),
+    'dhuhr' => tr('الظهر', 'Dhuhr'),
+    'asr' => tr('العصر', 'Asr'),
+    'maghrib' => tr('المغرب', 'Maghrib'),
+    _ => tr('العشاء', 'Isha'),
   };
 
   static String _clock(int minutes) {
     final h = minutes ~/ 60;
     final m = (minutes % 60).toString().padLeft(2, '0');
     final h12 = h % 12 == 0 ? 12 : h % 12;
-    return '$h12:$m ${h < 12 ? 'ص' : 'م'}';
+    return '$h12:$m ${h < 12 ? tr('ص', 'AM') : tr('م', 'PM')}';
   }
 }
 

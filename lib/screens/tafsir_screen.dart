@@ -47,7 +47,12 @@ class _TafsirScreenState extends State<TafsirScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('التفسير الميسر · ${AppConstant.page} $_page'),
+        title: Text(
+          tr(
+            'التفسير الميسر · ${AppConstant.page} $_page',
+            'Tafsir al-Muyassar · ${AppConstant.page} $_page',
+          ),
+        ),
       ),
       body: FutureBuilder(
         future: _data,
@@ -104,7 +109,7 @@ class _TafsirScreenState extends State<TafsirScreen> {
                       TextButton.icon(
                         onPressed: _page > 1 ? () => _go(_page - 1) : null,
                         icon: const Icon(Icons.chevron_right_rounded),
-                        label: const Text('السابقة'),
+                        label: Text(tr('السابقة', 'Previous')),
                       ),
                       const Spacer(),
                       Text(
@@ -115,7 +120,7 @@ class _TafsirScreenState extends State<TafsirScreen> {
                       TextButton.icon(
                         onPressed: _page < 604 ? () => _go(_page + 1) : null,
                         icon: const Icon(Icons.chevron_left_rounded),
-                        label: const Text('التالية'),
+                        label: Text(tr('التالية', 'Next')),
                       ),
                     ],
                   ),
@@ -144,10 +149,13 @@ class _TafsirCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final surahName = getSurahNameArabic(entry.surah);
+    final surahName = surahNameOf(entry.surah);
     final range = entry.from == entry.to
-        ? 'الآية ${entry.from}'
-        : 'الآيات ${entry.from}–${entry.to}';
+        ? tr('الآية ${entry.from}', 'Ayah ${entry.from}')
+        : tr(
+            'الآيات ${entry.from}–${entry.to}',
+            'Ayahs ${entry.from}–${entry.to}',
+          );
 
     return Card(
       shape: highlight
@@ -162,7 +170,7 @@ class _TafsirCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'سورة $surahName · $range',
+              tr('سورة $surahName · $range', 'Surah $surahName · $range'),
               style: TextStyle(
                 color: colorScheme.gold,
                 fontWeight: FontWeight.bold,
@@ -172,6 +180,7 @@ class _TafsirCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               ayahs.map((a) => '${a.text} ﴿${a.number}﴾').join(' '),
+              textDirection: TextDirection.rtl,
               style: TextStyle(
                 fontFamily: AppTheme.secondaryFontFamily,
                 fontSize: context.contentSize(22),
@@ -182,6 +191,7 @@ class _TafsirCard extends StatelessWidget {
             Divider(color: colorScheme.div, height: 24),
             Text(
               entry.text,
+              textDirection: TextDirection.rtl,
               style: TextStyle(
                 fontSize: context.contentSize(17),
                 height: 1.9,

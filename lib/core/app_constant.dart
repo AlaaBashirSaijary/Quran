@@ -1,31 +1,36 @@
+import 'language.dart';
+
 class AppConstant {
   const AppConstant._();
 
-  static const juz = 'الجزء';
-  static const ajzaa = 'الأجزاء';
-  static const douaa = 'دعاء الختم';
-  static const move = 'انتقال';
-  static const cancel = 'إلغاء';
-  static const hizb = 'الحزب';
-  static const hizbQuarter = 'ربع';
-  static const page = 'الصفحة';
-  static const changePage = 'تغيير الصفحة';
-  static const surah = 'سورة';
-  static const surahIndex = 'فهرس السور';
-  static const index = 'الفهرس';
-  static const makkiyah = 'مكية';
-  static const madaniyah = 'مدنية';
-  static const searchAyah = 'ابحث عن آية';
-  static const saveBookmark = 'حفظ علامة';
-  static const bookmarks = 'العلامات';
-  static const bookmarkSaved = 'حُفظت الصفحة في العلامات';
-  static const bookmarkRemoved = 'أُزيلت العلامة';
-  static const noBookmarksYet =
-      'لا توجد علامات بعد. اضغط «حفظ علامة» أثناء القراءة لحفظ أي صفحة.';
-  static const undo = 'تراجع';
-  static const goToPage = 'الانتقال إلى الصفحة';
-  static const saved = 'تم الحفظ';
-  static const goBack = 'العودة';
+  static String get juz => tr('الجزء', 'Juz');
+  static String get ajzaa => tr('الأجزاء', 'Juz Index');
+  static String get douaa => tr('دعاء الختم', 'Khatm Du‘a');
+  static String get move => tr('انتقال', 'Go');
+  static String get cancel => tr('إلغاء', 'Cancel');
+  static String get hizb => tr('الحزب', 'Hizb');
+  static String get hizbQuarter => tr('ربع', 'Quarter');
+  static String get page => tr('الصفحة', 'Page');
+  static String get changePage => tr('تغيير الصفحة', 'Change Page');
+  static String get surah => tr('سورة', 'Surah');
+  static String get surahIndex => tr('فهرس السور', 'Surah Index');
+  static String get index => tr('الفهرس', 'Index');
+  static String get makkiyah => tr('مكية', 'Meccan');
+  static String get madaniyah => tr('مدنية', 'Medinan');
+  static String get searchAyah => tr('ابحث عن آية', 'Search for an ayah');
+  static String get saveBookmark => tr('حفظ علامة', 'Bookmark');
+  static String get bookmarks => tr('العلامات', 'Bookmarks');
+  static String get bookmarkSaved =>
+      tr('حُفظت الصفحة في العلامات', 'Page bookmarked');
+  static String get bookmarkRemoved => tr('أُزيلت العلامة', 'Bookmark removed');
+  static String get noBookmarksYet => tr(
+    'لا توجد علامات بعد. اضغط «حفظ علامة» أثناء القراءة لحفظ أي صفحة.',
+    'No bookmarks yet. Tap “Bookmark” while reading to save any page.',
+  );
+  static String get undo => tr('تراجع', 'Undo');
+  static String get goToPage => tr('الانتقال إلى الصفحة', 'Go to page');
+  static String get saved => tr('تم الحفظ', 'Saved');
+  static String get goBack => tr('العودة', 'Back');
 
   static const douaaKhatmQuran = '''
 اللَّهُمَّ ارْحَمْنِي بالقُرْءَانِ وَاجْعَلهُ لِي إِمَاماً وَنُوراً وَهُدًى وَرَحْمَةً *

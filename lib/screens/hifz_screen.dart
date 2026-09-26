@@ -29,7 +29,7 @@ class HifzCard extends StatelessWidget {
           size: 36,
         ),
         title: Text(
-          'الحفظ والمراجعة',
+          tr('الحفظ والمراجعة', 'Memorization'),
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: colorScheme.juzCardText,
@@ -37,10 +37,19 @@ class HifzCard extends StatelessWidget {
         ),
         subtitle: Text(
           total == 0
-              ? 'أضف السور التي تحفظها ليذكّرك التطبيق بمراجعتها'
+              ? tr(
+                  'أضف السور التي تحفظها ليذكّرك التطبيق بمراجعتها',
+                  'Add the surahs you know and the app will remind you to review them',
+                )
               : due == 0
-              ? 'لا مراجعة اليوم · المحفوظ: ${_surahs(total)}'
-              : 'للمراجعة اليوم: ${_surahs(due)}',
+              ? tr(
+                  'لا مراجعة اليوم · المحفوظ: ${_surahs(total)}',
+                  'Nothing to review today · Memorized: ${_surahs(total)}',
+                )
+              : tr(
+                  'للمراجعة اليوم: ${_surahs(due)}',
+                  'To review today: ${_surahs(due)}',
+                ),
           style: TextStyle(
             color: due > 0 ? colorScheme.primary : colorScheme.pageNumber,
             fontSize: 13,
@@ -67,11 +76,11 @@ class HifzScreen extends StatelessWidget {
     final later = hifz.all.where((e) => !due.contains(e)).toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('الحفظ والمراجعة')),
+      appBar: AppBar(title: Text(tr('الحفظ والمراجعة', 'Memorization'))),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _addSurah(context, hifz),
         icon: const Icon(Icons.add_rounded),
-        label: const Text('إضافة سورة'),
+        label: Text(tr('إضافة سورة', 'Add a surah')),
       ),
       body: hifz.all.isEmpty
           ? Center(
@@ -87,9 +96,12 @@ class HifzScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'أضف السور التي حفظتها، وسيذكّرك التطبيق بمراجعة كل سورة '
-                      'على فترات تتباعد كلما أتقنتها: بعد يوم، ثم ثلاثة أيام، '
-                      'ثم أسبوع، ثم أسبوعين، ثم شهر، ثم شهرين.',
+                      tr(
+                        'أضف السور التي حفظتها، وسيذكّرك التطبيق بمراجعة كل سورة '
+                            'على فترات تتباعد كلما أتقنتها: بعد يوم، ثم ثلاثة أيام، '
+                            'ثم أسبوع، ثم أسبوعين، ثم شهر، ثم شهرين.',
+                        'Add the surahs you have memorized and the app will remind you to review each one at intervals that grow as you master it: after a day, then three days, a week, two weeks, a month, and two months.',
+                      ),
                       textAlign: TextAlign.center,
                       style: TextStyle(color: colorScheme.pageNumber),
                     ),
@@ -101,12 +113,17 @@ class HifzScreen extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
               children: [
                 if (due.isNotEmpty) ...[
-                  _Heading('للمراجعة اليوم (${due.length})'),
+                  _Heading(
+                    tr(
+                      'للمراجعة اليوم (${due.length})',
+                      'To review today (${due.length})',
+                    ),
+                  ),
                   for (final e in due) _EntryTile(entry: e, isDue: true),
                   const SizedBox(height: 16),
                 ],
                 if (later.isNotEmpty) ...[
-                  const _Heading('المراجعات القادمة'),
+                  _Heading(tr('المراجعات القادمة', 'Upcoming reviews')),
                   for (final e in later) _EntryTile(entry: e, isDue: false),
                 ],
               ],
@@ -130,7 +147,7 @@ class HifzScreen extends StatelessWidget {
             return ListTile(
               enabled: !added,
               leading: SurahNumber(number: surah),
-              title: Text('سورة ${getSurahNameArabic(surah)}'),
+              title: Text(surahTitle(surah)),
               trailing: added ? const Icon(Icons.check_rounded) : null,
               onTap: () => Navigator.pop(context, surah),
             );
@@ -153,6 +170,7 @@ class _Heading extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8),
       child: Text(
         text,
+        textDirection: TextDirection.rtl,
         style: TextStyle(
           fontFamily: AppTheme.secondaryFontFamily,
           fontSize: 20,
@@ -181,7 +199,7 @@ class _EntryTile extends StatelessWidget {
         child: ListTile(
           leading: SurahNumber(number: entry.surah),
           title: Text(
-            'سورة ${getSurahNameArabic(entry.surah)}',
+            surahTitle(entry.surah),
             style: const TextStyle(
               fontFamily: AppTheme.secondaryFontFamily,
               fontSize: 20,
@@ -189,7 +207,12 @@ class _EntryTile extends StatelessWidget {
             ),
           ),
           subtitle: Text(
-            isDue ? 'حان وقت مراجعتها' : 'المراجعة: ${_date(entry.due)}',
+            isDue
+                ? tr('حان وقت مراجعتها', 'Due for review')
+                : tr(
+                    'المراجعة: ${_date(entry.due)}',
+                    'Review: ${_date(entry.due)}',
+                  ),
             style: TextStyle(
               color: isDue ? colorScheme.gold : colorScheme.pageNumber,
             ),
@@ -198,8 +221,11 @@ class _EntryTile extends StatelessWidget {
             onSelected: (value) {
               if (value == 'remove') hifz.remove(entry.surah);
             },
-            itemBuilder: (context) => const [
-              PopupMenuItem(value: 'remove', child: Text('إزالة من المحفوظ')),
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'remove',
+                child: Text(tr('إزالة من المحفوظ', 'Remove from memorized')),
+              ),
             ],
           ),
           onTap: () => Navigator.push(
@@ -237,10 +263,17 @@ class _HifzReviewScreenState extends State<HifzReviewScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('مراجعة سورة ${getSurahNameArabic(widget.surah)}'),
+        title: Text(
+          tr(
+            'مراجعة سورة ${getSurahNameArabic(widget.surah)}',
+            'Review ${surahTitle(widget.surah)}',
+          ),
+        ),
         actions: [
           IconButton(
-            tooltip: _hideWords ? 'إظهار الكل' : 'إخفاء الكلمات',
+            tooltip: _hideWords
+                ? tr('إظهار الكل', 'Show all')
+                : tr('إخفاء الكلمات', 'Hide the words'),
             icon: Icon(
               _hideWords
                   ? Icons.visibility_rounded
@@ -293,6 +326,7 @@ class _HifzReviewScreenState extends State<HifzReviewScreen> {
                           ),
                         ],
                       ),
+                      textDirection: TextDirection.rtl,
                       style: TextStyle(
                         fontFamily: AppTheme.secondaryFontFamily,
                         fontSize: context.contentSize(22),
@@ -321,7 +355,7 @@ class _HifzReviewScreenState extends State<HifzReviewScreen> {
                     Navigator.pop(context);
                   },
                   icon: const Icon(Icons.replay_rounded),
-                  label: const Text('تحتاج مراجعة'),
+                  label: Text(tr('تحتاج مراجعة', 'Needs more review')),
                 ),
               ),
               const SizedBox(width: 12),
@@ -332,7 +366,7 @@ class _HifzReviewScreenState extends State<HifzReviewScreen> {
                     Navigator.pop(context);
                   },
                   icon: const Icon(Icons.check_rounded),
-                  label: const Text('أتقنتها'),
+                  label: Text(tr('أتقنتها', 'I know it well')),
                 ),
               ),
             ],
@@ -344,6 +378,7 @@ class _HifzReviewScreenState extends State<HifzReviewScreen> {
 }
 
 String _surahs(int n) {
+  if (isEnglish) return n == 1 ? '1 surah' : '$n surahs';
   if (n == 1) return 'سورة واحدة';
   if (n == 2) return 'سورتان';
   if (n <= 10) return '$n سور';

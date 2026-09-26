@@ -70,7 +70,7 @@ class JuzCard extends StatelessWidget {
           Expanded(
             flex: 2,
             child: CustomText(
-              'ربع',
+              tr('ربع', 'Quarter'),
               isTab: isTab,
               page: getHizbQuarterPage(
                 getHizbQuarter(
@@ -84,7 +84,7 @@ class JuzCard extends StatelessWidget {
           Expanded(
             flex: 2,
             child: CustomText(
-              'نصف',
+              tr('نصف', 'Half'),
               isTab: isTab,
               page: getHizbQuarterPage(
                 getHizbQuarter(
@@ -98,7 +98,7 @@ class JuzCard extends StatelessWidget {
           Expanded(
             flex: 2,
             child: CustomText(
-              '3 أرباع',
+              tr('3 أرباع', '3 Quarters'),
               isTab: isTab,
               page: getHizbQuarterPage(
                 getHizbQuarter(

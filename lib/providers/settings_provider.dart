@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../core/language.dart';
+
 /// Reading preferences that apply across the app's text content
 /// (hadith, azkar, du'a, search results and tafsir).
 class SettingsProvider extends ChangeNotifier {
@@ -10,6 +12,7 @@ class SettingsProvider extends ChangeNotifier {
     hijriOffset = prefs.getInt(_hijriKey) ?? 0;
   }
 
+  static const languageKey = 'settings.language';
   static const _scaleKey = 'settings.textScale';
   static const _hijriKey = 'settings.hijriOffset';
   static const scales = [0.85, 1.0, 1.15, 1.3, 1.5];
@@ -20,6 +23,14 @@ class SettingsProvider extends ChangeNotifier {
   /// Days added to the Umm al-Qura date where the month begins by local
   /// moon sighting (-2 to 2).
   late int hijriOffset;
+
+  AppLanguage get language =>
+      AppLanguage.fromCode(prefs.getString(languageKey));
+
+  /// Saves the interface language. The caller rebuilds the app
+  /// (AppRoot.restart) for it to take effect.
+  Future<void> setLanguage(AppLanguage value) =>
+      prefs.setString(languageKey, value.name);
 
   void setHijriOffset(int value) {
     hijriOffset = value.clamp(-2, 2);

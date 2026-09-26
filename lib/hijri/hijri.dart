@@ -1,5 +1,6 @@
 import 'package:hijri/hijri_array.dart';
 import 'package:hijri/hijri_calendar.dart';
+import '../core/language.dart';
 
 class HijriDate {
   const HijriDate(this.day, this.month, this.year);
@@ -8,10 +9,11 @@ class HijriDate {
   final int month;
   final int year;
 
-  String get monthName => arMonthNames[month]!;
+  String get monthName => isEnglish ? monthNames[month]! : arMonthNames[month]!;
 
   @override
-  String toString() => '$day $monthName $year هـ';
+  String toString() =>
+      tr('$day $monthName $year هـ', '$day $monthName $year AH');
 }
 
 /// The Hijri date (Umm al-Qura calendar) of [date]. [offset] shifts it by
@@ -33,7 +35,8 @@ const _dayNames = {
   DateTime.friday: 'الجمعة',
 };
 
-String dayName(DateTime date) => _dayNames[date.weekday]!;
+String dayName(DateTime date) =>
+    isEnglish ? wdNames[date.weekday]! : _dayNames[date.weekday]!;
 
 const _muharram = 1;
 const _ramadan = 9;
@@ -53,23 +56,44 @@ List<String> occasionsOn(DateTime date, {int offset = 0}) {
   final tashreeq = h.month == _dhulHijjah && h.day >= 11 && h.day <= 13;
   final ramadan = h.month == _ramadan;
 
-  if (eidFitr) notes.add('عيد الفطر المبارك');
-  if (eidAdha) notes.add('عيد الأضحى المبارك');
-  if (tashreeq) notes.add('من أيام التشريق');
-  if (ramadan) notes.add('شهر رمضان المبارك');
-  if (h.month == _dhulHijjah && h.day == 9) notes.add('يوم عرفة');
-  if (h.month == _dhulHijjah && h.day <= 8) {
-    notes.add('من العشر الأوائل من ذي الحجة');
+  if (eidFitr) notes.add(tr('عيد الفطر المبارك', 'Eid al-Fitr'));
+  if (eidAdha) notes.add(tr('عيد الأضحى المبارك', 'Eid al-Adha'));
+  if (tashreeq) notes.add(tr('من أيام التشريق', 'One of the days of Tashreeq'));
+  if (ramadan) {
+    notes.add(tr('شهر رمضان المبارك', 'The blessed month of Ramadan'));
   }
-  if (h.month == _muharram && h.day == 9) notes.add('تاسوعاء');
-  if (h.month == _muharram && h.day == 10) notes.add('يوم عاشوراء');
+  if (h.month == _dhulHijjah && h.day == 9) {
+    notes.add(tr('يوم عرفة', 'The Day of Arafah'));
+  }
+  if (h.month == _dhulHijjah && h.day <= 8) {
+    notes.add(
+      tr(
+        'من العشر الأوائل من ذي الحجة',
+        'One of the first ten days of Dhul Hijjah',
+      ),
+    );
+  }
+  if (h.month == _muharram && h.day == 9) {
+    notes.add(tr('تاسوعاء', 'Tasu‘a (9 Muharram)'));
+  }
+  if (h.month == _muharram && h.day == 10) {
+    notes.add(tr('يوم عاشوراء', 'The Day of Ashura'));
+  }
 
   final noFasting = eidFitr || eidAdha || tashreeq || ramadan;
   if (!noFasting) {
-    if (h.day >= 13 && h.day <= 15) notes.add('من الأيام البيض');
-    if (h.month == _shawwal && h.day > 1) notes.add('صيام الست من شوال');
-    if (date.weekday == DateTime.monday) notes.add('صيام يوم الاثنين');
-    if (date.weekday == DateTime.thursday) notes.add('صيام يوم الخميس');
+    if (h.day >= 13 && h.day <= 15) {
+      notes.add(tr('من الأيام البيض', 'One of the White Days (fasting 13–15)'));
+    }
+    if (h.month == _shawwal && h.day > 1) {
+      notes.add(tr('صيام الست من شوال', 'Fasting six days of Shawwal'));
+    }
+    if (date.weekday == DateTime.monday) {
+      notes.add(tr('صيام يوم الاثنين', 'Fasting on Monday'));
+    }
+    if (date.weekday == DateTime.thursday) {
+      notes.add(tr('صيام يوم الخميس', 'Fasting on Thursday'));
+    }
   }
   return notes;
 }

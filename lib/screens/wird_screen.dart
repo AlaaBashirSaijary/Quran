@@ -59,8 +59,14 @@ class WirdCard extends StatelessWidget {
                   children: [
                     Text(
                       reading.goalMet
-                          ? 'أتممت وردك اليوم'
-                          : 'وردك اليوم: ${_pages(reading.goal)}',
+                          ? tr(
+                              'أتممت وردك اليوم',
+                              'You finished today’s reading',
+                            )
+                          : tr(
+                              'وردك اليوم: ${_pages(reading.goal)}',
+                              'Today’s reading: ${_pages(reading.goal)}',
+                            ),
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: colorScheme.juzCardText,
@@ -78,7 +84,10 @@ class WirdCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'الختمة: ${reading.khatmaRead} من $totalPages صفحة',
+                      tr(
+                        'الختمة: ${reading.khatmaRead} من $totalPages صفحة',
+                        'Khatma: ${reading.khatmaRead} of $totalPages pages',
+                      ),
                       style: TextStyle(
                         fontSize: 12,
                         color: colorScheme.pageNumber,
@@ -107,17 +116,22 @@ class WirdScreen extends StatelessWidget {
     final finished = reading.khatmaRead == totalPages;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('الورد والختمة')),
+      appBar: AppBar(
+        title: Text(tr('الورد والختمة', 'Daily Reading & Khatma')),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           _Section(
-            title: 'الورد اليومي',
+            title: tr('الورد اليومي', 'Daily reading'),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'قرأت اليوم ${_pages(reading.today)} من ${_pages(reading.goal)}',
+                  tr(
+                    'قرأت اليوم ${_pages(reading.today)} من ${_pages(reading.goal)}',
+                    'Read today: ${_pages(reading.today)} of ${_pages(reading.goal)}',
+                  ),
                   style: textTheme.titleMedium,
                 ),
                 const SizedBox(height: 12),
@@ -127,7 +141,9 @@ class WirdScreen extends StatelessWidget {
                   children: [
                     for (final pages in ReadingProvider.goalOptions)
                       ChoiceChip(
-                        label: Text(pages == 20 ? 'جزء' : _pages(pages)),
+                        label: Text(
+                          pages == 20 ? tr('جزء', 'Juz') : _pages(pages),
+                        ),
                         selected: reading.goal == pages,
                         onSelected: (_) => reading.setGoal(pages),
                         selectedColor: colorScheme.primary,
@@ -151,7 +167,10 @@ class WirdScreen extends StatelessWidget {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      'أيام متتالية أتممت فيها وردك: ${reading.streak}',
+                      tr(
+                        'أيام متتالية أتممت فيها وردك: ${reading.streak}',
+                        'Days in a row you finished your reading: ${reading.streak}',
+                      ),
                       style: textTheme.bodyMedium,
                     ),
                   ],
@@ -161,12 +180,15 @@ class WirdScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           _Section(
-            title: 'الختمة',
+            title: tr('الختمة', 'Khatma'),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'قرأت ${reading.khatmaRead} من $totalPages صفحة',
+                  tr(
+                    'قرأت ${reading.khatmaRead} من $totalPages صفحة',
+                    'Read ${reading.khatmaRead} of $totalPages pages',
+                  ),
                   style: textTheme.titleMedium,
                 ),
                 const SizedBox(height: 10),
@@ -182,16 +204,27 @@ class WirdScreen extends StatelessWidget {
                 const SizedBox(height: 10),
                 Text(
                   finished
-                      ? 'أتممت الختمة، تقبّل الله منك'
-                      : 'بمعدل ${_pages(reading.goal)} يومياً تختم خلال '
-                            '${_days(reading.daysToFinish)} '
-                            '(${_date(reading.estimatedFinish)})',
+                      ? tr(
+                          'أتممت الختمة، تقبّل الله منك',
+                          'You completed the khatma. May Allah accept it from you.',
+                        )
+                      : tr(
+                          'بمعدل ${_pages(reading.goal)} يومياً تختم خلال '
+                              '${_days(reading.daysToFinish)} '
+                              '(${_date(reading.estimatedFinish)})',
+                          'At ${_pages(reading.goal)} a day you will finish in '
+                              '${_days(reading.daysToFinish)} '
+                              '(${_date(reading.estimatedFinish)})',
+                        ),
                   style: TextStyle(color: colorScheme.pageNumber),
                 ),
                 if (reading.khatmas > 0) ...[
                   const SizedBox(height: 6),
                   Text(
-                    'عدد الختمات المكتملة: ${reading.khatmas}',
+                    tr(
+                      'عدد الختمات المكتملة: ${reading.khatmas}',
+                      'Completed khatmas: ${reading.khatmas}',
+                    ),
                     style: TextStyle(color: colorScheme.gold),
                   ),
                 ],
@@ -201,7 +234,7 @@ class WirdScreen extends StatelessWidget {
                   child: OutlinedButton.icon(
                     onPressed: () => _confirmNewKhatma(context, reading),
                     icon: const Icon(Icons.restart_alt_rounded),
-                    label: const Text('بدء ختمة جديدة'),
+                    label: Text(tr('بدء ختمة جديدة', 'Start a new khatma')),
                   ),
                 ),
               ],
@@ -209,7 +242,10 @@ class WirdScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'تُحسب الصفحة مقروءة عند الانتقال منها إلى الصفحة التالية أثناء القراءة.',
+            tr(
+              'تُحسب الصفحة مقروءة عند الانتقال منها إلى الصفحة التالية أثناء القراءة.',
+              'A page counts as read when you move on from it to the next page while reading.',
+            ),
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 12, color: colorScheme.pageNumber),
           ),
@@ -225,16 +261,21 @@ class WirdScreen extends StatelessWidget {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('بدء ختمة جديدة؟'),
-        content: const Text('سيُصفَّر تقدّم الختمة الحالية.'),
+        title: Text(tr('بدء ختمة جديدة؟', 'Start a new khatma?')),
+        content: Text(
+          tr(
+            'سيُصفَّر تقدّم الختمة الحالية.',
+            'Your current khatma progress will be reset.',
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text(AppConstant.cancel),
+            child: Text(AppConstant.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('بدء'),
+            child: Text(tr('بدء', 'Start')),
           ),
         ],
       ),
@@ -283,7 +324,7 @@ class _WeekChart extends StatelessWidget {
   final List<int> values;
   final int goal;
 
-  static const _dayNames = [
+  static const _arabicDayNames = [
     'الإثنين',
     'الثلاثاء',
     'الأربعاء',
@@ -292,6 +333,18 @@ class _WeekChart extends StatelessWidget {
     'السبت',
     'الأحد',
   ];
+  static const _englishDayNames = [
+    'Mon',
+    'Tue',
+    'Wed',
+    'Thu',
+    'Fri',
+    'Sat',
+    'Sun',
+  ];
+
+  static List<String> get _dayNames =>
+      isEnglish ? _englishDayNames : _arabicDayNames;
 
   @override
   Widget build(BuildContext context) {
@@ -332,7 +385,7 @@ class _WeekChart extends StatelessWidget {
                     FittedBox(
                       child: Text(
                         i == values.length - 1
-                            ? 'اليوم'
+                            ? tr('اليوم', 'Today')
                             : _dayNames[today
                                       .subtract(
                                         Duration(days: values.length - 1 - i),
@@ -357,6 +410,7 @@ class _WeekChart extends StatelessWidget {
 
 /// "صفحة", "صفحتان", "3 صفحات", "11 صفحة".
 String _pages(int n) {
+  if (isEnglish) return n == 1 ? '1 page' : '$n pages';
   if (n == 1) return 'صفحة';
   if (n == 2) return 'صفحتان';
   if (n >= 3 && n <= 10) return '$n صفحات';
@@ -365,6 +419,7 @@ String _pages(int n) {
 
 /// After خلال: "يوم واحد", "يومين", "3 أيام", "11 يوماً".
 String _days(int n) {
+  if (isEnglish) return n <= 1 ? '1 day' : '$n days';
   if (n <= 1) return 'يوم واحد';
   if (n == 2) return 'يومين';
   if (n <= 10) return '$n أيام';

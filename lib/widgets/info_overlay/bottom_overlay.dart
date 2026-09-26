@@ -59,7 +59,7 @@ class BottomOverlay extends StatelessWidget {
                   child: TextButton.icon(
                     onPressed: openBookmarks,
                     icon: SvgPicture.asset(AppAsset.saveFilled),
-                    label: const FittedBox(
+                    label: FittedBox(
                       child: Text(AppConstant.bookmarks, style: textStyle),
                     ),
                   ),
@@ -77,14 +77,14 @@ class BottomOverlay extends StatelessWidget {
                       overlay.toggleisShowOverlay();
                     },
                     icon: SvgPicture.asset(AppAsset.page),
-                    label: const FittedBox(
+                    label: FittedBox(
                       child: Text(AppConstant.changePage, style: textStyle),
                     ),
                   ),
                 ),
                 const VerticalDiv(),
                 IconButton(
-                  tooltip: 'استماع للتلاوة',
+                  tooltip: tr('استماع للتلاوة', 'Listen'),
                   icon: const Icon(
                     Icons.play_circle_fill_rounded,
                     color: Colors.white,
@@ -100,8 +100,8 @@ class BottomOverlay extends StatelessWidget {
                 const VerticalDiv(),
                 IconButton(
                   tooltip: Theme.of(context).brightness == Brightness.dark
-                      ? 'الوضع النهاري'
-                      : 'الوضع الليلي',
+                      ? tr('الوضع النهاري', 'Light mode')
+                      : tr('الوضع الليلي', 'Dark mode'),
                   icon: SvgPicture.asset(
                     Theme.of(context).brightness == Brightness.dark
                         ? AppAsset.sun
@@ -137,7 +137,7 @@ class BottomOverlay extends StatelessWidget {
                     color: Colors.white,
                     size: 22,
                   ),
-                  label: 'التفسير',
+                  label: tr('التفسير', 'Tafsir'),
                   onTap: () => TafsirScreen.open(
                     context,
                     Provider.of<Quran>(context, listen: false).currentPage,

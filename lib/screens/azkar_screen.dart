@@ -21,7 +21,7 @@ class _AzkarScreenState extends State<AzkarScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('الأذكار')),
+      appBar: AppBar(title: Text(tr('الأذكار', 'Azkar'))),
       body: FutureBuilder<List<AzkarCategory>>(
         future: _categories,
         builder: (context, snapshot) {
@@ -56,19 +56,28 @@ class _AzkarScreenState extends State<AzkarScreen> {
               const SizedBox(height: 16),
               _LinkTile(
                 icon: Icons.volunteer_activism_rounded,
-                title: 'أدعية المناسبات',
-                subtitle: 'السفر، المطر، الكرب، المرض، المسجد، الطعام وغيرها',
+                title: tr('أدعية المناسبات', 'Du‘as for Occasions'),
+                subtitle: tr(
+                  'السفر، المطر، الكرب، المرض، المسجد، الطعام وغيرها',
+                  'Travel, rain, distress, illness, the mosque, food and more',
+                ),
                 builder: (context) => SectionListScreen(
-                  title: 'أدعية المناسبات',
+                  title: tr('أدعية المناسبات', 'Du‘as for Occasions'),
                   sections: loadOccasionDuas(),
-                  searchHint: 'ابحث عن مناسبة أو دعاء',
+                  searchHint: tr(
+                    'ابحث عن مناسبة أو دعاء',
+                    'Search for an occasion or du‘a',
+                  ),
                   searchTexts: true,
                 ),
               ),
               _LinkTile(
                 icon: Icons.shield_moon_rounded,
-                title: 'الرقية الشرعية',
-                subtitle: 'من القرآن الكريم والسنة النبوية',
+                title: tr('الرقية الشرعية', 'Ruqyah'),
+                subtitle: tr(
+                  'من القرآن الكريم والسنة النبوية',
+                  'From the Quran and the Sunnah',
+                ),
                 builder: (context) => FutureBuilder<List<TextSection>>(
                   future: loadRuqyah(),
                   builder: (context, snapshot) {
@@ -79,7 +88,9 @@ class _AzkarScreenState extends State<AzkarScreen> {
                       );
                     }
                     return Scaffold(
-                      appBar: AppBar(title: const Text('الرقية الشرعية')),
+                      appBar: AppBar(
+                        title: Text(tr('الرقية الشرعية', 'Ruqyah')),
+                      ),
                       body: ListView(
                         padding: const EdgeInsets.all(16),
                         children: [
@@ -101,13 +112,16 @@ class _AzkarScreenState extends State<AzkarScreen> {
               ),
               _LinkTile(
                 icon: Icons.star_rounded,
-                title: 'أسماء الله الحسنى',
-                subtitle: 'تسعة وتسعون اسماً',
+                title: tr('أسماء الله الحسنى', 'The Beautiful Names of Allah'),
+                subtitle: tr('تسعة وتسعون اسماً', 'Ninety-nine names'),
                 builder: (context) => const NamesScreen(),
               ),
               const SizedBox(height: 16),
               Text(
-                'المصدر: حصن المسلم (islambook.com)',
+                tr(
+                  'المصدر: حصن المسلم (islambook.com)',
+                  'Source: Hisn al-Muslim (islambook.com)',
+                ),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 12,
@@ -161,12 +175,12 @@ class _SuggestedCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'وقتها الآن',
+                      tr('وقتها الآن', 'Now is their time'),
                       style: TextStyle(color: colorScheme.gold, fontSize: 14),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      category.title,
+                      category.label,
                       style: const TextStyle(
                         fontFamily: AppTheme.secondaryFontFamily,
                         color: Colors.white,
@@ -206,7 +220,7 @@ class _CategoryTile extends StatelessWidget {
               Icon(category.icon, color: colorScheme.gold, size: 34),
               const SizedBox(height: 8),
               Text(
-                category.title,
+                category.label,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
@@ -258,7 +272,14 @@ class _AzkarCategoryScreenState extends State<AzkarCategoryScreen> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          SnackBar(content: Text('أتممت ${widget.category.title}، تقبّل الله')),
+          SnackBar(
+            content: Text(
+              tr(
+                'أتممت ${widget.category.label}، تقبّل الله',
+                'You finished ${widget.category.label}. May Allah accept it.',
+              ),
+            ),
+          ),
         );
     }
   }
@@ -271,10 +292,10 @@ class _AzkarCategoryScreenState extends State<AzkarCategoryScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.category.title),
+        title: Text(widget.category.label),
         actions: [
           IconButton(
-            tooltip: 'البدء من جديد',
+            tooltip: tr('البدء من جديد', 'Start over'),
             icon: const Icon(Icons.restart_alt_rounded),
             onPressed: progress == null ? null : () => setState(progress.reset),
           ),
@@ -337,6 +358,7 @@ class _DhikrCard extends StatelessWidget {
               children: [
                 Text(
                   dhikr.text,
+                  textDirection: TextDirection.rtl,
                   style: TextStyle(
                     fontSize: context.contentSize(19),
                     height: 1.9,
@@ -347,6 +369,7 @@ class _DhikrCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     dhikr.virtue!,
+                    textDirection: TextDirection.rtl,
                     style: TextStyle(
                       fontSize: context.contentSize(13),
                       height: 1.6,
@@ -359,8 +382,11 @@ class _DhikrCard extends StatelessWidget {
                   children: [
                     Text(
                       dhikr.count == 1
-                          ? 'مرة واحدة'
-                          : 'التكرار: ${dhikr.count}',
+                          ? tr('مرة واحدة', 'Once')
+                          : tr(
+                              'التكرار: ${dhikr.count}',
+                              'Repeat: ${dhikr.count}',
+                            ),
                       style: TextStyle(
                         fontSize: 13,
                         color: colorScheme.pageNumber,
@@ -404,7 +430,8 @@ class _DhikrCard extends StatelessWidget {
 }
 
 /// Arabic counting: 3 to 10 take the plural, 11 and up the singular.
-String _countLabel(int n) => n <= 10 ? '$n أذكار' : '$n ذكراً';
+String _countLabel(int n) =>
+    isEnglish ? '$n azkar' : (n <= 10 ? '$n أذكار' : '$n ذكراً');
 
 class _LinkTile extends StatelessWidget {
   const _LinkTile({

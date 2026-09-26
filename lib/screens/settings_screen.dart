@@ -30,17 +30,56 @@ class SettingsScreen extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('الإعدادات')),
+      appBar: AppBar(title: Text(tr('الإعدادات', 'Settings'))),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           _Section(
-            title: 'حجم الخط',
+            // In both languages, so it can be found whichever is chosen.
+            title: 'اللغة · Language',
+            children: [
+              RadioGroup<AppLanguage>(
+                groupValue: settings.language,
+                onChanged: (language) async {
+                  if (language == null || language == settings.language) {
+                    return;
+                  }
+                  await settings.setLanguage(language);
+                  if (context.mounted) AppRoot.restart(context);
+                },
+                child: Column(
+                  children: [
+                    for (final language in AppLanguage.values)
+                      RadioListTile(
+                        value: language,
+                        title: Text(language.label),
+                      ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                child: Text(
+                  tr(
+                    'القرآن والأحاديث والأذكار تبقى بالعربية.',
+                    'The Quran, hadith and azkar stay in Arabic.',
+                  ),
+                  style: TextStyle(fontSize: 12, color: colorScheme.pageNumber),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _Section(
+            title: tr('حجم الخط', 'Text size'),
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                 child: Text(
-                  'يُطبَّق على الأحاديث والأذكار والأدعية ونتائج البحث.',
+                  tr(
+                    'يُطبَّق على الأحاديث والأذكار والأدعية ونتائج البحث.',
+                    'Applies to hadith, azkar, du‘as and search results.',
+                  ),
                   style: TextStyle(color: colorScheme.pageNumber, fontSize: 13),
                 ),
               ),
@@ -48,7 +87,7 @@ class SettingsScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Row(
                   children: [
-                    const Text('أ', style: TextStyle(fontSize: 14)),
+                    Text(tr('أ', 'A'), style: TextStyle(fontSize: 14)),
                     Expanded(
                       child: Slider(
                         value: SettingsProvider.scales
@@ -64,7 +103,7 @@ class SettingsScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const Text('أ', style: TextStyle(fontSize: 24)),
+                    Text(tr('أ', 'A'), style: TextStyle(fontSize: 24)),
                   ],
                 ),
               ),
@@ -85,21 +124,27 @@ class SettingsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           _Section(
-            title: 'المظهر',
+            title: tr('المظهر', 'Appearance'),
             children: [
               RadioGroup<ThemeMode>(
                 groupValue: theme.themeMode,
                 onChanged: (mode) {
                   if (mode != null) theme.setThemeMode(mode);
                 },
-                child: const Column(
+                child: Column(
                   children: [
                     RadioListTile(
                       value: ThemeMode.system,
-                      title: Text('حسب إعداد الهاتف'),
+                      title: Text(tr('حسب إعداد الهاتف', 'Follow the phone')),
                     ),
-                    RadioListTile(value: ThemeMode.light, title: Text('فاتح')),
-                    RadioListTile(value: ThemeMode.dark, title: Text('داكن')),
+                    RadioListTile(
+                      value: ThemeMode.light,
+                      title: Text(tr('فاتح', 'Light')),
+                    ),
+                    RadioListTile(
+                      value: ThemeMode.dark,
+                      title: Text(tr('داكن', 'Dark')),
+                    ),
                   ],
                 ),
               ),
@@ -107,13 +152,16 @@ class SettingsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           _Section(
-            title: 'التاريخ الهجري',
+            title: tr('التاريخ الهجري', 'Hijri date'),
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
                 child: Text(
-                  'يُحسب بتقويم أم القرى. إن كان بدء الشهر في بلدك يختلف '
-                  'بسبب رؤية الهلال فعدّله بيوم أو يومين.',
+                  tr(
+                    'يُحسب بتقويم أم القرى. إن كان بدء الشهر في بلدك يختلف '
+                        'بسبب رؤية الهلال فعدّله بيوم أو يومين.',
+                    'Calculated with the Umm al-Qura calendar. If the month begins on a different day where you live because of moon sighting, adjust it by a day or two.',
+                  ),
                   style: TextStyle(color: colorScheme.pageNumber, fontSize: 13),
                 ),
               ),
@@ -128,7 +176,7 @@ class SettingsScreen extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      tooltip: 'يوم قبل',
+                      tooltip: tr('يوم قبل', 'A day earlier'),
                       icon: const Icon(Icons.remove_circle_outline_rounded),
                       onPressed: settings.hijriOffset > -2
                           ? () => settings.setHijriOffset(
@@ -144,7 +192,7 @@ class SettingsScreen extends StatelessWidget {
                           : '${settings.hijriOffset}',
                     ),
                     IconButton(
-                      tooltip: 'يوم بعد',
+                      tooltip: tr('يوم بعد', 'A day later'),
                       icon: const Icon(Icons.add_circle_outline_rounded),
                       onPressed: settings.hijriOffset < 2
                           ? () => settings.setHijriOffset(
@@ -159,24 +207,29 @@ class SettingsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           _Section(
-            title: 'النسخ الاحتياطي',
+            title: tr('النسخ الاحتياطي', 'Backup'),
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
                 child: Text(
-                  'يحفظ العلامات والختمة والسبحة وتقدّم الأذكار والإعدادات في '
-                  'ملف، لنقلها إلى هاتف آخر أو استعادتها بعد إعادة التثبيت.',
+                  tr(
+                    'يحفظ العلامات والختمة والسبحة وتقدّم الأذكار والإعدادات في '
+                        'ملف، لنقلها إلى هاتف آخر أو استعادتها بعد إعادة التثبيت.',
+                    'Saves your bookmarks, khatma, tasbeeh, azkar progress and settings to a file, to move them to another phone or restore them after reinstalling.',
+                  ),
                   style: TextStyle(color: colorScheme.pageNumber, fontSize: 13),
                 ),
               ),
               ListTile(
                 leading: const Icon(Icons.upload_file_rounded),
-                title: const Text('حفظ نسخة احتياطية'),
+                title: Text(tr('حفظ نسخة احتياطية', 'Save a backup')),
                 onTap: () => _export(context),
               ),
               ListTile(
                 leading: const Icon(Icons.restore_rounded),
-                title: const Text('استعادة من نسخة احتياطية'),
+                title: Text(
+                  tr('استعادة من نسخة احتياطية', 'Restore from a backup'),
+                ),
                 onTap: () => _import(context),
               ),
             ],
@@ -200,12 +253,15 @@ class SettingsScreen extends StatelessWidget {
             XFile.fromData(bytes, name: name, mimeType: 'application/json'),
           ],
           fileNameOverrides: [name],
-          subject: 'نسخة احتياطية من طريق الجنة',
+          subject: tr('نسخة احتياطية من طريق الجنة', 'Tareeq Al-Jannah backup'),
         ),
       );
     } catch (_) {
       if (context.mounted) {
-        _message(context, 'تعذّر إنشاء النسخة الاحتياطية.');
+        _message(
+          context,
+          tr('تعذّر إنشاء النسخة الاحتياطية.', 'Could not create the backup.'),
+        );
       }
     }
   }
@@ -220,18 +276,21 @@ class SettingsScreen extends StatelessWidget {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('استعادة النسخة الاحتياطية؟'),
-        content: const Text(
-          'ستحلّ بيانات النسخة الاحتياطية محلّ البيانات الحالية في التطبيق.',
+        title: Text(tr('استعادة النسخة الاحتياطية؟', 'Restore the backup?')),
+        content: Text(
+          tr(
+            'ستحلّ بيانات النسخة الاحتياطية محلّ البيانات الحالية في التطبيق.',
+            'The backup will replace the app’s current data.',
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text(AppConstant.cancel),
+            child: Text(AppConstant.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('استعادة'),
+            child: Text(tr('استعادة', 'Restore')),
           ),
         ],
       ),
@@ -246,7 +305,9 @@ class SettingsScreen extends StatelessWidget {
     } on BackupException catch (e) {
       if (context.mounted) _message(context, e.message);
     } catch (_) {
-      if (context.mounted) _message(context, 'تعذّر قراءة الملف.');
+      if (context.mounted) {
+        _message(context, tr('تعذّر قراءة الملف.', 'Could not read the file.'));
+      }
     }
   }
 

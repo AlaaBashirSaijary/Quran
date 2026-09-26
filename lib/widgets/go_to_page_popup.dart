@@ -55,7 +55,7 @@ class _GoToPagePopupState extends State<GoToPagePopup> {
             children: [
               Row(
                 children: [
-                  const Text(AppConstant.goToPage),
+                  Text(AppConstant.goToPage),
                   const SizedBox(width: 10),
                   Flexible(
                     child: PageField(
@@ -72,7 +72,7 @@ class _GoToPagePopupState extends State<GoToPagePopup> {
               ),
               const SizedBox(height: 5),
               if (!isLandscape) ...[
-                const Text('معلومات عن الصفحة:'),
+                Text(tr('معلومات عن الصفحة:', 'About the page:')),
                 PageInfo(currentPage: currentPage),
                 const SizedBox(height: 10),
               ],
@@ -131,7 +131,10 @@ class PageInfo extends StatelessWidget {
 
     return currentPage == -1
         ? Text(
-            'الرجاء إدخال رقم صفحة ما بين 1 و 604',
+            tr(
+              'الرجاء إدخال رقم صفحة ما بين 1 و 604',
+              'Please enter a page number from 1 to 604',
+            ),
             style: TextStyle(color: color, fontSize: 15),
           )
         : Column(

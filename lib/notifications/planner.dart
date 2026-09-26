@@ -2,6 +2,7 @@ import 'package:adhan_dart/adhan_dart.dart';
 
 import '../prayer/prayer.dart';
 import 'notification_settings.dart';
+import '../core/language.dart';
 
 enum ReminderKind { prayer, beforePrayer, azkar, wird }
 
@@ -57,10 +58,16 @@ List<PlannedNotification> planNotifications({
           PlannedNotification(
             id: base + i,
             time: t.time,
-            title: 'حان الآن وقت صلاة ${t.name}',
+            title: tr(
+              'حان الآن وقت صلاة ${t.name}',
+              'It is time for ${t.name}',
+            ),
             body: prayer.placeName == null
-                ? 'حيّ على الصلاة'
-                : 'حيّ على الصلاة · ${prayer.placeName}',
+                ? tr('حيّ على الصلاة', 'Come to prayer')
+                : tr(
+                    'حيّ على الصلاة · ${prayer.placeName}',
+                    'Come to prayer · ${prayer.placeName}',
+                  ),
             kind: ReminderKind.prayer,
           ),
         );
@@ -69,9 +76,11 @@ List<PlannedNotification> planNotifications({
             PlannedNotification(
               id: base + 5 + i,
               time: t.time.subtract(Duration(minutes: settings.minutesBefore)),
-              title:
-                  'صلاة ${t.name} بعد ${minutesLabel(settings.minutesBefore)}',
-              body: 'استعد للصلاة',
+              title: tr(
+                'صلاة ${t.name} بعد ${minutesLabel(settings.minutesBefore)}',
+                '${t.name} in ${minutesLabel(settings.minutesBefore)}',
+              ),
+              body: tr('استعد للصلاة', 'Get ready for the prayer'),
               kind: ReminderKind.beforePrayer,
             ),
           );
@@ -83,8 +92,11 @@ List<PlannedNotification> planNotifications({
           PlannedNotification(
             id: base + 10,
             time: times[Prayer.fajr]!.time.add(const Duration(minutes: 20)),
-            title: 'أذكار الصباح',
-            body: 'حصّن يومك بأذكار الصباح',
+            title: tr('أذكار الصباح', 'Morning azkar'),
+            body: tr(
+              'حصّن يومك بأذكار الصباح',
+              'Begin your day with the morning azkar',
+            ),
             kind: ReminderKind.azkar,
           ),
         );
@@ -94,8 +106,8 @@ List<PlannedNotification> planNotifications({
           PlannedNotification(
             id: base + 11,
             time: times[Prayer.asr]!.time.add(const Duration(minutes: 20)),
-            title: 'أذكار المساء',
-            body: 'لا تنسَ أذكار المساء',
+            title: tr('أذكار المساء', 'Evening azkar'),
+            body: tr('لا تنسَ أذكار المساء', 'Do not forget the evening azkar'),
             kind: ReminderKind.azkar,
           ),
         );
@@ -107,8 +119,11 @@ List<PlannedNotification> planNotifications({
         PlannedNotification(
           id: base + 12,
           time: date.add(Duration(minutes: settings.wirdMinutes)),
-          title: 'وردك من القرآن',
-          body: 'لم تُتمّ وردك اليوم بعد، ولو صفحة واحدة',
+          title: tr('وردك من القرآن', 'Your daily Quran reading'),
+          body: tr(
+            'لم تُتمّ وردك اليوم بعد، ولو صفحة واحدة',
+            'You have not finished today’s reading yet — even one page counts',
+          ),
           kind: ReminderKind.wird,
         ),
       );
@@ -122,4 +137,5 @@ List<PlannedNotification> planNotifications({
 }
 
 /// "5 دقائق", "15 دقيقة".
-String minutesLabel(int n) => n <= 10 ? '$n دقائق' : '$n دقيقة';
+String minutesLabel(int n) =>
+    isEnglish ? '$n minutes' : (n <= 10 ? '$n دقائق' : '$n دقيقة');

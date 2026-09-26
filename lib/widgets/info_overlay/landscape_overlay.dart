@@ -52,7 +52,7 @@ class LandscapeOverlay extends StatelessWidget {
               InfoText(text: quran.surahData, svgIcon: AppAsset.book),
               const Spacer(),
               IconButton(
-                tooltip: 'استماع للتلاوة',
+                tooltip: tr('استماع للتلاوة', 'Listen'),
                 icon: const Icon(
                   Icons.play_circle_fill_rounded,
                   color: Colors.white,
@@ -64,15 +64,15 @@ class LandscapeOverlay extends StatelessWidget {
               ),
               IconButton(
                 tooltip: bookMark.isMarkedPage
-                    ? 'إزالة العلامة المرجعية'
-                    : 'إضافة علامة مرجعية',
+                    ? tr('إزالة العلامة المرجعية', 'Remove bookmark')
+                    : tr('إضافة علامة مرجعية', 'Add bookmark'),
                 icon: SvgPicture.asset(
                   bookMark.isMarkedPage ? AppAsset.saveFilled : AppAsset.save,
                 ),
                 onPressed: () => bookMark.toggleCurrentPage(context),
               ),
               IconButton(
-                tooltip: 'البحث في القرآن',
+                tooltip: tr('البحث في القرآن', 'Search the Quran'),
                 icon: SvgPicture.asset(AppAsset.search),
                 onPressed: () {
                   Navigator.pushNamed(context, '/search');
@@ -80,8 +80,8 @@ class LandscapeOverlay extends StatelessWidget {
               ),
               IconButton(
                 tooltip: Theme.of(context).brightness == Brightness.dark
-                    ? 'الوضع النهاري'
-                    : 'الوضع الليلي',
+                    ? tr('الوضع النهاري', 'Light mode')
+                    : tr('الوضع الليلي', 'Dark mode'),
                 icon: SvgPicture.asset(
                   Theme.of(context).brightness == Brightness.dark
                       ? AppAsset.sun
@@ -101,7 +101,7 @@ class LandscapeOverlay extends StatelessWidget {
                   child: TextButton.icon(
                     onPressed: openBookmarks,
                     icon: SvgPicture.asset(AppAsset.saveFilled),
-                    label: const FittedBox(
+                    label: FittedBox(
                       child: Text(AppConstant.bookmarks, style: textStyle),
                     ),
                   ),
@@ -119,7 +119,7 @@ class LandscapeOverlay extends StatelessWidget {
                       overlay.toggleisShowOverlay();
                     },
                     icon: SvgPicture.asset(AppAsset.page),
-                    label: const Text(AppConstant.changePage, style: textStyle),
+                    label: Text(AppConstant.changePage, style: textStyle),
                   ),
                 ),
                 const VerticalDiv(),
@@ -130,7 +130,7 @@ class LandscapeOverlay extends StatelessWidget {
                       Navigator.of(context).pushNamed('/index');
                     },
                     icon: SvgPicture.asset(AppAsset.index),
-                    label: const Text(AppConstant.index, style: textStyle),
+                    label: Text(AppConstant.index, style: textStyle),
                   ),
                 ),
                 const VerticalDiv(),
@@ -141,7 +141,7 @@ class LandscapeOverlay extends StatelessWidget {
                       Navigator.of(context).pushNamed('/juz-index');
                     },
                     icon: SvgPicture.asset(AppAsset.part),
-                    label: const Text(AppConstant.ajzaa, style: textStyle),
+                    label: Text(AppConstant.ajzaa, style: textStyle),
                   ),
                 ),
                 const VerticalDiv(),
@@ -157,8 +157,8 @@ class LandscapeOverlay extends StatelessWidget {
                       color: Colors.white,
                       size: 20,
                     ),
-                    label: const FittedBox(
-                      child: Text('التفسير', style: textStyle),
+                    label: FittedBox(
+                      child: Text(tr('التفسير', 'Tafsir'), style: textStyle),
                     ),
                   ),
                 ),
@@ -170,7 +170,7 @@ class LandscapeOverlay extends StatelessWidget {
                       Navigator.of(context).pushNamed('/douaa');
                     },
                     icon: SvgPicture.asset(AppAsset.hand),
-                    label: const FittedBox(
+                    label: FittedBox(
                       child: FittedBox(
                         child: Text(AppConstant.douaa, style: textStyle),
                       ),
