@@ -77,6 +77,30 @@ void main() {
     expect(find.text('2'), findsWidgets);
   });
 
+  testWidgets('main screens label their tap targets for screen readers', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({'seenOnboarding': true});
+    final prefs = await SharedPreferences.getInstance();
+    final handle = tester.ensureSemantics();
+    await tester.pumpWidget(buildApp(prefs));
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pumpAndSettle();
+
+    for (final tab in ['القرآن', 'الأذكار', 'السبحة', 'الأحاديث', 'الصلاة']) {
+      final item = find.text(tab);
+      if (item.evaluate().isEmpty) continue;
+      await tester.tap(item.last);
+      await tester.pumpAndSettle();
+      await expectLater(
+        tester,
+        meetsGuideline(labeledTapTargetGuideline),
+        reason: tab,
+      );
+    }
+    handle.dispose();
+  });
+
   group('Sebha', () {
     late DateTime now;
 

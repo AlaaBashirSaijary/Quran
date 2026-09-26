@@ -68,6 +68,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 suffixIcon: _controller.text.isEmpty
                     ? null
                     : IconButton(
+                        tooltip: 'مسح',
                         icon: const Icon(Icons.close_rounded),
                         onPressed: () {
                           _controller.clear();

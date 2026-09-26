@@ -12,7 +12,10 @@ class QuranPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return InvertColor(
       isInvert: Theme.of(context).brightness == Brightness.dark,
-      child: Image.asset(pageDir(pageIndex + 1)),
+      child: Image.asset(
+        pageDir(pageIndex + 1),
+        semanticLabel: 'صفحة ${pageIndex + 1} من المصحف',
+      ),
     );
   }
 }

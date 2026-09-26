@@ -260,49 +260,56 @@ class _Counter extends StatelessWidget {
                   child: InkWell(
                     customBorder: const CircleBorder(),
                     onTap: _tap,
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (done)
-                            Icon(
-                              Icons.check_rounded,
-                              size: 72,
-                              color: colorScheme.onPrimary,
-                            )
-                          else
-                            Text(
-                              '${sebha.currentCount}',
-                              style: TextStyle(
-                                fontSize: 60,
-                                fontWeight: FontWeight.bold,
+                    child: Semantics(
+                      button: true,
+                      liveRegion: true,
+                      label: 'عدّاد التسبيح',
+                      onTapHint: done ? 'البدء من جديد' : 'تسبيحة',
+                      child: Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (done)
+                              Icon(
+                                Icons.check_rounded,
+                                size: 72,
                                 color: colorScheme.onPrimary,
-                              ),
-                            ),
-                          Text(
-                            done
-                                ? 'اضغط للبدء من جديد'
-                                : 'من ${sebha.currentTarget}',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: colorScheme.onPrimary.withValues(
-                                alpha: 0.8,
-                              ),
-                            ),
-                          ),
-                          if (sebha.mode == SebhaMode.free && sebha.rounds > 0)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 4),
-                              child: Text(
-                                'الجولة ${sebha.rounds + 1}',
+                              )
+                            else
+                              Text(
+                                '${sebha.currentCount}',
                                 style: TextStyle(
-                                  fontSize: 14,
-                                  color: colorScheme.gold,
+                                  fontSize: 60,
                                   fontWeight: FontWeight.bold,
+                                  color: colorScheme.onPrimary,
+                                ),
+                              ),
+                            Text(
+                              done
+                                  ? 'اضغط للبدء من جديد'
+                                  : 'من ${sebha.currentTarget}',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: colorScheme.onPrimary.withValues(
+                                  alpha: 0.8,
                                 ),
                               ),
                             ),
-                        ],
+                            if (sebha.mode == SebhaMode.free &&
+                                sebha.rounds > 0)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text(
+                                  'الجولة ${sebha.rounds + 1}',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: colorScheme.gold,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
                     ),
                   ),

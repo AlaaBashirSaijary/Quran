@@ -99,6 +99,9 @@ class BottomOverlay extends StatelessWidget {
                 ),
                 const VerticalDiv(),
                 IconButton(
+                  tooltip: Theme.of(context).brightness == Brightness.dark
+                      ? 'الوضع النهاري'
+                      : 'الوضع الليلي',
                   icon: SvgPicture.asset(
                     Theme.of(context).brightness == Brightness.dark
                         ? AppAsset.sun
