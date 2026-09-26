@@ -1,3 +1,4 @@
+import 'package:quranapplication/hifz/hifz.dart';
 import 'package:quranapplication/quran/tafsir.dart';
 import 'package:quranapplication/hijri/hijri.dart';
 import 'package:quranapplication/qibla/compass.dart';
@@ -871,6 +872,73 @@ void main() {
           isTrue,
         );
       }
+    });
+  });
+
+  group('Memorisation review', () {
+    late DateTime now;
+
+    Future<HifzProvider> fresh() async {
+      SharedPreferences.setMockInitialValues({});
+      return HifzProvider(
+        await SharedPreferences.getInstance(),
+        clock: () => now,
+      );
+    }
+
+    setUp(() => now = DateTime(2026, 9, 26, 10));
+
+    test('a new surah is first due tomorrow', () async {
+      final hifz = await fresh()
+        ..add(67);
+      expect(hifz.isMemorised(67), isTrue);
+      expect(hifz.due, isEmpty);
+      now = now.add(const Duration(days: 1));
+      expect(hifz.due.map((e) => e.surah), [67]);
+    });
+
+    test('good reviews space out: 1, 3, 7, 14, 30, then 60 days', () async {
+      final hifz = await fresh()
+        ..add(18);
+      final gaps = <int>[];
+      now = now.add(const Duration(days: 1));
+      for (var i = 0; i < 7; i++) {
+        hifz.review(18, good: true);
+        final due = hifz.entry(18)!.due;
+        final today = DateTime(now.year, now.month, now.day);
+        gaps.add(due.difference(today).inDays);
+        now = due.add(const Duration(hours: 10));
+      }
+      expect(gaps, [1, 3, 7, 14, 30, 60, 60]);
+    });
+
+    test('a weak review brings the surah back tomorrow', () async {
+      final hifz = await fresh()
+        ..add(36);
+      now = now.add(const Duration(days: 1));
+      hifz
+        ..review(36, good: true)
+        ..review(36, good: true)
+        ..review(36, good: false);
+      final today = DateTime(now.year, now.month, now.day);
+      expect(hifz.entry(36)!.due.difference(today).inDays, 1);
+      expect(hifz.entry(36)!.level, 0);
+    });
+
+    test('the schedule is saved and overdue surahs come first', () async {
+      final hifz = await fresh()
+        ..add(1)
+        ..add(2);
+      now = now.add(const Duration(days: 1));
+      hifz.review(2, good: false); // due again tomorrow
+      now = now.add(const Duration(days: 2));
+      final again = HifzProvider(hifz.prefs, clock: () => now);
+      expect(again.due.map((e) => e.surah), [1, 2]);
+      again.remove(1);
+      expect(
+        HifzProvider(hifz.prefs, clock: () => now).isMemorised(1),
+        isFalse,
+      );
     });
   });
 }

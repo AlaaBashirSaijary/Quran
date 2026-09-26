@@ -90,6 +90,12 @@ class QuranSearch {
   final List<Ayah> _ayahs;
   final List<_Words> _normalized;
 
+  /// All ayahs of [surah], in order.
+  List<Ayah> ayahsOfSurah(int surah) => [
+    for (final ayah in _ayahs)
+      if (ayah.surah == surah) ayah,
+  ];
+
   /// The ayahs printed on [page] of the mushaf, in order.
   List<Ayah> ayahsOnPage(int page) => [
     for (final ayah in _ayahs)
