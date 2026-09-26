@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../core/index.dart';
+import '../notifications/notification_screen.dart';
 import '../prayer/prayer.dart';
 
 class PrayerScreen extends StatelessWidget {
@@ -18,6 +19,11 @@ class PrayerScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('مواقيت الصلاة'),
         actions: [
+          IconButton(
+            tooltip: 'التنبيهات',
+            icon: const Icon(Icons.notifications_active_rounded),
+            onPressed: () => NotificationSettingsScreen.open(context),
+          ),
           if (prayer.hasLocation)
             IconButton(
               tooltip: 'الإعدادات',

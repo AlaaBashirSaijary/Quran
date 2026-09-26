@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/index.dart';
+import 'notifications/notification_settings.dart';
 import 'prayer/prayer.dart';
 import 'providers/ahadith_details_provider.dart';
 import 'providers/bookmark.dart';
@@ -79,6 +80,9 @@ class _AppRootState extends State<AppRoot> {
             create: (context) => ReadingProvider(prefs),
             update: (context, value, previous) =>
                 previous!..update(value.currentPage),
+          ),
+          ChangeNotifierProvider<NotificationSettings>(
+            create: (context) => NotificationSettings(prefs),
           ),
           ChangeNotifierProvider<PrayerProvider>(
             create: (context) => PrayerProvider(prefs),
