@@ -4,6 +4,7 @@ import 'package:quranapplication/providers/show_overlay_provider.dart';
 import 'package:quranapplication/widgets/quran_page.dart';
 import 'package:provider/provider.dart';
 
+import '../audio/player_bar.dart';
 import '../core/index.dart';
 import '../quran/page_data.dart';
 import '../providers/quran.dart';
@@ -87,6 +88,14 @@ class HomeScreen extends StatelessWidget {
                   builder: (context, overlay, child) =>
                       overlay.isShowOverlay ? const SizedBox.shrink() : child!,
                   child: const CustomToast(),
+                ),
+                Consumer<ShowOverlayProvider>(
+                  builder: (context, overlay, child) =>
+                      overlay.isShowOverlay ? const SizedBox.shrink() : child!,
+                  child: const Align(
+                    alignment: Alignment.bottomCenter,
+                    child: SafeArea(child: RecitationBar()),
+                  ),
                 ),
                 const InfoOverlay(),
               ],

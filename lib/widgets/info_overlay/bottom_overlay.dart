@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 
+import '../../audio/player_bar.dart';
 import '../../core/index.dart';
 import '../../screens/tafsir_screen.dart';
 import '../../providers/quran.dart';
@@ -80,6 +81,21 @@ class BottomOverlay extends StatelessWidget {
                       child: Text(AppConstant.changePage, style: textStyle),
                     ),
                   ),
+                ),
+                const VerticalDiv(),
+                IconButton(
+                  tooltip: 'استماع للتلاوة',
+                  icon: const Icon(
+                    Icons.play_circle_fill_rounded,
+                    color: Colors.white,
+                  ),
+                  onPressed: () {
+                    startRecitation(context);
+                    Provider.of<ShowOverlayProvider>(
+                      context,
+                      listen: false,
+                    ).hideOverlay();
+                  },
                 ),
                 const VerticalDiv(),
                 IconButton(

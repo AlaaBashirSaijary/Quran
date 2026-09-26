@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'audio/recitation.dart';
 import 'core/index.dart';
 import 'hifz/hifz.dart';
 import 'notifications/notification_settings.dart';
@@ -87,6 +88,9 @@ class _AppRootState extends State<AppRoot> {
           ),
           ChangeNotifierProvider<HifzProvider>(
             create: (context) => HifzProvider(prefs),
+          ),
+          ChangeNotifierProvider<RecitationProvider>(
+            create: (context) => RecitationProvider(prefs),
           ),
           ChangeNotifierProvider<PrayerProvider>(
             create: (context) => PrayerProvider(prefs),

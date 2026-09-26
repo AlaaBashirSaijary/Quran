@@ -5,6 +5,7 @@ import 'package:quranapplication/providers/theme_provider.dart';
 import 'package:quranapplication/widgets/custom_container.dart';
 import 'package:provider/provider.dart';
 
+import '../../audio/player_bar.dart';
 import '../../core/index.dart';
 import '../../screens/tafsir_screen.dart';
 import '../../screens/bookmarks_screen.dart';
@@ -50,6 +51,17 @@ class LandscapeOverlay extends StatelessWidget {
               const SizedBox(width: 5),
               InfoText(text: quran.surahData, svgIcon: AppAsset.book),
               const Spacer(),
+              IconButton(
+                tooltip: 'استماع للتلاوة',
+                icon: const Icon(
+                  Icons.play_circle_fill_rounded,
+                  color: Colors.white,
+                ),
+                onPressed: () {
+                  startRecitation(context);
+                  overlay.hideOverlay();
+                },
+              ),
               IconButton(
                 icon: SvgPicture.asset(
                   bookMark.isMarkedPage ? AppAsset.saveFilled : AppAsset.save,

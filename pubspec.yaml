@@ -54,6 +54,8 @@ dependencies:
   flutter_timezone: ^5.1.0
   hijri: ^3.0.1
   sensors_plus: ^7.1.0
+  just_audio: ^0.10.6
+  http: ^1.6.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
