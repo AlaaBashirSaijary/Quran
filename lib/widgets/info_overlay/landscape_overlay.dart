@@ -6,6 +6,7 @@ import 'package:quranapplication/widgets/custom_container.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/index.dart';
+import '../../screens/tafsir_screen.dart';
 import '../../screens/bookmarks_screen.dart';
 import '../../providers/quran.dart';
 import '../../providers/show_overlay_provider.dart';
@@ -122,6 +123,24 @@ class LandscapeOverlay extends StatelessWidget {
                     },
                     icon: SvgPicture.asset(AppAsset.part),
                     label: const Text(AppConstant.ajzaa, style: textStyle),
+                  ),
+                ),
+                const VerticalDiv(),
+                Expanded(
+                  flex: 2,
+                  child: TextButton.icon(
+                    onPressed: () => TafsirScreen.open(
+                      context,
+                      Provider.of<Quran>(context, listen: false).currentPage,
+                    ),
+                    icon: const Icon(
+                      Icons.menu_book_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    label: const FittedBox(
+                      child: Text('التفسير', style: textStyle),
+                    ),
                   ),
                 ),
                 const VerticalDiv(),

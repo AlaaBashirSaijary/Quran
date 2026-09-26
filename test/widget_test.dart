@@ -1,3 +1,4 @@
+import 'package:quranapplication/quran/tafsir.dart';
 import 'package:quranapplication/hijri/hijri.dart';
 import 'package:quranapplication/qibla/compass.dart';
 import 'package:quranapplication/notifications/planner.dart';
@@ -815,6 +816,61 @@ void main() {
       final smoother = AngleSmoother(factor: 0.5);
       smoother.add(350);
       expect(smoother.add(10), closeTo(0, 0.001));
+    });
+  });
+
+  group('Tafsir', () {
+    late Tafsir tafsir;
+    late QuranSearch quran;
+
+    setUpAll(() async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      tafsir = await Tafsir.load();
+      quran = await QuranSearch.load();
+    });
+
+    test('has Al-Muyassar text for known ayahs', () {
+      expect(tafsir.of(1, 2).text, startsWith('الثناء على الله بصفاته'));
+      expect(tafsir.of(114, 6).text, isNotEmpty);
+    });
+
+    test('every ayah of the Quran has a tafsir', () {
+      for (var page = 1; page <= 604; page++) {
+        for (final ayah in quran.ayahsOnPage(page)) {
+          expect(
+            tafsir.of(ayah.surah, ayah.number).covers(ayah.surah, ayah.number),
+            isTrue,
+          );
+        }
+      }
+    });
+
+    test('a page lists each explanation once, covering all its ayahs', () {
+      final ayahs = quran.ayahsOnPage(1);
+      expect(ayahs, hasLength(7));
+      final groups = tafsir.forAyahs(ayahs);
+      expect(groups.expand((g) => g.$2), hasLength(7));
+      expect(groups.map((g) => g.$1).toSet(), hasLength(groups.length));
+      for (final (entry, covered) in groups) {
+        for (final a in covered) {
+          expect(entry.covers(a.surah, a.number), isTrue);
+        }
+      }
+    });
+
+    test('ayahs explained together share one entry', () {
+      // Find any multi-ayah entry and check both ayahs resolve to it.
+      final page = quran.ayahsOnPage(2);
+      final grouped = tafsir.forAyahs(page).where((g) => g.$1.to > g.$1.from);
+      for (final (entry, _) in grouped) {
+        expect(
+          identical(
+            tafsir.of(entry.surah, entry.from),
+            tafsir.of(entry.surah, entry.to),
+          ),
+          isTrue,
+        );
+      }
     });
   });
 }
