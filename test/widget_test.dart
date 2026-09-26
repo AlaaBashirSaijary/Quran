@@ -1,3 +1,6 @@
+import 'package:quranapplication/notifications/planner.dart';
+import 'package:quranapplication/notifications/notification_settings.dart';
+import 'package:adhan_dart/adhan_dart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -617,6 +620,115 @@ void main() {
         );
       }
       expect(prefs.getInt('wird.goal'), 5);
+    });
+  });
+
+  group('Reminders', () {
+    Future<(PrayerProvider, NotificationSettings)> setup([
+      Map<String, Object> values = const {},
+    ]) async {
+      SharedPreferences.setMockInitialValues(values);
+      final prefs = await SharedPreferences.getInstance();
+      final prayer = PrayerProvider(prefs)
+        ..setCity(cities.firstWhere((c) => c.name == 'دمشق'));
+      return (prayer, NotificationSettings(prefs));
+    }
+
+    test('a full day has 5 prayers, 2 azkar and the wird', () async {
+      final (prayer, settings) = await setup();
+      final day = DateTime(2026, 9, 26);
+      final plan = planNotifications(
+        prayer: prayer,
+        settings: settings,
+        now: day,
+        wirdDoneToday: false,
+        days: 1,
+      );
+      expect(plan.where((n) => n.kind == ReminderKind.prayer), hasLength(5));
+      expect(plan.where((n) => n.kind == ReminderKind.azkar), hasLength(2));
+      expect(plan.where((n) => n.kind == ReminderKind.wird), hasLength(1));
+
+      final times = {for (final t in prayer.timesOn(day)) t.prayer: t.time};
+      final morning = plan.firstWhere((n) => n.title == 'أذكار الصباح');
+      expect(
+        morning.time,
+        times[Prayer.fajr]!.add(const Duration(minutes: 20)),
+      );
+      final wird = plan.firstWhere((n) => n.kind == ReminderKind.wird);
+      expect(wird.time, DateTime(2026, 9, 26, 21));
+    });
+
+    test('a week of reminders has unique ids and only future times', () async {
+      final (prayer, settings) = await setup();
+      settings.setMinutesBefore(10);
+      final now = DateTime(2026, 9, 26, 13);
+      final plan = planNotifications(
+        prayer: prayer,
+        settings: settings,
+        now: now,
+        wirdDoneToday: false,
+      );
+      expect(plan.map((n) => n.id).toSet(), hasLength(plan.length));
+      expect(plan.every((n) => n.time.isAfter(now)), isTrue);
+      expect(plan.length, lessThan(7 * 13 + 1));
+      final before = plan.firstWhere(
+        (n) => n.kind == ReminderKind.beforePrayer,
+      );
+      expect(before.title, contains('10 دقائق'));
+    });
+
+    test('choices are respected and saved', () async {
+      final (prayer, settings) = await setup();
+      settings
+        ..setPrayer(Prayer.fajr, false)
+        ..setMorningAzkar(false)
+        ..setWird(false);
+      final plan = planNotifications(
+        prayer: prayer,
+        settings: settings,
+        now: DateTime(2026, 9, 26),
+        wirdDoneToday: false,
+        days: 1,
+      );
+      expect(plan.any((n) => n.title.contains('الفجر')), isFalse);
+      expect(plan.any((n) => n.title == 'أذكار الصباح'), isFalse);
+      expect(plan.any((n) => n.kind == ReminderKind.wird), isFalse);
+
+      final again = NotificationSettings(settings.prefs);
+      expect(again.prayerEnabled(Prayer.fajr), isFalse);
+      expect(again.prayerEnabled(Prayer.dhuhr), isTrue);
+    });
+
+    test('no wird reminder today once the goal is met', () async {
+      final (prayer, settings) = await setup();
+      final plan = planNotifications(
+        prayer: prayer,
+        settings: settings,
+        now: DateTime(2026, 9, 26, 8),
+        wirdDoneToday: true,
+        days: 2,
+      );
+      final wird = plan.where((n) => n.kind == ReminderKind.wird).toList();
+      expect(wird, hasLength(1));
+      expect(wird.single.time.day, 27);
+    });
+
+    test('without a location only the wird reminder is planned', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final plan = planNotifications(
+        prayer: PrayerProvider(prefs),
+        settings: NotificationSettings(prefs),
+        now: DateTime(2026, 9, 26),
+        wirdDoneToday: false,
+        days: 1,
+      );
+      expect(plan.map((n) => n.kind), [ReminderKind.wird]);
+    });
+
+    test('minutes read naturally', () {
+      expect(minutesLabel(5), '5 دقائق');
+      expect(minutesLabel(30), '30 دقيقة');
     });
   });
 }
