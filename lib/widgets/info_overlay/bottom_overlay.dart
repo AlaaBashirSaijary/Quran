@@ -3,6 +3,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/index.dart';
+import '../../screens/tafsir_screen.dart';
+import '../../providers/quran.dart';
 import '../../screens/bookmarks_screen.dart';
 import '../../providers/bookmark.dart';
 import '../../providers/show_overlay_provider.dart';
@@ -95,41 +97,38 @@ class BottomOverlay extends StatelessWidget {
           ),
           const HorizontalDiv(),
           SizedBox(
-            height: 45,
+            height: 60,
             child: Row(
               children: [
-                Expanded(
-                  child: TextButton.icon(
-                    onPressed: () {
-                      Navigator.of(context).pushNamed('/index');
-                    },
-                    icon: SvgPicture.asset(AppAsset.index),
-                    label: const Text(AppConstant.index, style: textStyle),
+                _Item(
+                  icon: SvgPicture.asset(AppAsset.index),
+                  label: AppConstant.index,
+                  onTap: () => Navigator.of(context).pushNamed('/index'),
+                ),
+                const VerticalDiv(),
+                _Item(
+                  icon: SvgPicture.asset(AppAsset.part),
+                  label: AppConstant.ajzaa,
+                  onTap: () => Navigator.of(context).pushNamed('/juz-index'),
+                ),
+                const VerticalDiv(),
+                _Item(
+                  icon: const Icon(
+                    Icons.menu_book_rounded,
+                    color: Colors.white,
+                    size: 22,
+                  ),
+                  label: 'التفسير',
+                  onTap: () => TafsirScreen.open(
+                    context,
+                    Provider.of<Quran>(context, listen: false).currentPage,
                   ),
                 ),
                 const VerticalDiv(),
-                Expanded(
-                  child: TextButton.icon(
-                    onPressed: () {
-                      Navigator.of(context).pushNamed('/juz-index');
-                    },
-                    icon: SvgPicture.asset(AppAsset.part),
-                    label: const Text(AppConstant.ajzaa, style: textStyle),
-                  ),
-                ),
-                const VerticalDiv(),
-                Expanded(
-                  child: TextButton.icon(
-                    onPressed: () {
-                      Navigator.of(context).pushNamed('/douaa');
-                    },
-                    icon: SvgPicture.asset(AppAsset.hand),
-                    label: const FittedBox(
-                      child: FittedBox(
-                        child: Text(AppConstant.douaa, style: textStyle),
-                      ),
-                    ),
-                  ),
+                _Item(
+                  icon: SvgPicture.asset(AppAsset.hand),
+                  label: AppConstant.douaa,
+                  onTap: () => Navigator.of(context).pushNamed('/douaa'),
                 ),
               ],
             ),
@@ -141,3 +140,31 @@ class BottomOverlay extends StatelessWidget {
 }
 
 const textStyle = TextStyle(color: Colors.white, fontSize: 15);
+
+/// Icon above a label, for the row of four destinations.
+class _Item extends StatelessWidget {
+  const _Item({required this.icon, required this.label, required this.onTap});
+
+  final Widget icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(height: 22, child: icon),
+            const SizedBox(height: 4),
+            FittedBox(
+              child: Text(label, style: textStyle.copyWith(fontSize: 13)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

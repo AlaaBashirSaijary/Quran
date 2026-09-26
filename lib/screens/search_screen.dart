@@ -5,6 +5,7 @@ import '../quran/quran.dart';
 import '../quran/search.dart';
 import '../widgets/surah_number.dart';
 import 'index_screen.dart';
+import 'tafsir_screen.dart';
 import '../providers/settings_provider.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -172,9 +173,27 @@ class _SearchScreenState extends State<SearchScreen> {
                         ),
                       ),
                       const SizedBox(height: 6),
-                      Text(
-                        'سورة ${getSurahNameArabic(ayah.surah)} · الآية ${ayah.number} · ${AppConstant.page} ${ayah.page}',
-                        style: TextStyle(color: colorScheme.gold, fontSize: 13),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'سورة ${getSurahNameArabic(ayah.surah)} · الآية ${ayah.number} · ${AppConstant.page} ${ayah.page}',
+                              style: TextStyle(
+                                color: colorScheme.gold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                          TextButton.icon(
+                            onPressed: () => TafsirScreen.open(
+                              context,
+                              ayah.page,
+                              focusAyah: ayah,
+                            ),
+                            icon: const Icon(Icons.menu_book_rounded, size: 18),
+                            label: const Text('التفسير'),
+                          ),
+                        ],
                       ),
                     ],
                   ),

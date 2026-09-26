@@ -90,6 +90,12 @@ class QuranSearch {
   final List<Ayah> _ayahs;
   final List<_Words> _normalized;
 
+  /// The ayahs printed on [page] of the mushaf, in order.
+  List<Ayah> ayahsOnPage(int page) => [
+    for (final ayah in _ayahs)
+      if (ayah.page == page) ayah,
+  ];
+
   SearchResults search(String query, {int limit = 100}) {
     final needle = normalizeArabic(query);
     if (needle.length < 2) return const SearchResults([], [], 0);
