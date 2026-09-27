@@ -6,6 +6,7 @@ import '../prayer/prayer.dart';
 import '../providers/reading_provider.dart';
 import '../providers/settings_provider.dart';
 import '../widget/prayer_widget.dart';
+import 'adhan_sound.dart';
 import 'notification_service.dart';
 import 'notification_settings.dart';
 import 'planner.dart';
@@ -82,6 +83,7 @@ class _NotificationSyncState extends State<NotificationSync> {
         wirdDoneToday: reading.goalMet,
         hijriOffset: hijriOffset,
       ),
+      adhanUri: settings.adhanUri,
     );
   }
 
@@ -183,6 +185,29 @@ class _NotificationSettingsScreenState
                     title: Text(names[p] ?? _fallbackName(p.name)),
                     value: settings.prayerEnabled(p),
                     onChanged: (v) => settings.setPrayer(p, v),
+                  ),
+                if (PhoneSounds.supported)
+                  ListTile(
+                    leading: Icon(
+                      Icons.volume_up_rounded,
+                      color: colorScheme.gold,
+                    ),
+                    title: Text(tr('صوت الأذان', 'Adhan sound')),
+                    subtitle: Text(
+                      settings.adhanUri == null
+                          ? tr(
+                              'صوت التنبيه الافتراضي',
+                              'Default notification sound',
+                            )
+                          : (settings.adhanTitle?.isNotEmpty ?? false)
+                          ? settings.adhanTitle!
+                          : tr('صوت مختار', 'Chosen sound'),
+                    ),
+                    trailing: Icon(
+                      Icons.chevron_left_rounded,
+                      color: colorScheme.gold,
+                    ),
+                    onTap: () => chooseAdhanSound(context, settings),
                   ),
                 ListTile(
                   title: Text(

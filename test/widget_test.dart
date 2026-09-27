@@ -21,6 +21,7 @@ import 'package:quranapplication/quran/tafsir.dart';
 import 'package:quranapplication/hijri/hijri.dart';
 import 'package:quranapplication/qibla/compass.dart';
 import 'package:quranapplication/notifications/planner.dart';
+import 'package:quranapplication/notifications/notification_service.dart';
 import 'package:quranapplication/notifications/notification_settings.dart';
 import 'package:adhan_dart/adhan_dart.dart';
 import 'package:flutter/material.dart';
@@ -951,6 +952,27 @@ void main() {
       final wird = plan.where((n) => n.kind == ReminderKind.wird).toList();
       expect(wird, hasLength(1));
       expect(wird.single.time.day, 27);
+    });
+
+    test('the chosen adhan sound is saved and gets its own channel', () async {
+      final (_, settings) = await setup();
+      expect(settings.adhanUri, isNull);
+      expect(NotificationService.prayerChannel(null), 'prayer');
+
+      const uri = 'content://media/external/audio/media/42';
+      final before = settings.signature;
+      settings.setAdhanSound(uri, 'أذان مكة');
+      expect(settings.signature, isNot(before));
+      final again = NotificationSettings(settings.prefs);
+      expect([again.adhanUri, again.adhanTitle], [uri, 'أذان مكة']);
+
+      final channel = NotificationService.prayerChannel(uri);
+      expect(channel, startsWith('prayer_'));
+      expect(NotificationService.prayerChannel(uri), channel, reason: 'stable');
+      expect(NotificationService.prayerChannel('$uri/2'), isNot(channel));
+
+      settings.setAdhanSound(null, null);
+      expect(NotificationSettings(settings.prefs).adhanUri, isNull);
     });
 
     test(

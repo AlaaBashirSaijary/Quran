@@ -15,6 +15,28 @@ class NotificationSettings extends ChangeNotifier {
     wirdMinutes = prefs.getInt('notify.wirdMinutes') ?? 21 * 60;
     friday = prefs.getBool('notify.friday') ?? true;
     suhoor = prefs.getBool('notify.suhoor') ?? true;
+    adhanUri = prefs.getString('notify.adhanUri');
+    adhanTitle = prefs.getString('notify.adhanTitle');
+  }
+
+  /// The sound of prayer-time notifications (a URI of one of the phone's
+  /// sounds), or null for the default notification sound.
+  String? adhanUri;
+  String? adhanTitle;
+
+  void setAdhanSound(String? uri, String? title) {
+    adhanUri = uri;
+    adhanTitle = title;
+    if (uri == null) {
+      prefs
+        ..remove('notify.adhanUri')
+        ..remove('notify.adhanTitle');
+    } else {
+      prefs
+        ..setString('notify.adhanUri', uri)
+        ..setString('notify.adhanTitle', title ?? '');
+    }
+    notifyListeners();
   }
 
   static const prayers = [
@@ -104,5 +126,6 @@ class NotificationSettings extends ChangeNotifier {
     wirdMinutes,
     friday,
     suhoor,
+    adhanUri,
   ].join(',');
 }

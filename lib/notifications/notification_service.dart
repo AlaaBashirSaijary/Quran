@@ -4,6 +4,7 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
+import 'adhan_sound.dart';
 import 'planner.dart';
 import '../core/language.dart';
 
@@ -16,6 +17,7 @@ class NotificationService {
 
   final _plugin = FlutterLocalNotificationsPlugin();
   bool _ready = false;
+  String? _adhanUri;
 
   /// The payload of the last tapped notification, until handled.
   final opened = ValueNotifier<String?>(null);
@@ -94,11 +96,31 @@ class NotificationService {
     await _android?.requestExactAlarmsPermission();
   }
 
-  /// Replaces every scheduled reminder with [planned].
-  Future<void> schedule(List<PlannedNotification> planned) async {
+  /// The notification channel of prayer times: one per chosen sound,
+  /// since Android fixes a channel's sound once it exists.
+  static String prayerChannel(String? adhanUri) =>
+      adhanUri == null ? 'prayer' : 'prayer_${soundKey(adhanUri)}';
+
+  /// Replaces every scheduled reminder with [planned]. Prayer times play
+  /// [adhanUri] when given.
+  Future<void> schedule(
+    List<PlannedNotification> planned, {
+    String? adhanUri,
+  }) async {
     if (!supported) return;
     await _init();
     await _plugin.cancelAll();
+    _adhanUri = adhanUri;
+    // Remove the channels of sounds no longer chosen.
+    final current = prayerChannel(adhanUri);
+    for (final channel
+        in await _android?.getNotificationChannels() ?? const []) {
+      if (channel.id.startsWith('prayer') &&
+          channel.id != current &&
+          channel.id != 'prayer') {
+        await _android?.deleteNotificationChannel(channelId: channel.id);
+      }
+    }
     final exact = await canUseExactTimes();
     for (final n in planned) {
       await _plugin.zonedSchedule(
@@ -117,7 +139,12 @@ class NotificationService {
 
   NotificationDetails _details(ReminderKind kind) {
     final (id, name) = switch (kind) {
-      ReminderKind.prayer => ('prayer', tr('أوقات الصلاة', 'Prayer times')),
+      ReminderKind.prayer => (
+        prayerChannel(_adhanUri),
+        _adhanUri == null
+            ? tr('أوقات الصلاة', 'Prayer times')
+            : tr('أوقات الصلاة (الأذان)', 'Prayer times (adhan)'),
+      ),
       ReminderKind.beforePrayer => (
         'before_prayer',
         tr('التذكير قبل الصلاة', 'Before the prayer'),
@@ -143,6 +170,9 @@ class NotificationService {
         category: kind == ReminderKind.prayer
             ? AndroidNotificationCategory.alarm
             : AndroidNotificationCategory.reminder,
+        sound: kind == ReminderKind.prayer && _adhanUri != null
+            ? UriAndroidNotificationSound(_adhanUri!)
+            : null,
       ),
       iOS: const DarwinNotificationDetails(presentSound: true),
     );
