@@ -1,4 +1,10 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
+
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+import 'package:quranapplication/audio/downloads.dart';
 
 import 'package:quranapplication/content/library.dart';
 import 'package:quranapplication/audio/recitation.dart';
@@ -1230,6 +1236,106 @@ void main() {
       expect(again.reciter.name, 'محمود خليل الحصري');
       expect([again.repeat, again.continuous], [3, false]);
     });
+  });
+
+  group('Saved recitations', () {
+    setUpAll(TestWidgetsFlutterBinding.ensureInitialized);
+
+    late Directory temp;
+    late List<String> requested;
+    var failAudio = false;
+
+    setUp(() {
+      temp = Directory.systemTemp.createTempSync('recitations');
+      requested = [];
+      failAudio = false;
+    });
+    tearDown(() => temp.deleteSync(recursive: true));
+
+    MockClient client() => MockClient((request) async {
+      final url = request.url.toString();
+      requested.add(url);
+      if (url.contains('/surah/1/ar.alafasy')) {
+        return http.Response(
+          jsonEncode({
+            'code': 200,
+            'data': {
+              'number': 1,
+              'ayahs': [
+                for (var a = 1; a <= 7; a++)
+                  {'numberInSurah': a, 'audio': 'https://cdn.test/$a.mp3'},
+              ],
+            },
+          }),
+          200,
+        );
+      }
+      if (url.startsWith('https://cdn.test/')) {
+        return failAudio
+            ? http.Response('', 500)
+            : http.Response.bytes([1, 2, 3, 4], 200);
+      }
+      return http.Response('', 404);
+    });
+
+    Future<AudioDownloads> downloads([
+      Map<String, Object> prefs = const {},
+    ]) async {
+      SharedPreferences.setMockInitialValues(prefs);
+      final d = AudioDownloads(
+        await SharedPreferences.getInstance(),
+        client: client(),
+        folder: Future.value(temp.path),
+      );
+      await d.ready;
+      return d;
+    }
+
+    test('a surah is saved and page 1 then plays without internet', () async {
+      final d = await downloads();
+      await d.download('ar.alafasy', [1]);
+      expect(d.isDownloaded('ar.alafasy', 1), isTrue);
+      expect(d.progress, isEmpty);
+      expect(File('${temp.path}/ar.alafasy/1/7.mp3').readAsBytesSync(), [
+        1,
+        2,
+        3,
+        4,
+      ]);
+      expect(await d.size(), 28);
+      expect(d.localUri('ar.husary', 1, 1), isNull);
+
+      requested.clear();
+      final recitation = RecitationProvider(d.prefs, downloads: d);
+      final audio = await recitation.pageAudio(1);
+      expect(audio.map((a) => a.ayah), [1, 2, 3, 4, 5, 6, 7]);
+      expect(audio.first.url, startsWith('file://'));
+      expect(requested, isEmpty, reason: 'no network needed');
+
+      await d.delete('ar.alafasy', 1);
+      expect(d.isDownloaded('ar.alafasy', 1), isFalse);
+      expect(Directory('${temp.path}/ar.alafasy/1').existsSync(), isFalse);
+    });
+
+    test('a failed download reports an error and saves nothing', () async {
+      failAudio = true;
+      final d = await downloads();
+      await d.download('ar.alafasy', [1]);
+      expect(d.isDownloaded('ar.alafasy', 1), isFalse);
+      expect(d.error, isNotNull);
+      expect(d.progress, isEmpty);
+    });
+
+    test(
+      'downloads listed in a restored backup but missing are dropped',
+      () async {
+        final d = await downloads({
+          'audio.downloads': ['ar.alafasy|1'],
+        });
+        expect(d.isDownloaded('ar.alafasy', 1), isFalse);
+        expect(d.prefs.getStringList('audio.downloads'), isEmpty);
+      },
+    );
   });
 
   group('Hadith and du\'a library', () {

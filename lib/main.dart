@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'audio/downloads.dart';
 import 'audio/recitation.dart';
 import 'core/index.dart';
 import 'hifz/hifz.dart';
@@ -96,8 +97,14 @@ class _AppRootState extends State<AppRoot> {
           ChangeNotifierProvider<GroupKhatmaProvider>(
             create: (context) => GroupKhatmaProvider(prefs),
           ),
+          ChangeNotifierProvider<AudioDownloads>(
+            create: (context) => AudioDownloads(prefs),
+          ),
           ChangeNotifierProvider<RecitationProvider>(
-            create: (context) => RecitationProvider(prefs),
+            create: (context) => RecitationProvider(
+              prefs,
+              downloads: context.read<AudioDownloads>(),
+            ),
           ),
           ChangeNotifierProvider<PrayerProvider>(
             create: (context) => PrayerProvider(prefs),

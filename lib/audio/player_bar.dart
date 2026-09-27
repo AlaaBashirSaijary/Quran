@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../core/index.dart';
 import '../providers/quran.dart';
 import '../quran/quran.dart';
+import 'downloads_screen.dart';
 import 'recitation.dart';
 
 /// Starts reciting the reader's current page.
@@ -167,12 +168,27 @@ Future<void> showRecitationSettings(BuildContext context) {
                 ],
               ),
             ),
+            const Divider(),
+            ListTile(
+              leading: Icon(
+                Icons.download_for_offline_rounded,
+                color: Theme.of(context).colorScheme.gold,
+              ),
+              title: Text(tr('التلاوات المحفوظة', 'Saved recitations')),
+              subtitle: Text(
+                tr(
+                  'حمّل السور للاستماع دون إنترنت',
+                  'Download surahs to listen without internet',
+                ),
+              ),
+              onTap: () => DownloadsScreen.open(context),
+            ),
             Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
                 tr(
-                  'تحتاج التلاوة إلى اتصال بالإنترنت. المصدر: alquran.cloud',
-                  'Recitation needs an internet connection. Source: alquran.cloud',
+                  'تُبثّ التلاوة من الإنترنت ما لم تكن السورة محفوظة. المصدر: alquran.cloud',
+                  'Recitation streams from the internet unless the surah is saved. Source: alquran.cloud',
                 ),
                 style: TextStyle(
                   fontSize: 12,
