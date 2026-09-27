@@ -7,6 +7,8 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:quranapplication/audio/downloads.dart';
 import 'package:quranapplication/share/share_card.dart';
+import 'package:quranapplication/quran/ayah_regions.dart';
+import 'package:quranapplication/widgets/quran_page.dart';
 
 import 'package:quranapplication/content/library.dart';
 import 'package:quranapplication/audio/recitation.dart';
@@ -1304,6 +1306,91 @@ void main() {
       final again = RecitationProvider(prefs);
       expect(again.reciter.name, 'محمود خليل الحصري');
       expect([again.repeat, again.continuous], [3, false]);
+    });
+  });
+
+  group('Ayahs on the mushaf page', () {
+    setUpAll(TestWidgetsFlutterBinding.ensureInitialized);
+
+    test(
+      'every ayah is placed once, in reading order, inside the page',
+      () async {
+        final regions = await AyahRegions.load();
+        final order = <(int, int)>[];
+        for (var page = 1; page <= 604; page++) {
+          for (final (surah, ayah) in regions.ayahsOn(page)) {
+            order.add((surah, ayah));
+            final rects = regions.rectsOf(page, surah, ayah);
+            expect(rects, isNotEmpty, reason: '$surah:$ayah on page $page');
+            for (final r in rects) {
+              expect(r.left, greaterThanOrEqualTo(0));
+              expect(r.right, lessThanOrEqualTo(1));
+              expect(r.top, greaterThanOrEqualTo(0));
+              expect(r.bottom, lessThanOrEqualTo(1));
+              expect(r.width, greaterThan(0));
+            }
+          }
+        }
+        final quran = await QuranSearch.load();
+        final expected = [
+          for (var s = 1; s <= 114; s++)
+            for (final a in quran.ayahsOfSurah(s)) (a.surah, a.number),
+        ];
+        expect(order, expected);
+      },
+    );
+
+    test(
+      'pages follow the mushaf: surahs begin where the index says',
+      () async {
+        final regions = await AyahRegions.load();
+        for (var s = 1; s <= 114; s++) {
+          final page = getSurahFirstPage(s);
+          expect(regions.ayahsOn(page), contains((s, 1)), reason: 'surah $s');
+        }
+      },
+    );
+
+    test('a touch finds the ayah under it', () async {
+      final regions = await AyahRegions.load();
+      final rect = regions.rectsOf(586, 81, 1).first;
+      expect(regions.ayahAt(586, rect.center), (81, 1));
+      expect(regions.ayahAt(586, const Offset(0.5, 0.005)), isNull);
+    });
+
+    testWidgets('long-pressing an ayah opens its actions', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      await tester.runAsync(() async {
+        await AyahRegions.load();
+        await QuranSearch.load();
+      });
+      await tester.pumpWidget(
+        ChangeNotifierProvider(
+          create: (_) => RecitationProvider(prefs),
+          child: const MaterialApp(
+            home: Scaffold(
+              body: Directionality(
+                textDirection: TextDirection.rtl,
+                child: SingleChildScrollView(child: QuranPage(pageIndex: 585)),
+              ),
+            ),
+          ),
+        ),
+      );
+      final page = tester.getRect(find.byType(QuranPage));
+      final rect = AyahRegions.loaded!.rectsOf(586, 81, 1).first;
+      await tester.longPressAt(
+        Offset(
+          page.left + rect.center.dx * page.width,
+          page.top + rect.center.dy * page.height,
+        ),
+      );
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      await tester.pumpAndSettle();
+      expect(find.text('سورة التكوير · الآية 1'), findsOneWidget);
+      expect(find.text('التفسير'), findsOneWidget);
+      expect(find.text('مشاركة كصورة'), findsOneWidget);
     });
   });
 

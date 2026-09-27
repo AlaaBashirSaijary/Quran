@@ -164,13 +164,21 @@ class RecitationProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> playPage(int page) async {
+  /// Plays [page], starting at the ayah [from] (surah, ayah) if given.
+  Future<void> playPage(int page, {(int, int)? from}) async {
     this.page = page;
     status = RecitationStatus.loading;
     error = null;
     notifyListeners();
     try {
-      _queue = RecitationQueue(await pageAudio(page), repeat: repeat);
+      final queue = RecitationQueue(await pageAudio(page), repeat: repeat);
+      if (from != null) {
+        final start = queue.items.indexWhere(
+          (a) => a.surah == from.$1 && a.ayah == from.$2,
+        );
+        if (start > 0) queue.index = start;
+      }
+      _queue = queue;
       await _playCurrent();
     } catch (_) {
       status = RecitationStatus.error;

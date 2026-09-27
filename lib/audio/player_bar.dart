@@ -7,12 +7,13 @@ import '../quran/quran.dart';
 import 'downloads_screen.dart';
 import 'recitation.dart';
 
-/// Starts reciting the reader's current page.
-void startRecitation(BuildContext context) {
+/// Starts reciting the reader's current page, from the ayah [from]
+/// (surah, ayah) if given.
+void startRecitation(BuildContext context, {(int, int)? from}) {
   final quran = Provider.of<Quran>(context, listen: false);
   final recitation = Provider.of<RecitationProvider>(context, listen: false);
   recitation.onPageChanged = quran.goToPage;
-  recitation.playPage(quran.currentPage);
+  recitation.playPage(quran.currentPage, from: from);
 }
 
 /// Floating controls shown in the reader while a recitation is active.
