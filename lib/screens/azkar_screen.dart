@@ -7,6 +7,8 @@ import '../content/library.dart';
 import '../content/text_screens.dart';
 import '../core/index.dart';
 import '../providers/settings_provider.dart';
+import '../quran/quran.dart';
+import '../share/share_card.dart';
 
 class AzkarScreen extends StatefulWidget {
   const AzkarScreen({super.key});
@@ -64,6 +66,7 @@ class _AzkarScreenState extends State<AzkarScreen> {
                 builder: (context) => SectionListScreen(
                   title: tr('أدعية المناسبات', 'Du‘as for Occasions'),
                   sections: loadOccasionDuas(),
+                  source: 'حصن المسلم',
                   searchHint: tr(
                     'ابحث عن مناسبة أو دعاء',
                     'Search for an occasion or du‘a',
@@ -102,6 +105,9 @@ class _AzkarScreenState extends State<AzkarScreen> {
                                   text: text,
                                   caption: s.title,
                                   quranFont: i < ruqyahPassages.length,
+                                  shareReference: i < ruqyahPassages.length
+                                      ? _ruqyahReference(i)
+                                      : 'حصن المسلم · ${s.title}',
                                 ),
                               ),
                         ],
@@ -319,6 +325,7 @@ class _AzkarCategoryScreenState extends State<AzkarCategoryScreen> {
               itemCount: items.length,
               separatorBuilder: (context, index) => const SizedBox(height: 12),
               itemBuilder: (context, index) => _DhikrCard(
+                source: 'حصن المسلم · ${widget.category.title}',
                 dhikr: items[index],
                 remaining: progress.remaining(index),
                 onTap: () => _tap(index),
@@ -330,11 +337,14 @@ class _AzkarCategoryScreenState extends State<AzkarCategoryScreen> {
 
 class _DhikrCard extends StatelessWidget {
   const _DhikrCard({
+    required this.source,
     required this.dhikr,
     required this.remaining,
     required this.onTap,
   });
 
+  /// Named on the shared image.
+  final String source;
   final Dhikr dhikr;
   final int remaining;
   final VoidCallback onTap;
@@ -390,6 +400,20 @@ class _DhikrCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 13,
                         color: colorScheme.pageNumber,
+                      ),
+                    ),
+                    IconButton(
+                      visualDensity: VisualDensity.compact,
+                      tooltip: tr('مشاركة كصورة', 'Share as image'),
+                      icon: Icon(
+                        Icons.ios_share_rounded,
+                        size: 20,
+                        color: colorScheme.gold,
+                      ),
+                      onPressed: () => shareAsImage(
+                        context,
+                        text: dhikr.text,
+                        reference: source,
                       ),
                     ),
                     const Spacer(),
@@ -467,4 +491,9 @@ class _LinkTile extends StatelessWidget {
       ),
     );
   }
+}
+
+String _ruqyahReference(int passage) {
+  final (surah, from, to) = ruqyahPassages[passage];
+  return quranReference(getSurahNameArabic(surah), from, to);
 }

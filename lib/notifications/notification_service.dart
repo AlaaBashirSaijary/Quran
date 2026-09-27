@@ -17,6 +17,9 @@ class NotificationService {
   final _plugin = FlutterLocalNotificationsPlugin();
   bool _ready = false;
 
+  /// The payload of the last tapped notification, until handled.
+  final opened = ValueNotifier<String?>(null);
+
   static bool get supported =>
       !kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.android ||
@@ -46,9 +49,18 @@ class NotificationService {
           requestSoundPermission: false,
         ),
       ),
+      onDidReceiveNotificationResponse: (response) =>
+          opened.value = response.payload,
     );
     _ready = true;
+    final launch = await _plugin.getNotificationAppLaunchDetails();
+    if (launch?.didNotificationLaunchApp ?? false) {
+      opened.value = launch!.notificationResponse?.payload;
+    }
   }
+
+  /// Sets up tap handling early, so a tap that launched the app is seen.
+  Future<void> start() => _init();
 
   /// Asks for permission to notify (Android 13+, iOS). Returns false if
   /// the user refused.
@@ -95,6 +107,7 @@ class NotificationService {
         body: n.body,
         scheduledDate: tz.TZDateTime.from(n.time, tz.local),
         notificationDetails: _details(n.kind),
+        payload: n.payload,
         androidScheduleMode: exact
             ? AndroidScheduleMode.exactAllowWhileIdle
             : AndroidScheduleMode.inexactAllowWhileIdle,
@@ -114,6 +127,7 @@ class NotificationService {
         'wird',
         tr('تذكير الورد', 'Daily reading reminders'),
       ),
+      ReminderKind.friday => ('friday', tr('يوم الجمعة', 'Friday')),
     };
     return NotificationDetails(
       android: AndroidNotificationDetails(

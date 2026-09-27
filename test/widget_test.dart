@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'dart:ui' show ImageByteFormat;
 
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:quranapplication/audio/downloads.dart';
+import 'package:quranapplication/share/share_card.dart';
 
 import 'package:quranapplication/content/library.dart';
 import 'package:quranapplication/audio/recitation.dart';
@@ -16,6 +18,7 @@ import 'package:quranapplication/notifications/planner.dart';
 import 'package:quranapplication/notifications/notification_settings.dart';
 import 'package:adhan_dart/adhan_dart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -901,7 +904,7 @@ void main() {
       );
       expect(plan.map((n) => n.id).toSet(), hasLength(plan.length));
       expect(plan.every((n) => n.time.isAfter(now)), isTrue);
-      expect(plan.length, lessThan(7 * 13 + 1));
+      expect(plan.length, lessThan(7 * 13 + 2 + 1));
       final before = plan.firstWhere(
         (n) => n.kind == ReminderKind.beforePrayer,
       );
@@ -942,6 +945,72 @@ void main() {
       final wird = plan.where((n) => n.kind == ReminderKind.wird).toList();
       expect(wird, hasLength(1));
       expect(wird.single.time.day, 27);
+    });
+
+    test(
+      'Friday brings Al-Kahf in the morning and du‘a before Maghrib',
+      () async {
+        final (prayer, settings) = await setup();
+        final friday = DateTime(2026, 10, 2);
+        expect(friday.weekday, DateTime.friday);
+        final plan = planNotifications(
+          prayer: prayer,
+          settings: settings,
+          now: friday,
+          wirdDoneToday: false,
+          days: 1,
+        );
+        final times = {
+          for (final t in prayer.timesOn(friday)) t.prayer: t.time,
+        };
+        final fridays = plan
+            .where((n) => n.kind == ReminderKind.friday)
+            .toList();
+        expect(fridays, hasLength(2));
+        expect(
+          fridays.first.time,
+          times[Prayer.sunrise]!.add(const Duration(hours: 2)),
+        );
+        expect(fridays.first.payload, openKahfPayload);
+        expect(
+          fridays.last.time,
+          times[Prayer.maghrib]!.subtract(const Duration(hours: 1)),
+        );
+
+        final saturday = planNotifications(
+          prayer: prayer,
+          settings: settings,
+          now: DateTime(2026, 10, 3),
+          wirdDoneToday: false,
+          days: 1,
+        );
+        expect(saturday.any((n) => n.kind == ReminderKind.friday), isFalse);
+
+        settings.setFriday(false);
+        expect(NotificationSettings(settings.prefs).friday, isFalse);
+        final off = planNotifications(
+          prayer: prayer,
+          settings: settings,
+          now: friday,
+          wirdDoneToday: false,
+          days: 1,
+        );
+        expect(off.any((n) => n.kind == ReminderKind.friday), isFalse);
+      },
+    );
+
+    test('without a location Al-Kahf is still suggested at 10', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final plan = planNotifications(
+        prayer: PrayerProvider(prefs),
+        settings: NotificationSettings(prefs),
+        now: DateTime(2026, 10, 2),
+        wirdDoneToday: false,
+        days: 1,
+      );
+      final friday = plan.where((n) => n.kind == ReminderKind.friday);
+      expect(friday.single.time, DateTime(2026, 10, 2, 10));
     });
 
     test('without a location only the wird reminder is planned', () async {
@@ -1235,6 +1304,50 @@ void main() {
       final again = RecitationProvider(prefs);
       expect(again.reciter.name, 'محمود خليل الحصري');
       expect([again.repeat, again.continuous], [3, false]);
+    });
+  });
+
+  group('Share as image', () {
+    test('Quran references cite the surah and ayahs in Arabic', () {
+      expect(quranReference('البقرة', 255), 'سورة البقرة ﴿255﴾');
+      expect(quranReference('البقرة', 285, 286), 'سورة البقرة ﴿285–286﴾');
+      expect(quranReference('الإخلاص', 1, 1), 'سورة الإخلاص ﴿1﴾');
+    });
+
+    testWidgets('the card renders as a 1080-pixel-wide image', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: ShareCardScreen(
+            text: 'اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ',
+            reference: 'سورة البقرة ﴿255﴾',
+            quran: true,
+          ),
+        ),
+      );
+      expect(find.text('سورة البقرة ﴿255﴾'), findsOneWidget);
+      expect(find.text('طريق الجنة'), findsOneWidget);
+
+      final boundary = tester.renderObject<RenderRepaintBoundary>(
+        find
+            .ancestor(
+              of: find.byType(ShareCard),
+              matching: find.byType(RepaintBoundary),
+            )
+            .first,
+      );
+      final width = await tester.runAsync(() async {
+        final image = await boundary.toImage(pixelRatio: 3);
+        final png = await image.toByteData(format: ImageByteFormat.png);
+        expect(png!.lengthInBytes, greaterThan(1000));
+        final w = image.width;
+        image.dispose();
+        return w;
+      });
+      expect(width, 1080);
+
+      await tester.tap(find.byIcon(Icons.light_mode_rounded));
+      await tester.pump();
+      expect(find.byIcon(Icons.dark_mode_rounded), findsOneWidget);
     });
   });
 

@@ -5,6 +5,7 @@ import '../providers/settings_provider.dart';
 import '../quran/quran.dart';
 import '../quran/search.dart';
 import '../quran/tafsir.dart';
+import '../share/share_card.dart';
 
 /// Al-Tafsir al-Muyassar for the ayahs on one mushaf page.
 class TafsirScreen extends StatefulWidget {
@@ -169,13 +170,38 @@ class _TafsirCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              tr('سورة $surahName · $range', 'Surah $surahName · $range'),
-              style: TextStyle(
-                color: colorScheme.gold,
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    tr('سورة $surahName · $range', 'Surah $surahName · $range'),
+                    style: TextStyle(
+                      color: colorScheme.gold,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  tooltip: tr('مشاركة كصورة', 'Share as image'),
+                  icon: Icon(
+                    Icons.ios_share_rounded,
+                    size: 20,
+                    color: colorScheme.gold,
+                  ),
+                  onPressed: () => shareAsImage(
+                    context,
+                    text: ayahs.map((a) => '${a.text} ﴿${a.number}﴾').join(' '),
+                    reference: quranReference(
+                      getSurahNameArabic(entry.surah),
+                      ayahs.first.number,
+                      ayahs.last.number,
+                    ),
+                    quran: true,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             Text(

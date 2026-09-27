@@ -100,6 +100,7 @@ class AhadithTab extends StatelessWidget {
                   : TextListScreen(
                       title: tr('الأربعون القدسية', 'Forty Hadith Qudsi'),
                       texts: snapshot.data!,
+                      source: 'الأربعون القدسية',
                     ),
             ),
           ),
@@ -113,6 +114,7 @@ class AhadithTab extends StatelessWidget {
             builder: (context) => SectionListScreen(
               title: tr('رياض الصالحين', 'Riyad as-Salihin'),
               sections: loadRiyad(),
+              source: 'رياض الصالحين',
               searchHint: tr(
                 'ابحث في الكتب والأحاديث',
                 'Search the books and hadith (in Arabic)',

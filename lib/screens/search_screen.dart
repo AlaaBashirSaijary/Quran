@@ -7,6 +7,7 @@ import '../widgets/surah_number.dart';
 import 'index_screen.dart';
 import 'tafsir_screen.dart';
 import '../providers/settings_provider.dart';
+import '../share/share_card.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key, this.isTab = false});
@@ -196,6 +197,23 @@ class _SearchScreenState extends State<SearchScreen> {
                                 color: colorScheme.gold,
                                 fontSize: 13,
                               ),
+                            ),
+                          ),
+                          IconButton(
+                            tooltip: tr('مشاركة كصورة', 'Share as image'),
+                            icon: Icon(
+                              Icons.ios_share_rounded,
+                              size: 20,
+                              color: colorScheme.gold,
+                            ),
+                            onPressed: () => shareAsImage(
+                              context,
+                              text: ayah.text,
+                              reference: quranReference(
+                                getSurahNameArabic(ayah.surah),
+                                ayah.number,
+                              ),
+                              quran: true,
                             ),
                           ),
                           TextButton.icon(

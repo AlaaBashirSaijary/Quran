@@ -8,6 +8,8 @@ import '../widget/prayer_widget.dart';
 import 'notification_service.dart';
 import 'notification_settings.dart';
 import 'planner.dart';
+import '../quran/quran.dart';
+import '../screens/index_screen.dart';
 
 /// Keeps the scheduled reminders in step with the prayer times, the
 /// reminder choices and today's wird, and the home-screen widget in step
@@ -23,6 +25,31 @@ class NotificationSync extends StatefulWidget {
 
 class _NotificationSyncState extends State<NotificationSync> {
   String? _last;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!NotificationService.supported) return;
+    final opened = NotificationService.instance.opened;
+    opened.addListener(_onOpened);
+    NotificationService.instance.start().then((_) => _onOpened());
+  }
+
+  @override
+  void dispose() {
+    NotificationService.instance.opened.removeListener(_onOpened);
+    super.dispose();
+  }
+
+  /// Follows a tapped notification to what it points at.
+  void _onOpened() {
+    final opened = NotificationService.instance.opened;
+    if (!mounted || opened.value == null) return;
+    if (opened.value == openKahfPayload) {
+      openQuranPage(context, getSurahFirstPage(18), isTab: true);
+    }
+    opened.value = null;
+  }
 
   @override
   void didChangeDependencies() {
@@ -197,6 +224,17 @@ class _NotificationSettingsScreenState
                   ),
                   value: settings.eveningAzkar,
                   onChanged: settings.setEveningAzkar,
+                ),
+                SwitchListTile(
+                  title: Text(tr('يوم الجمعة', 'Friday')),
+                  subtitle: Text(
+                    tr(
+                      'سورة الكهف صباحاً، والدعاء في آخر ساعة قبل المغرب',
+                      'Al-Kahf in the morning, du‘a in the last hour before Maghrib',
+                    ),
+                  ),
+                  value: settings.friday,
+                  onChanged: settings.setFriday,
                 ),
                 SwitchListTile(
                   title: Text(tr('تذكير بالورد', 'Daily reading reminder')),
