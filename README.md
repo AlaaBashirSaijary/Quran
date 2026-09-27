@@ -2,6 +2,14 @@
 
 تطبيق عربي يعمل دون إنترنت، مبني بـ Flutter.
 
+<p align="center">
+  <img src="docs/screenshots/1-quran.png" width="18%" alt="فهرس السور">
+  <img src="docs/screenshots/5-mushaf.png" width="18%" alt="المصحف">
+  <img src="docs/screenshots/2-prayer.png" width="18%" alt="مواقيت الصلاة">
+  <img src="docs/screenshots/3-azkar.png" width="18%" alt="الأذكار">
+  <img src="docs/screenshots/4-tasbeeh.png" width="18%" alt="السبحة">
+</p>
+
 ## الميزات
 - 📖 **مصحف المدينة كاملاً** (604 صفحات) مع فهرس السور والأجزاء والأحزاب، وحفظ آخر صفحة وعلامة مرجعية.
 - 👆 **اضغط مطوّلاً على أي آية في المصحف** لتظهر مميّزة مع: تفسيرها، والاستماع من عندها، ومشاركتها كصورة، ونسخها. وتُميَّز الآية التي تُتلى أثناء الاستماع. (مواضع الآيات مستخرجة من صور الصفحات نفسها بالأداة `tool/build_ayah_regions.py` ومتحقَّق منها آلياً)

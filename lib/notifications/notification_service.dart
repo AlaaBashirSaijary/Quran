@@ -32,8 +32,20 @@ class NotificationService {
         AndroidFlutterLocalNotificationsPlugin
       >();
 
-  Future<void> _init() async {
-    if (_ready || !supported) return;
+  /// Sets up the plugin once. Returns false when notifications cannot work
+  /// here (the plugin failed to start), so callers skip quietly.
+  Future<bool> _init() async {
+    if (_ready) return true;
+    if (!supported) return false;
+    try {
+      await _setUp();
+      return _ready = true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> _setUp() async {
     tz_data.initializeTimeZones();
     try {
       final zone = await FlutterTimezone.getLocalTimezone();
@@ -54,7 +66,6 @@ class NotificationService {
       onDidReceiveNotificationResponse: (response) =>
           opened.value = response.payload,
     );
-    _ready = true;
     final launch = await _plugin.getNotificationAppLaunchDetails();
     if (launch?.didNotificationLaunchApp ?? false) {
       opened.value = launch!.notificationResponse?.payload;
@@ -62,13 +73,14 @@ class NotificationService {
   }
 
   /// Sets up tap handling early, so a tap that launched the app is seen.
-  Future<void> start() => _init();
+  Future<void> start() async {
+    await _init();
+  }
 
   /// Asks for permission to notify (Android 13+, iOS). Returns false if
   /// the user refused.
   Future<bool> requestPermission() async {
-    if (!supported) return false;
-    await _init();
+    if (!await _init()) return false;
     if (defaultTargetPlatform == TargetPlatform.android) {
       return await _android?.requestNotificationsPermission() ?? false;
     }
@@ -86,13 +98,12 @@ class NotificationService {
     if (!supported || defaultTargetPlatform != TargetPlatform.android) {
       return true;
     }
-    await _init();
+    if (!await _init()) return true;
     return await _android?.canScheduleExactNotifications() ?? true;
   }
 
   Future<void> requestExactTimes() async {
-    if (!supported) return;
-    await _init();
+    if (!await _init()) return;
     await _android?.requestExactAlarmsPermission();
   }
 
@@ -107,8 +118,7 @@ class NotificationService {
     List<PlannedNotification> planned, {
     String? adhanUri,
   }) async {
-    if (!supported) return;
-    await _init();
+    if (!await _init()) return;
     await _plugin.cancelAll();
     _adhanUri = adhanUri;
     // Remove the channels of sounds no longer chosen.

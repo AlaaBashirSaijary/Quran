@@ -45,6 +45,20 @@ jobs:
       - name: Run tests
         run: flutter test
 
+      # Fresh screenshots of the main screens (the README shows the copies
+      # in docs/screenshots). Makkah's time zone, whose prayer times appear.
+      - name: Render screenshots
+        env:
+          SCREENSHOTS: '1'
+          TZ: Asia/Riyadh
+        run: flutter test test/screenshots_test.dart
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: screenshots
+          path: docs/screenshots/*.png
+          retention-days: 30
+
       # Optional: sign with your own key so each new APK can update the
       # previous one. Without these secrets, every run uses a new random debug
       # key, and Android refuses to install it over an older build.
