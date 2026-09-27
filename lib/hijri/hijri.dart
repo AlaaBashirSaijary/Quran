@@ -20,7 +20,7 @@ class HijriDate {
 /// whole days for places where the month starts by local moon sighting.
 HijriDate hijriOf(DateTime date, {int offset = 0}) {
   final h = HijriCalendar.fromDate(
-    DateTime(date.year, date.month, date.day).add(Duration(days: offset)),
+    DateTime(date.year, date.month, date.day + offset),
   );
   return HijriDate(h.hDay, h.hMonth, h.hYear);
 }
@@ -47,7 +47,9 @@ const _dhulHijjah = 12;
 /// recommended fasts (white days, Mondays and Thursdays, six of Shawwal,
 /// the first nine of Dhul Hijjah). Fasting suggestions are left out on the
 /// Eids and the days of Tashreeq, when fasting is not allowed.
-List<String> occasionsOn(DateTime date, {int offset = 0}) {
+///
+/// [weekly] includes the Monday and Thursday fasts.
+List<String> occasionsOn(DateTime date, {int offset = 0, bool weekly = true}) {
   final h = hijriOf(date, offset: offset);
   final notes = <String>[];
 
@@ -88,12 +90,29 @@ List<String> occasionsOn(DateTime date, {int offset = 0}) {
     if (h.month == _shawwal && h.day > 1) {
       notes.add(tr('صيام الست من شوال', 'Fasting six days of Shawwal'));
     }
-    if (date.weekday == DateTime.monday) {
+    if (weekly && date.weekday == DateTime.monday) {
       notes.add(tr('صيام يوم الاثنين', 'Fasting on Monday'));
     }
-    if (date.weekday == DateTime.thursday) {
+    if (weekly && date.weekday == DateTime.thursday) {
       notes.add(tr('صيام يوم الخميس', 'Fasting on Thursday'));
     }
   }
   return notes;
+}
+
+/// The days of the Hijri month that [date] falls in.
+List<DateTime> hijriMonthDays(DateTime date, {int offset = 0}) {
+  var first = DateTime(date.year, date.month, date.day);
+  while (hijriOf(first, offset: offset).day != 1) {
+    first = DateTime(first.year, first.month, first.day - 1);
+  }
+  final month = hijriOf(first, offset: offset).month;
+  return [
+    for (
+      var d = first;
+      hijriOf(d, offset: offset).month == month;
+      d = DateTime(d.year, d.month, d.day + 1)
+    )
+      d,
+  ];
 }

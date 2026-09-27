@@ -12,6 +12,9 @@ const imsakBefore = Duration(minutes: 10);
 
 DateTime _day(DateTime d) => DateTime(d.year, d.month, d.day);
 
+/// The calendar day [n] days after [d] (safe across daylight saving).
+DateTime _next(DateTime d, int n) => DateTime(d.year, d.month, d.day + n);
+
 bool isRamadan(DateTime date, {int offset = 0}) =>
     hijriOf(date, offset: offset).month == _ramadan;
 
@@ -19,20 +22,13 @@ bool isRamadan(DateTime date, {int offset = 0}) =>
 List<DateTime> ramadanDays(DateTime today, {int offset = 0}) {
   var day = _day(today);
   // Back to the first day if we are inside Ramadan.
-  while (isRamadan(day.subtract(const Duration(days: 1)), offset: offset)) {
-    day = day.subtract(const Duration(days: 1));
+  while (isRamadan(_next(day, -1), offset: offset)) {
+    day = _next(day, -1);
   }
   while (!isRamadan(day, offset: offset)) {
-    day = day.add(const Duration(days: 1));
+    day = _next(day, 1);
   }
-  return [
-    for (
-      var d = day;
-      isRamadan(d, offset: offset);
-      d = d.add(const Duration(days: 1))
-    )
-      d,
-  ];
+  return [for (var d = day; isRamadan(d, offset: offset); d = _next(d, 1)) d];
 }
 
 /// Whole days until Ramadan begins, from the second half of Sha'ban; null
@@ -86,7 +82,7 @@ enum FastingMoment { suhoor, iftar }
       return (FastingMoment.iftar, today.maghrib);
     }
   }
-  final tomorrow = now.add(const Duration(days: 1));
+  final tomorrow = _next(now, 1);
   if (isRamadan(tomorrow, offset: offset)) {
     return (FastingMoment.suhoor, fastingTimes(prayer, tomorrow).fajr);
   }

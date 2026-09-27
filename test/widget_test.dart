@@ -10,6 +10,7 @@ import 'package:quranapplication/share/share_card.dart';
 import 'package:quranapplication/quran/ayah_regions.dart';
 import 'package:quranapplication/quran/translation.dart';
 import 'package:quranapplication/ramadan/ramadan.dart';
+import 'package:quranapplication/hijri/calendar_screen.dart';
 import 'package:quranapplication/ramadan/imsakiya_screen.dart';
 import 'package:quranapplication/screens/search_screen.dart';
 import 'package:quranapplication/widgets/quran_page.dart';
@@ -1332,6 +1333,60 @@ void main() {
       final again = RecitationProvider(prefs);
       expect(again.reciter.name, 'محمود خليل الحصري');
       expect([again.repeat, again.continuous], [3, false]);
+    });
+  });
+
+  group('Hijri calendar', () {
+    test('a month runs from its first to its last Hijri day', () {
+      final ramadan = hijriMonthDays(DateTime(2027, 2, 20));
+      expect(ramadan.first, DateTime(2027, 2, 8));
+      expect(ramadan.last, DateTime(2027, 3, 8));
+      expect(ramadan.map((d) => hijriOf(d).day), [
+        for (var i = 1; i <= 29; i++) i,
+      ]);
+      final shifted = hijriMonthDays(DateTime(2027, 2, 20), offset: 1);
+      expect(shifted.first, DateTime(2027, 2, 7));
+    });
+
+    test('weekly fasts can be left out of the day marks', () {
+      final monday = DateTime(2026, 9, 28);
+      expect(monday.weekday, DateTime.monday);
+      expect(occasionsOn(monday), contains('صيام يوم الاثنين'));
+      expect(
+        occasionsOn(monday, weekly: false),
+        isNot(contains('صيام يوم الاثنين')),
+      );
+    });
+
+    testWidgets('shows the month and the notes of a tapped day', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(900, 2400);
+      tester.view.devicePixelRatio = 1.5;
+      addTearDown(tester.view.reset);
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      await tester.pumpWidget(
+        ChangeNotifierProvider(
+          create: (_) => SettingsProvider(prefs),
+          child: MaterialApp(
+            home: HijriCalendarScreen(today: DateTime(2027, 2, 20)),
+          ),
+        ),
+      );
+      expect(find.text('رمضان 1448'), findsOneWidget);
+      expect(find.text('8/2'), findsOneWidget);
+      expect(find.text('8/3'), findsOneWidget);
+      await tester.tap(find.text('8/2'));
+      await tester.pump();
+      expect(find.text('شهر رمضان المبارك'), findsOneWidget);
+
+      await tester.tap(find.byTooltip('الشهر التالي'));
+      await tester.pump();
+      expect(find.text('شوال 1448'), findsOneWidget);
+      await tester.tap(find.text('9/3'));
+      await tester.pump();
+      expect(find.text('عيد الفطر المبارك'), findsOneWidget);
     });
   });
 
