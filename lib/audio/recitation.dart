@@ -6,9 +6,11 @@ import 'package:http/http.dart' as http;
 import 'package:just_audio/just_audio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/language.dart';
+import '../quran/search.dart';
+import 'downloads.dart';
 
 /// Verse-by-verse recitations from the alquran.cloud API (Islamic Network).
-const _api = 'https://api.alquran.cloud/v1';
+const recitationApi = 'https://api.alquran.cloud/v1';
 
 class Reciter {
   const Reciter(this.id, this.arabicName, this.englishName);
@@ -104,13 +106,16 @@ enum RecitationStatus { idle, loading, playing, paused, error }
 /// Plays the ayahs of a mushaf page one after another, optionally
 /// continuing with the following pages.
 class RecitationProvider extends ChangeNotifier {
-  RecitationProvider(this.prefs) {
+  RecitationProvider(this.prefs, {this.downloads}) {
     reciterId = prefs.getString('audio.reciter') ?? defaultReciters.first.id;
     repeat = prefs.getInt('audio.repeat') ?? 1;
     continuous = prefs.getBool('audio.continuous') ?? true;
   }
 
   final SharedPreferences prefs;
+
+  /// Saved recitations, played instead of streaming when available.
+  final AudioDownloads? downloads;
   AudioPlayer? _player;
   StreamSubscription<PlayerState>? _sub;
   RecitationQueue? _queue;
@@ -147,7 +152,7 @@ class RecitationProvider extends ChangeNotifier {
   Future<void> loadReciters() async {
     try {
       final res = await http.get(
-        Uri.parse('$_api/edition?format=audio&type=versebyverse'),
+        Uri.parse('$recitationApi/edition?format=audio&type=versebyverse'),
       );
       final list = parseReciters(res.body);
       if (list.isNotEmpty) {
@@ -165,10 +170,7 @@ class RecitationProvider extends ChangeNotifier {
     error = null;
     notifyListeners();
     try {
-      final res = await http
-          .get(Uri.parse('$_api/page/$page/$reciterId'))
-          .timeout(const Duration(seconds: 20));
-      _queue = RecitationQueue(parsePageAudio(res.body), repeat: repeat);
+      _queue = RecitationQueue(await pageAudio(page), repeat: repeat);
       await _playCurrent();
     } catch (_) {
       status = RecitationStatus.error;
@@ -178,6 +180,34 @@ class RecitationProvider extends ChangeNotifier {
       );
       notifyListeners();
     }
+  }
+
+  /// The page's ayahs from the saved files when every one is downloaded,
+  /// otherwise from the API, still preferring any saved file.
+  @visibleForTesting
+  Future<List<AyahAudio>> pageAudio(int page) async {
+    final saved = downloads;
+    if (saved != null) {
+      await saved.ready;
+      final ayahs = (await QuranSearch.load()).ayahsOnPage(page);
+      final local = [
+        for (final a in ayahs)
+          if (saved.localUri(reciterId, a.surah, a.number) case final uri?)
+            AyahAudio(a.surah, a.number, uri),
+      ];
+      if (ayahs.isNotEmpty && local.length == ayahs.length) return local;
+    }
+    final res = await http
+        .get(Uri.parse('$recitationApi/page/$page/$reciterId'))
+        .timeout(const Duration(seconds: 20));
+    return [
+      for (final a in parsePageAudio(res.body))
+        AyahAudio(
+          a.surah,
+          a.ayah,
+          saved?.localUri(reciterId, a.surah, a.ayah) ?? a.url,
+        ),
+    ];
   }
 
   Future<void> _playCurrent() async {
