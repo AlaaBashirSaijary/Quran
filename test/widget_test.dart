@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'dart:ui' show ImageByteFormat;
 
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:quranapplication/audio/downloads.dart';
+import 'package:quranapplication/share/share_card.dart';
 
 import 'package:quranapplication/content/library.dart';
 import 'package:quranapplication/audio/recitation.dart';
@@ -16,6 +18,7 @@ import 'package:quranapplication/notifications/planner.dart';
 import 'package:quranapplication/notifications/notification_settings.dart';
 import 'package:adhan_dart/adhan_dart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -1235,6 +1238,50 @@ void main() {
       final again = RecitationProvider(prefs);
       expect(again.reciter.name, 'محمود خليل الحصري');
       expect([again.repeat, again.continuous], [3, false]);
+    });
+  });
+
+  group('Share as image', () {
+    test('Quran references cite the surah and ayahs in Arabic', () {
+      expect(quranReference('البقرة', 255), 'سورة البقرة ﴿255﴾');
+      expect(quranReference('البقرة', 285, 286), 'سورة البقرة ﴿285–286﴾');
+      expect(quranReference('الإخلاص', 1, 1), 'سورة الإخلاص ﴿1﴾');
+    });
+
+    testWidgets('the card renders as a 1080-pixel-wide image', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: ShareCardScreen(
+            text: 'اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ',
+            reference: 'سورة البقرة ﴿255﴾',
+            quran: true,
+          ),
+        ),
+      );
+      expect(find.text('سورة البقرة ﴿255﴾'), findsOneWidget);
+      expect(find.text('طريق الجنة'), findsOneWidget);
+
+      final boundary = tester.renderObject<RenderRepaintBoundary>(
+        find
+            .ancestor(
+              of: find.byType(ShareCard),
+              matching: find.byType(RepaintBoundary),
+            )
+            .first,
+      );
+      final width = await tester.runAsync(() async {
+        final image = await boundary.toImage(pixelRatio: 3);
+        final png = await image.toByteData(format: ImageByteFormat.png);
+        expect(png!.lengthInBytes, greaterThan(1000));
+        final w = image.width;
+        image.dispose();
+        return w;
+      });
+      expect(width, 1080);
+
+      await tester.tap(find.byIcon(Icons.light_mode_rounded));
+      await tester.pump();
+      expect(find.byIcon(Icons.dark_mode_rounded), findsOneWidget);
     });
   });
 

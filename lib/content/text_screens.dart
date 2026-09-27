@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../core/index.dart';
 import '../providers/settings_provider.dart';
 import '../quran/search.dart' show normalizeArabic;
+import '../share/share_card.dart';
 import 'library.dart';
 
 /// Texts shown one per card, numbered, with copy on long press.
@@ -13,10 +14,14 @@ class TextListScreen extends StatelessWidget {
     required this.title,
     required this.texts,
     this.quranFont = false,
+    this.source,
   });
 
   final String title;
   final List<String> texts;
+
+  /// The book the texts come from, in Arabic, named on shared images.
+  final String? source;
 
   /// Use the Uthmani font (for Quranic text).
   final bool quranFont;
@@ -33,6 +38,11 @@ class TextListScreen extends StatelessWidget {
           text: texts[i],
           number: texts.length > 1 ? i + 1 : null,
           quranFont: quranFont,
+          shareReference: source == null
+              ? null
+              : texts.length > 1
+              ? '$source (${i + 1})'
+              : source,
         ),
       ),
     );
@@ -46,12 +56,16 @@ class TextCard extends StatelessWidget {
     this.number,
     this.caption,
     this.quranFont = false,
+    this.shareReference,
   });
 
   final String text;
   final int? number;
   final String? caption;
   final bool quranFont;
+
+  /// When set, a share button offers the text as an image citing this.
+  final String? shareReference;
 
   @override
   Widget build(BuildContext context) {
@@ -72,14 +86,38 @@ class TextCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (number != null || caption != null) ...[
-                Text(
-                  [?caption, if (number != null) '$number'].join(' · '),
-                  style: TextStyle(
-                    color: colorScheme.gold,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                  ),
+              if (number != null ||
+                  caption != null ||
+                  shareReference != null) ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        [?caption, if (number != null) '$number'].join(' · '),
+                        style: TextStyle(
+                          color: colorScheme.gold,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                    if (shareReference case final reference?)
+                      IconButton(
+                        visualDensity: VisualDensity.compact,
+                        tooltip: tr('مشاركة كصورة', 'Share as image'),
+                        icon: Icon(
+                          Icons.ios_share_rounded,
+                          size: 20,
+                          color: colorScheme.gold,
+                        ),
+                        onPressed: () => shareAsImage(
+                          context,
+                          text: text,
+                          reference: reference,
+                          quran: quranFont,
+                        ),
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 6),
               ],
@@ -107,12 +145,16 @@ class SectionListScreen extends StatefulWidget {
     super.key,
     required this.title,
     required this.sections,
+    this.source,
     this.searchHint,
     this.searchTexts = false,
   });
 
   final String title;
   final Future<List<TextSection>> sections;
+
+  /// The book, in Arabic, named on shared images.
+  final String? source;
   final String? searchHint;
 
   /// Also match the texts themselves, not only the titles.
@@ -191,8 +233,13 @@ class _SectionListScreenState extends State<SectionListScreen> {
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              TextListScreen(title: s.title, texts: s.texts),
+                          builder: (context) => TextListScreen(
+                            title: s.title,
+                            texts: s.texts,
+                            source: widget.source == null
+                                ? null
+                                : '${widget.source} · ${s.title}',
+                          ),
                         ),
                       ),
                     ),
@@ -216,6 +263,9 @@ class _SectionListScreenState extends State<SectionListScreen> {
                       text: s.texts[i],
                       caption: s.title,
                       number: i + 1,
+                      shareReference: widget.source == null
+                          ? null
+                          : '${widget.source} · ${s.title} (${i + 1})',
                     ),
                   ),
               ],

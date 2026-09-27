@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/index.dart';
 import '../model/hadith_model.dart';
 import '../providers/settings_provider.dart';
+import '../share/share_card.dart';
 
 class HadithDetails extends StatelessWidget {
   const HadithDetails({super.key, required this.hadith});
@@ -14,7 +15,20 @@ class HadithDetails extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: Text(hadith.title)),
+      appBar: AppBar(
+        title: Text(hadith.title),
+        actions: [
+          IconButton(
+            tooltip: tr('مشاركة كصورة', 'Share as image'),
+            icon: const Icon(Icons.ios_share_rounded),
+            onPressed: () => shareAsImage(
+              context,
+              text: hadith.content.join('\n'),
+              reference: 'الأربعون النووية · ${hadith.title}',
+            ),
+          ),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
