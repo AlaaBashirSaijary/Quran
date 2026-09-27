@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'audio/downloads.dart';
 import 'audio/recitation.dart';
+import 'core/error_log.dart';
 import 'core/index.dart';
 import 'hifz/hifz.dart';
 import 'khatma/group_khatma.dart';
@@ -29,6 +30,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final prefs = await SharedPreferences.getInstance();
+  ErrorLog.install(prefs);
 
   runApp(AppRoot(prefs: prefs));
 }

@@ -11,6 +11,8 @@ import 'package:quranapplication/quran/ayah_regions.dart';
 import 'package:quranapplication/quran/translation.dart';
 import 'package:quranapplication/ramadan/ramadan.dart';
 import 'package:quranapplication/hijri/calendar_screen.dart';
+import 'package:quranapplication/core/error_log.dart';
+import 'package:quranapplication/screens/error_log_screen.dart';
 import 'package:quranapplication/ramadan/imsakiya_screen.dart';
 import 'package:quranapplication/screens/search_screen.dart';
 import 'package:quranapplication/widgets/quran_page.dart';
@@ -1058,6 +1060,54 @@ void main() {
     test('minutes read naturally', () {
       expect(minutesLabel(5), '5 دقائق');
       expect(minutesLabel(30), '30 دقيقة');
+    });
+  });
+
+  group('Error log', () {
+    test('keeps the latest 50 errors with their stack', () async {
+      SharedPreferences.setMockInitialValues({});
+      final log = ErrorLog.attach(await SharedPreferences.getInstance());
+      for (var i = 0; i < 55; i++) {
+        log.add(
+          StateError('boom $i'),
+          StackTrace.fromString('#0 main (file.dart:1)\n#1 run (x.dart:2)'),
+          now: DateTime(2026, 9, 27, 12, 0, i),
+        );
+      }
+      expect(log.entries, hasLength(50));
+      expect(log.entries.first, contains('boom 5'));
+      expect(
+        log.entries.last,
+        startsWith('2026-09-27T12:00:54  Bad state: boom 54'),
+      );
+      expect(log.entries.last, contains('#1 run (x.dart:2)'));
+      expect(log.report(), startsWith('Tareeq Al-Jannah error log'));
+      log.clear();
+      expect(log.entries, isEmpty);
+    });
+
+    test('stays out of backups and survives a restore', () async {
+      SharedPreferences.setMockInitialValues({'wird.goal': 5});
+      final prefs = await SharedPreferences.getInstance();
+      final log = ErrorLog.attach(prefs)..add('first', null);
+      final backup = exportBackup(prefs);
+      expect(backup, isNot(contains(ErrorLog.key)));
+      log.add('second', null);
+      await importBackup(prefs, backup);
+      expect(prefs.getInt('wird.goal'), 5);
+      expect(log.entries, hasLength(2));
+    });
+
+    testWidgets('can be read and cleared', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final log = ErrorLog.attach(await SharedPreferences.getInstance())
+        ..add('Something broke', null);
+      await tester.pumpWidget(const MaterialApp(home: ErrorLogScreen()));
+      expect(find.textContaining('Something broke'), findsOneWidget);
+      await tester.tap(find.byTooltip('مسح'));
+      await tester.pump();
+      expect(log.entries, isEmpty);
+      expect(find.text('لا أخطاء مسجّلة'), findsOneWidget);
     });
   });
 

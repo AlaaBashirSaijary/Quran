@@ -12,6 +12,7 @@ import '../main.dart';
 import '../providers/settings_provider.dart';
 import '../providers/theme_provider.dart';
 import '../settings/backup.dart';
+import 'error_log_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -268,6 +269,17 @@ class SettingsScreen extends StatelessWidget {
                   ),
                   style: TextStyle(color: colorScheme.pageNumber, fontSize: 13),
                 ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.bug_report_outlined),
+                title: Text(tr('سجل الأخطاء', 'Error log')),
+                subtitle: Text(
+                  tr(
+                    'لمشاركته مع المطوّر عند حدوث مشكلة',
+                    'To share with the developer if something goes wrong',
+                  ),
+                ),
+                onTap: () => ErrorLogScreen.open(context),
               ),
             ],
           ),
