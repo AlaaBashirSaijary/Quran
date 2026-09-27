@@ -4,7 +4,10 @@ import '../prayer/prayer.dart';
 import 'notification_settings.dart';
 import '../core/language.dart';
 
-enum ReminderKind { prayer, beforePrayer, azkar, wird }
+enum ReminderKind { prayer, beforePrayer, azkar, wird, friday }
+
+/// Tapping a notification with this payload opens Surah Al-Kahf.
+const openKahfPayload = 'open:kahf';
 
 class PlannedNotification {
   const PlannedNotification({
@@ -13,6 +16,7 @@ class PlannedNotification {
     required this.title,
     required this.body,
     required this.kind,
+    this.payload,
   });
 
   final int id;
@@ -22,6 +26,9 @@ class PlannedNotification {
   final String title;
   final String body;
   final ReminderKind kind;
+
+  /// What to open when the notification is tapped.
+  final String? payload;
 
   @override
   String toString() => '$id $time $title';
@@ -109,6 +116,42 @@ List<PlannedNotification> planNotifications({
             title: tr('أذكار المساء', 'Evening azkar'),
             body: tr('لا تنسَ أذكار المساء', 'Do not forget the evening azkar'),
             kind: ReminderKind.azkar,
+          ),
+        );
+      }
+    }
+
+    if (settings.friday && date.weekday == DateTime.friday) {
+      final times = prayer.hasLocation
+          ? {for (final t in prayer.timesOn(date)) t.prayer: t.time}
+          : null;
+      planned.add(
+        PlannedNotification(
+          id: base + 13,
+          // Two hours after sunrise, or mid-morning without a location.
+          time:
+              times?[Prayer.sunrise]?.add(const Duration(hours: 2)) ??
+              date.add(const Duration(hours: 10)),
+          title: tr('يوم الجمعة', 'Friday'),
+          body: tr(
+            'من سنن يوم الجمعة قراءة سورة الكهف. اضغط لفتحها.',
+            'Reading Surah Al-Kahf is a sunnah of Friday. Tap to open it.',
+          ),
+          kind: ReminderKind.friday,
+          payload: openKahfPayload,
+        ),
+      );
+      if (times != null) {
+        planned.add(
+          PlannedNotification(
+            id: base + 14,
+            time: times[Prayer.maghrib]!.subtract(const Duration(hours: 1)),
+            title: tr('آخر ساعة من يوم الجمعة', 'The last hour of Friday'),
+            body: tr(
+              'أكثر من الدعاء والصلاة على النبي صلى الله عليه وسلم',
+              'Make plenty of du‘a and send blessings upon the Prophet (peace be upon him)',
+            ),
+            kind: ReminderKind.friday,
           ),
         );
       }

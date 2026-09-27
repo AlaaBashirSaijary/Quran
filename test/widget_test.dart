@@ -904,7 +904,7 @@ void main() {
       );
       expect(plan.map((n) => n.id).toSet(), hasLength(plan.length));
       expect(plan.every((n) => n.time.isAfter(now)), isTrue);
-      expect(plan.length, lessThan(7 * 13 + 1));
+      expect(plan.length, lessThan(7 * 13 + 2 + 1));
       final before = plan.firstWhere(
         (n) => n.kind == ReminderKind.beforePrayer,
       );
@@ -945,6 +945,72 @@ void main() {
       final wird = plan.where((n) => n.kind == ReminderKind.wird).toList();
       expect(wird, hasLength(1));
       expect(wird.single.time.day, 27);
+    });
+
+    test(
+      'Friday brings Al-Kahf in the morning and du‘a before Maghrib',
+      () async {
+        final (prayer, settings) = await setup();
+        final friday = DateTime(2026, 10, 2);
+        expect(friday.weekday, DateTime.friday);
+        final plan = planNotifications(
+          prayer: prayer,
+          settings: settings,
+          now: friday,
+          wirdDoneToday: false,
+          days: 1,
+        );
+        final times = {
+          for (final t in prayer.timesOn(friday)) t.prayer: t.time,
+        };
+        final fridays = plan
+            .where((n) => n.kind == ReminderKind.friday)
+            .toList();
+        expect(fridays, hasLength(2));
+        expect(
+          fridays.first.time,
+          times[Prayer.sunrise]!.add(const Duration(hours: 2)),
+        );
+        expect(fridays.first.payload, openKahfPayload);
+        expect(
+          fridays.last.time,
+          times[Prayer.maghrib]!.subtract(const Duration(hours: 1)),
+        );
+
+        final saturday = planNotifications(
+          prayer: prayer,
+          settings: settings,
+          now: DateTime(2026, 10, 3),
+          wirdDoneToday: false,
+          days: 1,
+        );
+        expect(saturday.any((n) => n.kind == ReminderKind.friday), isFalse);
+
+        settings.setFriday(false);
+        expect(NotificationSettings(settings.prefs).friday, isFalse);
+        final off = planNotifications(
+          prayer: prayer,
+          settings: settings,
+          now: friday,
+          wirdDoneToday: false,
+          days: 1,
+        );
+        expect(off.any((n) => n.kind == ReminderKind.friday), isFalse);
+      },
+    );
+
+    test('without a location Al-Kahf is still suggested at 10', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final plan = planNotifications(
+        prayer: PrayerProvider(prefs),
+        settings: NotificationSettings(prefs),
+        now: DateTime(2026, 10, 2),
+        wirdDoneToday: false,
+        days: 1,
+      );
+      final friday = plan.where((n) => n.kind == ReminderKind.friday);
+      expect(friday.single.time, DateTime(2026, 10, 2, 10));
     });
 
     test('without a location only the wird reminder is planned', () async {

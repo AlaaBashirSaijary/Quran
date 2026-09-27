@@ -13,6 +13,7 @@ class NotificationSettings extends ChangeNotifier {
     eveningAzkar = prefs.getBool('notify.eveningAzkar') ?? true;
     wird = prefs.getBool('notify.wird') ?? true;
     wirdMinutes = prefs.getInt('notify.wirdMinutes') ?? 21 * 60;
+    friday = prefs.getBool('notify.friday') ?? true;
   }
 
   static const prayers = [
@@ -35,6 +36,9 @@ class NotificationSettings extends ChangeNotifier {
 
   /// Time of the wird reminder, in minutes after midnight.
   late int wirdMinutes;
+
+  /// Al-Kahf in the morning and du'a in the last hour of Friday.
+  late bool friday;
 
   bool prayerEnabled(Prayer prayer) => _prayer[prayer] ?? false;
 
@@ -68,6 +72,12 @@ class NotificationSettings extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setFriday(bool value) {
+    friday = value;
+    prefs.setBool('notify.friday', value);
+    notifyListeners();
+  }
+
   void setWirdMinutes(int value) {
     wirdMinutes = value;
     prefs.setInt('notify.wirdMinutes', value);
@@ -82,5 +92,6 @@ class NotificationSettings extends ChangeNotifier {
     eveningAzkar,
     wird,
     wirdMinutes,
+    friday,
   ].join(',');
 }

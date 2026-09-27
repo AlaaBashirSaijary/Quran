@@ -108,6 +108,10 @@ class IndexScreen extends StatelessWidget {
                         isTab: true,
                       ),
                     ),
+                    if (DateTime.now().weekday == DateTime.friday) ...[
+                      const SizedBox(height: 12),
+                      const FridayCard(),
+                    ],
                     const SizedBox(height: 12),
                     const WirdCard(),
                     const SizedBox(height: 12),
@@ -227,6 +231,43 @@ class _ContinueReadingCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Shown on Fridays: a shortcut to Surah Al-Kahf.
+class FridayCard extends StatelessWidget {
+  const FridayCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: BorderSide(color: colorScheme.gold.withValues(alpha: 0.6)),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+        leading: Icon(
+          Icons.wb_sunny_rounded,
+          color: colorScheme.gold,
+          size: 32,
+        ),
+        title: Text(
+          tr('جمعة مباركة', 'Blessed Friday'),
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Text(
+          tr(
+            'اقرأ سورة الكهف، وأكثر من الصلاة على النبي صلى الله عليه وسلم',
+            'Read Surah Al-Kahf and send plenty of blessings upon the Prophet (peace be upon him)',
+          ),
+        ),
+        trailing: Icon(Icons.chevron_left_rounded, color: colorScheme.gold),
+        onTap: () => openQuranPage(context, getSurahFirstPage(18), isTab: true),
       ),
     );
   }
