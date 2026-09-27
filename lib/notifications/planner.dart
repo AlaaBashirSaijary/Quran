@@ -1,10 +1,14 @@
 import 'package:adhan_dart/adhan_dart.dart';
 
 import '../prayer/prayer.dart';
+import '../ramadan/ramadan.dart';
 import 'notification_settings.dart';
 import '../core/language.dart';
 
-enum ReminderKind { prayer, beforePrayer, azkar, wird, friday }
+enum ReminderKind { prayer, beforePrayer, azkar, wird, friday, ramadan }
+
+/// How long before Fajr the suhoor reminder comes.
+const suhoorBefore = Duration(minutes: 45);
 
 /// Tapping a notification with this payload opens Surah Al-Kahf.
 const openKahfPayload = 'open:kahf';
@@ -47,6 +51,7 @@ List<PlannedNotification> planNotifications({
   required DateTime now,
   required bool wirdDoneToday,
   int days = 7,
+  int hijriOffset = 0,
 }) {
   final planned = <PlannedNotification>[];
   final today = DateTime(now.year, now.month, now.day);
@@ -119,6 +124,24 @@ List<PlannedNotification> planNotifications({
           ),
         );
       }
+    }
+
+    if (settings.suhoor &&
+        prayer.hasLocation &&
+        isRamadan(date, offset: hijriOffset)) {
+      final fajr = prayer.timesOn(date).first.time;
+      planned.add(
+        PlannedNotification(
+          id: base + 15,
+          time: fajr.subtract(suhoorBefore),
+          title: tr('السحور', 'Suhoor'),
+          body: tr(
+            'تسحّروا فإن في السحور بركة. يبدأ الصيام عند الفجر.',
+            'Eat suhoor, for in suhoor there is blessing. The fast begins at Fajr.',
+          ),
+          kind: ReminderKind.ramadan,
+        ),
+      );
     }
 
     if (settings.friday && date.weekday == DateTime.friday) {

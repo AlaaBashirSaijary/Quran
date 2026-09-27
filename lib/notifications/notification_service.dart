@@ -128,6 +128,7 @@ class NotificationService {
         tr('تذكير الورد', 'Daily reading reminders'),
       ),
       ReminderKind.friday => ('friday', tr('يوم الجمعة', 'Friday')),
+      ReminderKind.ramadan => ('ramadan', tr('رمضان', 'Ramadan')),
     };
     return NotificationDetails(
       android: AndroidNotificationDetails(

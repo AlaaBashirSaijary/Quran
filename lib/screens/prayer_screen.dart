@@ -11,6 +11,7 @@ import '../hijri/hijri.dart' show hijriOf, occasionsOn;
 import '../prayer/prayer.dart';
 import '../providers/settings_provider.dart';
 import '../qibla/qibla_screen.dart';
+import '../ramadan/imsakiya_screen.dart';
 
 class PrayerScreen extends StatelessWidget {
   const PrayerScreen({super.key});
@@ -210,6 +211,7 @@ class _TimesState extends State<_Times> {
             ],
           ),
         ),
+        RamadanCard(now: _now),
         const SizedBox(height: 16),
         Card(
           child: Column(
@@ -396,6 +398,17 @@ Future<void> _showSettings(BuildContext context) {
               title: Text(tr('اختيار مدينة', 'Choose a city')),
               subtitle: Text(prayer.placeName ?? ''),
               onTap: () => _pickCity(context),
+            ),
+            ListTile(
+              leading: Icon(
+                Icons.nightlight_round,
+                color: Theme.of(context).colorScheme.gold,
+              ),
+              title: Text(tr('إمساكية رمضان', 'Ramadan timetable')),
+              onTap: () {
+                Navigator.pop(context);
+                ImsakiyaScreen.open(context);
+              },
             ),
             SwitchListTile(
               secondary: const Icon(Icons.wb_twilight_rounded),

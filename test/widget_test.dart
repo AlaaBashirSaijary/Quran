@@ -9,6 +9,8 @@ import 'package:quranapplication/audio/downloads.dart';
 import 'package:quranapplication/share/share_card.dart';
 import 'package:quranapplication/quran/ayah_regions.dart';
 import 'package:quranapplication/quran/translation.dart';
+import 'package:quranapplication/ramadan/ramadan.dart';
+import 'package:quranapplication/ramadan/imsakiya_screen.dart';
 import 'package:quranapplication/screens/search_screen.dart';
 import 'package:quranapplication/widgets/quran_page.dart';
 
@@ -1308,6 +1310,106 @@ void main() {
       final again = RecitationProvider(prefs);
       expect(again.reciter.name, 'محمود خليل الحصري');
       expect([again.repeat, again.continuous], [3, false]);
+    });
+  });
+
+  group('Ramadan', () {
+    Future<PrayerProvider> damascus() async {
+      SharedPreferences.setMockInitialValues({});
+      return PrayerProvider(await SharedPreferences.getInstance())
+        ..setCity(cities.firstWhere((c) => c.arabicName == 'دمشق'));
+    }
+
+    test('the days of Ramadan 1448 follow Umm al-Qura', () {
+      // Checked against the hijri-converter (Umm al-Qura) Python package.
+      final days = ramadanDays(DateTime(2026, 9, 27));
+      expect(days.first, DateTime(2027, 2, 8));
+      expect(days.last, DateTime(2027, 3, 8));
+      expect(days, hasLength(29));
+      expect(ramadanDays(DateTime(2027, 2, 20)), days);
+      expect(
+        ramadanDays(DateTime(2026, 9, 27), offset: 1).first,
+        DateTime(2027, 2, 7),
+      );
+    });
+
+    test('the countdown to Ramadan starts in the second half of Sha‘ban', () {
+      expect(daysUntilRamadan(DateTime(2027, 2, 1)), 7);
+      expect(daysUntilRamadan(DateTime(2027, 1, 1)), isNull);
+      expect(daysUntilRamadan(DateTime(2027, 2, 10)), isNull);
+    });
+
+    test('suhoor ends at Fajr and iftar is at Maghrib', () async {
+      final prayer = await damascus();
+      final day = DateTime(2027, 2, 10);
+      final t = fastingTimes(prayer, day);
+      expect(t.fajr.difference(t.imsak), imsakBefore);
+      expect(nextFastingMoment(prayer, DateTime(2027, 2, 10, 1)), (
+        FastingMoment.suhoor,
+        t.fajr,
+      ));
+      expect(nextFastingMoment(prayer, DateTime(2027, 2, 10, 12)), (
+        FastingMoment.iftar,
+        t.maghrib,
+      ));
+      final evening = nextFastingMoment(prayer, DateTime(2027, 2, 10, 22));
+      expect(evening!.$1, FastingMoment.suhoor);
+      expect(evening.$2, fastingTimes(prayer, DateTime(2027, 2, 11)).fajr);
+      // The eve of Ramadan points to the first suhoor; the last night to none.
+      expect(
+        nextFastingMoment(prayer, DateTime(2027, 2, 7, 22))!.$2,
+        fastingTimes(prayer, DateTime(2027, 2, 8)).fajr,
+      );
+      expect(nextFastingMoment(prayer, DateTime(2027, 3, 8, 22)), isNull);
+      expect(nextFastingMoment(prayer, DateTime(2026, 9, 27, 12)), isNull);
+    });
+
+    test('a suhoor reminder comes before Fajr on fasting days only', () async {
+      final prayer = await damascus();
+      final settings = NotificationSettings(prayer.prefs);
+      List<PlannedNotification> plan(DateTime day) => planNotifications(
+        prayer: prayer,
+        settings: settings,
+        now: day,
+        wirdDoneToday: false,
+        days: 1,
+      );
+      final fajr = fastingTimes(prayer, DateTime(2027, 2, 10)).fajr;
+      final suhoor = plan(
+        DateTime(2027, 2, 10),
+      ).where((n) => n.kind == ReminderKind.ramadan);
+      expect(suhoor.single.time, fajr.subtract(suhoorBefore));
+      expect(
+        plan(DateTime(2026, 9, 26)).any((n) => n.kind == ReminderKind.ramadan),
+        isFalse,
+      );
+      settings.setSuhoor(false);
+      expect(
+        plan(DateTime(2027, 2, 10)).any((n) => n.kind == ReminderKind.ramadan),
+        isFalse,
+      );
+    });
+
+    testWidgets('the timetable offers a juz-a-day khatma', (tester) async {
+      final prayer = await damascus();
+      final reading = ReadingProvider(prayer.prefs);
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider.value(value: prayer),
+            ChangeNotifierProvider(
+              create: (_) => SettingsProvider(prayer.prefs),
+            ),
+            ChangeNotifierProvider.value(value: reading),
+          ],
+          child: const MaterialApp(home: ImsakiyaScreen()),
+        ),
+      );
+      expect(find.text('ختمة رمضان'), findsOneWidget);
+      expect(find.text('الإمساك'), findsOneWidget);
+      await tester.tap(find.text('اعتماد'));
+      await tester.pump();
+      expect(reading.goal, 20);
     });
   });
 
