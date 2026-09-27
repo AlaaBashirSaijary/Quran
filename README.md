@@ -76,6 +76,9 @@ git push origin v2.0.0
 
 لا ترفع ملف `upload-keystore.jks` إلى المستودع أبداً.
 
+## النشر على Google Play
+الخطوات ونصوص صفحة المتجر وإجابات «أمان البيانات» في [docs/google-play.md](docs/google-play.md)، وسياسة الخصوصية في [docs/privacy-policy.md](docs/privacy-policy.md). بعد إضافة مفتاح التوقيع إلى أسرار GitHub يُرفق CI ملف `tareeq-aljannah.aab` بكل إصدار.
+
 ## بناء نسخة Android بأصغر حجم
 صفحات المصحف هي الجزء الأكبر من حجم التطبيق (حوالي 39 ميغابايت). لتجنب إضافة حجم فوق ذلك:
 

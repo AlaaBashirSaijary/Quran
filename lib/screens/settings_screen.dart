@@ -250,6 +250,27 @@ class SettingsScreen extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 16),
+          _Section(
+            title: tr('الخصوصية', 'Privacy'),
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: Text(
+                  tr(
+                    'لا يجمع التطبيق أي بيانات شخصية ولا يحتوي إعلانات أو تتبّعاً. '
+                        'بياناتك تبقى على هاتفك، ويُستخدم موقعك على الهاتف فقط لحساب '
+                        'المواقيت والقبلة. الإنترنت للتلاوة فقط (alquran.cloud).',
+                    'The app collects no personal data and has no ads or tracking. '
+                        'Your data stays on your phone, and your location is used on '
+                        'the phone only, for prayer times and the qibla. The internet '
+                        'is used only for recitations (alquran.cloud).',
+                  ),
+                  style: TextStyle(color: colorScheme.pageNumber, fontSize: 13),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
