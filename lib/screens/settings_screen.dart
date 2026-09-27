@@ -57,6 +57,22 @@ class SettingsScreen extends StatelessWidget {
                   ],
                 ),
               ),
+              SwitchListTile(
+                title: Text(
+                  tr(
+                    'ترجمة معاني القرآن بالإنجليزية',
+                    'English translation of the meanings',
+                  ),
+                ),
+                subtitle: Text(
+                  tr(
+                    'صحيح إنترناشونال، في التفسير ونتائج البحث',
+                    'Saheeh International, in tafsir and search results',
+                  ),
+                ),
+                value: settings.showTranslation,
+                onChanged: settings.setShowTranslation,
+              ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                 child: Text(

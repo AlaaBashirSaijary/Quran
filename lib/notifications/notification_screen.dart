@@ -4,7 +4,9 @@ import 'package:provider/provider.dart';
 import '../core/index.dart';
 import '../prayer/prayer.dart';
 import '../providers/reading_provider.dart';
+import '../providers/settings_provider.dart';
 import '../widget/prayer_widget.dart';
+import 'adhan_sound.dart';
 import 'notification_service.dart';
 import 'notification_settings.dart';
 import 'planner.dart';
@@ -57,6 +59,7 @@ class _NotificationSyncState extends State<NotificationSync> {
     final prayer = Provider.of<PrayerProvider>(context);
     final settings = Provider.of<NotificationSettings>(context);
     final reading = Provider.of<ReadingProvider>(context);
+    final hijriOffset = Provider.of<SettingsProvider>(context).hijriOffset;
     final now = DateTime.now();
     final signature = [
       prayer.coordinates?.latitude,
@@ -66,6 +69,7 @@ class _NotificationSyncState extends State<NotificationSync> {
       settings.signature,
       reading.goalMet,
       ReadingProvider.dayKey(now),
+      hijriOffset,
     ].join('|');
     if (signature == _last) return;
     _last = signature;
@@ -77,7 +81,9 @@ class _NotificationSyncState extends State<NotificationSync> {
         settings: settings,
         now: now,
         wirdDoneToday: reading.goalMet,
+        hijriOffset: hijriOffset,
       ),
+      adhanUri: settings.adhanUri,
     );
   }
 
@@ -180,6 +186,29 @@ class _NotificationSettingsScreenState
                     value: settings.prayerEnabled(p),
                     onChanged: (v) => settings.setPrayer(p, v),
                   ),
+                if (PhoneSounds.supported)
+                  ListTile(
+                    leading: Icon(
+                      Icons.volume_up_rounded,
+                      color: colorScheme.gold,
+                    ),
+                    title: Text(tr('صوت الأذان', 'Adhan sound')),
+                    subtitle: Text(
+                      settings.adhanUri == null
+                          ? tr(
+                              'صوت التنبيه الافتراضي',
+                              'Default notification sound',
+                            )
+                          : (settings.adhanTitle?.isNotEmpty ?? false)
+                          ? settings.adhanTitle!
+                          : tr('صوت مختار', 'Chosen sound'),
+                    ),
+                    trailing: Icon(
+                      Icons.chevron_left_rounded,
+                      color: colorScheme.gold,
+                    ),
+                    onTap: () => chooseAdhanSound(context, settings),
+                  ),
                 ListTile(
                   title: Text(
                     tr('تذكير قبل الصلاة', 'Reminder before the prayer'),
@@ -224,6 +253,17 @@ class _NotificationSettingsScreenState
                   ),
                   value: settings.eveningAzkar,
                   onChanged: settings.setEveningAzkar,
+                ),
+                SwitchListTile(
+                  title: Text(tr('السحور في رمضان', 'Suhoor in Ramadan')),
+                  subtitle: Text(
+                    tr(
+                      'قبل الفجر بخمس وأربعين دقيقة',
+                      'Forty-five minutes before Fajr',
+                    ),
+                  ),
+                  value: settings.suhoor,
+                  onChanged: settings.setSuhoor,
                 ),
                 SwitchListTile(
                   title: Text(tr('يوم الجمعة', 'Friday')),

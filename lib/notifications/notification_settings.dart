@@ -14,6 +14,29 @@ class NotificationSettings extends ChangeNotifier {
     wird = prefs.getBool('notify.wird') ?? true;
     wirdMinutes = prefs.getInt('notify.wirdMinutes') ?? 21 * 60;
     friday = prefs.getBool('notify.friday') ?? true;
+    suhoor = prefs.getBool('notify.suhoor') ?? true;
+    adhanUri = prefs.getString('notify.adhanUri');
+    adhanTitle = prefs.getString('notify.adhanTitle');
+  }
+
+  /// The sound of prayer-time notifications (a URI of one of the phone's
+  /// sounds), or null for the default notification sound.
+  String? adhanUri;
+  String? adhanTitle;
+
+  void setAdhanSound(String? uri, String? title) {
+    adhanUri = uri;
+    adhanTitle = title;
+    if (uri == null) {
+      prefs
+        ..remove('notify.adhanUri')
+        ..remove('notify.adhanTitle');
+    } else {
+      prefs
+        ..setString('notify.adhanUri', uri)
+        ..setString('notify.adhanTitle', title ?? '');
+    }
+    notifyListeners();
   }
 
   static const prayers = [
@@ -39,6 +62,15 @@ class NotificationSettings extends ChangeNotifier {
 
   /// Al-Kahf in the morning and du'a in the last hour of Friday.
   late bool friday;
+
+  /// In Ramadan, a reminder to eat suhoor before Fajr.
+  late bool suhoor;
+
+  void setSuhoor(bool value) {
+    suhoor = value;
+    prefs.setBool('notify.suhoor', value);
+    notifyListeners();
+  }
 
   bool prayerEnabled(Prayer prayer) => _prayer[prayer] ?? false;
 
@@ -93,5 +125,7 @@ class NotificationSettings extends ChangeNotifier {
     wird,
     wirdMinutes,
     friday,
+    suhoor,
+    adhanUri,
   ].join(',');
 }

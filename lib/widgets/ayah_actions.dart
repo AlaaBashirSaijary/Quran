@@ -8,6 +8,7 @@ import '../quran/quran.dart';
 import '../quran/search.dart';
 import '../screens/tafsir_screen.dart';
 import '../share/share_card.dart';
+import 'translation_text.dart';
 
 /// What can be done with an ayah long-pressed on a mushaf page.
 Future<void> showAyahActions(
@@ -61,6 +62,7 @@ Future<void> showAyahActions(
                   color: colorScheme.onSurface,
                 ),
               ),
+              TranslationText(ayahs: [(surah, ayah)]),
               const Divider(height: 24),
               ListTile(
                 leading: Icon(Icons.menu_book_rounded, color: colorScheme.gold),

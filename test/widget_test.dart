@@ -8,6 +8,10 @@ import 'package:http/testing.dart';
 import 'package:quranapplication/audio/downloads.dart';
 import 'package:quranapplication/share/share_card.dart';
 import 'package:quranapplication/quran/ayah_regions.dart';
+import 'package:quranapplication/quran/translation.dart';
+import 'package:quranapplication/ramadan/ramadan.dart';
+import 'package:quranapplication/ramadan/imsakiya_screen.dart';
+import 'package:quranapplication/screens/search_screen.dart';
 import 'package:quranapplication/widgets/quran_page.dart';
 
 import 'package:quranapplication/content/library.dart';
@@ -17,6 +21,7 @@ import 'package:quranapplication/quran/tafsir.dart';
 import 'package:quranapplication/hijri/hijri.dart';
 import 'package:quranapplication/qibla/compass.dart';
 import 'package:quranapplication/notifications/planner.dart';
+import 'package:quranapplication/notifications/notification_service.dart';
 import 'package:quranapplication/notifications/notification_settings.dart';
 import 'package:adhan_dart/adhan_dart.dart';
 import 'package:flutter/material.dart';
@@ -949,6 +954,27 @@ void main() {
       expect(wird.single.time.day, 27);
     });
 
+    test('the chosen adhan sound is saved and gets its own channel', () async {
+      final (_, settings) = await setup();
+      expect(settings.adhanUri, isNull);
+      expect(NotificationService.prayerChannel(null), 'prayer');
+
+      const uri = 'content://media/external/audio/media/42';
+      final before = settings.signature;
+      settings.setAdhanSound(uri, 'أذان مكة');
+      expect(settings.signature, isNot(before));
+      final again = NotificationSettings(settings.prefs);
+      expect([again.adhanUri, again.adhanTitle], [uri, 'أذان مكة']);
+
+      final channel = NotificationService.prayerChannel(uri);
+      expect(channel, startsWith('prayer_'));
+      expect(NotificationService.prayerChannel(uri), channel, reason: 'stable');
+      expect(NotificationService.prayerChannel('$uri/2'), isNot(channel));
+
+      settings.setAdhanSound(null, null);
+      expect(NotificationSettings(settings.prefs).adhanUri, isNull);
+    });
+
     test(
       'Friday brings Al-Kahf in the morning and du‘a before Maghrib',
       () async {
@@ -1306,6 +1332,170 @@ void main() {
       final again = RecitationProvider(prefs);
       expect(again.reciter.name, 'محمود خليل الحصري');
       expect([again.repeat, again.continuous], [3, false]);
+    });
+  });
+
+  group('Ramadan', () {
+    Future<PrayerProvider> damascus() async {
+      SharedPreferences.setMockInitialValues({});
+      return PrayerProvider(await SharedPreferences.getInstance())
+        ..setCity(cities.firstWhere((c) => c.arabicName == 'دمشق'));
+    }
+
+    test('the days of Ramadan 1448 follow Umm al-Qura', () {
+      // Checked against the hijri-converter (Umm al-Qura) Python package.
+      final days = ramadanDays(DateTime(2026, 9, 27));
+      expect(days.first, DateTime(2027, 2, 8));
+      expect(days.last, DateTime(2027, 3, 8));
+      expect(days, hasLength(29));
+      expect(ramadanDays(DateTime(2027, 2, 20)), days);
+      expect(
+        ramadanDays(DateTime(2026, 9, 27), offset: 1).first,
+        DateTime(2027, 2, 7),
+      );
+    });
+
+    test('the countdown to Ramadan starts in the second half of Sha‘ban', () {
+      expect(daysUntilRamadan(DateTime(2027, 2, 1)), 7);
+      expect(daysUntilRamadan(DateTime(2027, 1, 1)), isNull);
+      expect(daysUntilRamadan(DateTime(2027, 2, 10)), isNull);
+    });
+
+    test('suhoor ends at Fajr and iftar is at Maghrib', () async {
+      final prayer = await damascus();
+      final day = DateTime(2027, 2, 10);
+      final t = fastingTimes(prayer, day);
+      expect(t.fajr.difference(t.imsak), imsakBefore);
+      expect(nextFastingMoment(prayer, DateTime(2027, 2, 10, 1)), (
+        FastingMoment.suhoor,
+        t.fajr,
+      ));
+      expect(nextFastingMoment(prayer, DateTime(2027, 2, 10, 12)), (
+        FastingMoment.iftar,
+        t.maghrib,
+      ));
+      final evening = nextFastingMoment(prayer, DateTime(2027, 2, 10, 22));
+      expect(evening!.$1, FastingMoment.suhoor);
+      expect(evening.$2, fastingTimes(prayer, DateTime(2027, 2, 11)).fajr);
+      // The eve of Ramadan points to the first suhoor; the last night to none.
+      expect(
+        nextFastingMoment(prayer, DateTime(2027, 2, 7, 22))!.$2,
+        fastingTimes(prayer, DateTime(2027, 2, 8)).fajr,
+      );
+      expect(nextFastingMoment(prayer, DateTime(2027, 3, 8, 22)), isNull);
+      expect(nextFastingMoment(prayer, DateTime(2026, 9, 27, 12)), isNull);
+    });
+
+    test('a suhoor reminder comes before Fajr on fasting days only', () async {
+      final prayer = await damascus();
+      final settings = NotificationSettings(prayer.prefs);
+      List<PlannedNotification> plan(DateTime day) => planNotifications(
+        prayer: prayer,
+        settings: settings,
+        now: day,
+        wirdDoneToday: false,
+        days: 1,
+      );
+      final fajr = fastingTimes(prayer, DateTime(2027, 2, 10)).fajr;
+      final suhoor = plan(
+        DateTime(2027, 2, 10),
+      ).where((n) => n.kind == ReminderKind.ramadan);
+      expect(suhoor.single.time, fajr.subtract(suhoorBefore));
+      expect(
+        plan(DateTime(2026, 9, 26)).any((n) => n.kind == ReminderKind.ramadan),
+        isFalse,
+      );
+      settings.setSuhoor(false);
+      expect(
+        plan(DateTime(2027, 2, 10)).any((n) => n.kind == ReminderKind.ramadan),
+        isFalse,
+      );
+    });
+
+    testWidgets('the timetable offers a juz-a-day khatma', (tester) async {
+      final prayer = await damascus();
+      final reading = ReadingProvider(prayer.prefs);
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider.value(value: prayer),
+            ChangeNotifierProvider(
+              create: (_) => SettingsProvider(prayer.prefs),
+            ),
+            ChangeNotifierProvider.value(value: reading),
+          ],
+          child: const MaterialApp(home: ImsakiyaScreen()),
+        ),
+      );
+      expect(find.text('ختمة رمضان'), findsOneWidget);
+      expect(find.text('الإمساك'), findsOneWidget);
+      await tester.tap(find.text('اعتماد'));
+      await tester.pump();
+      expect(reading.goal, 20);
+    });
+  });
+
+  group('English translation', () {
+    setUpAll(TestWidgetsFlutterBinding.ensureInitialized);
+
+    test('covers every ayah and finds English words', () async {
+      final translation = await Translation.load();
+      final quran = await QuranSearch.load();
+      for (var s = 1; s <= 114; s++) {
+        final count = quran.ayahsOfSurah(s).length;
+        expect(translation.of(s, count), isNotEmpty);
+      }
+      expect(
+        translation.of(2, 255),
+        startsWith('Allah - there is no deity except Him'),
+      );
+      final (found, total) = translation.search('Ever-Living Sustainer');
+      expect(found, contains((2, 255)));
+      expect(total, found.length);
+      expect(translation.search('x').$2, 0);
+      // Words match from their start, not inside other words.
+      final (mercy, _) = translation.search('merci');
+      expect(mercy, contains((1, 1)));
+      expect(translation.search('ercif').$2, 0);
+    });
+
+    test('is shown by default only in the English interface', () async {
+      SharedPreferences.setMockInitialValues({});
+      addTearDown(() => appLanguage = AppLanguage.ar);
+      final settings = SettingsProvider(await SharedPreferences.getInstance());
+      expect(settings.showTranslation, isFalse);
+      appLanguage = AppLanguage.en;
+      expect(settings.showTranslation, isTrue);
+      settings.setShowTranslation(false);
+      expect(settings.showTranslation, isFalse);
+    });
+
+    testWidgets('an English search finds ayahs by their meaning', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      await tester.runAsync(() async {
+        await QuranSearch.load();
+        await Translation.load();
+      });
+      await tester.pumpWidget(
+        ChangeNotifierProvider(
+          create: (_) => SettingsProvider(prefs)..setShowTranslation(true),
+          child: const MaterialApp(home: SearchScreen()),
+        ),
+      );
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      await tester.enterText(
+        find.byType(TextField),
+        'Sustainer of all existence',
+      );
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      await tester.pump();
+      expect(
+        find.textContaining('the Ever-Living, the Sustainer'),
+        findsWidgets,
+      );
     });
   });
 

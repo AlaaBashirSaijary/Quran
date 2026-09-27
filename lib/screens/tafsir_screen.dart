@@ -6,6 +6,7 @@ import '../quran/quran.dart';
 import '../quran/search.dart';
 import '../quran/tafsir.dart';
 import '../share/share_card.dart';
+import '../widgets/translation_text.dart';
 
 /// Al-Tafsir al-Muyassar for the ayahs on one mushaf page.
 class TafsirScreen extends StatefulWidget {
@@ -213,6 +214,9 @@ class _TafsirCard extends StatelessWidget {
                 height: 1.9,
                 color: colorScheme.primary,
               ),
+            ),
+            TranslationText(
+              ayahs: [for (final a in ayahs) (a.surah, a.number)],
             ),
             Divider(color: colorScheme.div, height: 24),
             Text(
