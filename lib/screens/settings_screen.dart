@@ -12,6 +12,7 @@ import '../main.dart';
 import '../providers/settings_provider.dart';
 import '../providers/theme_provider.dart';
 import '../settings/backup.dart';
+import 'error_log_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -247,6 +248,38 @@ class SettingsScreen extends StatelessWidget {
                   tr('استعادة من نسخة احتياطية', 'Restore from a backup'),
                 ),
                 onTap: () => _import(context),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _Section(
+            title: tr('الخصوصية', 'Privacy'),
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: Text(
+                  tr(
+                    'لا يجمع التطبيق أي بيانات شخصية ولا يحتوي إعلانات أو تتبّعاً. '
+                        'بياناتك تبقى على هاتفك، ويُستخدم موقعك على الهاتف فقط لحساب '
+                        'المواقيت والقبلة. الإنترنت للتلاوة فقط (alquran.cloud).',
+                    'The app collects no personal data and has no ads or tracking. '
+                        'Your data stays on your phone, and your location is used on '
+                        'the phone only, for prayer times and the qibla. The internet '
+                        'is used only for recitations (alquran.cloud).',
+                  ),
+                  style: TextStyle(color: colorScheme.pageNumber, fontSize: 13),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.bug_report_outlined),
+                title: Text(tr('سجل الأخطاء', 'Error log')),
+                subtitle: Text(
+                  tr(
+                    'لمشاركته مع المطوّر عند حدوث مشكلة',
+                    'To share with the developer if something goes wrong',
+                  ),
+                ),
+                onTap: () => ErrorLogScreen.open(context),
               ),
             ],
           ),

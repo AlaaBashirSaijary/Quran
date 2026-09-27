@@ -10,6 +10,9 @@ import 'package:quranapplication/share/share_card.dart';
 import 'package:quranapplication/quran/ayah_regions.dart';
 import 'package:quranapplication/quran/translation.dart';
 import 'package:quranapplication/ramadan/ramadan.dart';
+import 'package:quranapplication/hijri/calendar_screen.dart';
+import 'package:quranapplication/core/error_log.dart';
+import 'package:quranapplication/screens/error_log_screen.dart';
 import 'package:quranapplication/ramadan/imsakiya_screen.dart';
 import 'package:quranapplication/screens/search_screen.dart';
 import 'package:quranapplication/widgets/quran_page.dart';
@@ -1060,6 +1063,54 @@ void main() {
     });
   });
 
+  group('Error log', () {
+    test('keeps the latest 50 errors with their stack', () async {
+      SharedPreferences.setMockInitialValues({});
+      final log = ErrorLog.attach(await SharedPreferences.getInstance());
+      for (var i = 0; i < 55; i++) {
+        log.add(
+          StateError('boom $i'),
+          StackTrace.fromString('#0 main (file.dart:1)\n#1 run (x.dart:2)'),
+          now: DateTime(2026, 9, 27, 12, 0, i),
+        );
+      }
+      expect(log.entries, hasLength(50));
+      expect(log.entries.first, contains('boom 5'));
+      expect(
+        log.entries.last,
+        startsWith('2026-09-27T12:00:54  Bad state: boom 54'),
+      );
+      expect(log.entries.last, contains('#1 run (x.dart:2)'));
+      expect(log.report(), startsWith('Tareeq Al-Jannah error log'));
+      log.clear();
+      expect(log.entries, isEmpty);
+    });
+
+    test('stays out of backups and survives a restore', () async {
+      SharedPreferences.setMockInitialValues({'wird.goal': 5});
+      final prefs = await SharedPreferences.getInstance();
+      final log = ErrorLog.attach(prefs)..add('first', null);
+      final backup = exportBackup(prefs);
+      expect(backup, isNot(contains(ErrorLog.key)));
+      log.add('second', null);
+      await importBackup(prefs, backup);
+      expect(prefs.getInt('wird.goal'), 5);
+      expect(log.entries, hasLength(2));
+    });
+
+    testWidgets('can be read and cleared', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final log = ErrorLog.attach(await SharedPreferences.getInstance())
+        ..add('Something broke', null);
+      await tester.pumpWidget(const MaterialApp(home: ErrorLogScreen()));
+      expect(find.textContaining('Something broke'), findsOneWidget);
+      await tester.tap(find.byTooltip('مسح'));
+      await tester.pump();
+      expect(log.entries, isEmpty);
+      expect(find.text('لا أخطاء مسجّلة'), findsOneWidget);
+    });
+  });
+
   group('Hijri calendar', () {
     test('matches known Umm al-Qura dates', () {
       final newYear = hijriOf(DateTime(2023, 7, 19));
@@ -1332,6 +1383,60 @@ void main() {
       final again = RecitationProvider(prefs);
       expect(again.reciter.name, 'محمود خليل الحصري');
       expect([again.repeat, again.continuous], [3, false]);
+    });
+  });
+
+  group('Hijri calendar', () {
+    test('a month runs from its first to its last Hijri day', () {
+      final ramadan = hijriMonthDays(DateTime(2027, 2, 20));
+      expect(ramadan.first, DateTime(2027, 2, 8));
+      expect(ramadan.last, DateTime(2027, 3, 8));
+      expect(ramadan.map((d) => hijriOf(d).day), [
+        for (var i = 1; i <= 29; i++) i,
+      ]);
+      final shifted = hijriMonthDays(DateTime(2027, 2, 20), offset: 1);
+      expect(shifted.first, DateTime(2027, 2, 7));
+    });
+
+    test('weekly fasts can be left out of the day marks', () {
+      final monday = DateTime(2026, 9, 28);
+      expect(monday.weekday, DateTime.monday);
+      expect(occasionsOn(monday), contains('صيام يوم الاثنين'));
+      expect(
+        occasionsOn(monday, weekly: false),
+        isNot(contains('صيام يوم الاثنين')),
+      );
+    });
+
+    testWidgets('shows the month and the notes of a tapped day', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(900, 2400);
+      tester.view.devicePixelRatio = 1.5;
+      addTearDown(tester.view.reset);
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      await tester.pumpWidget(
+        ChangeNotifierProvider(
+          create: (_) => SettingsProvider(prefs),
+          child: MaterialApp(
+            home: HijriCalendarScreen(today: DateTime(2027, 2, 20)),
+          ),
+        ),
+      );
+      expect(find.text('رمضان 1448'), findsOneWidget);
+      expect(find.text('8/2'), findsOneWidget);
+      expect(find.text('8/3'), findsOneWidget);
+      await tester.tap(find.text('8/2'));
+      await tester.pump();
+      expect(find.text('شهر رمضان المبارك'), findsOneWidget);
+
+      await tester.tap(find.byTooltip('الشهر التالي'));
+      await tester.pump();
+      expect(find.text('شوال 1448'), findsOneWidget);
+      await tester.tap(find.text('9/3'));
+      await tester.pump();
+      expect(find.text('عيد الفطر المبارك'), findsOneWidget);
     });
   });
 

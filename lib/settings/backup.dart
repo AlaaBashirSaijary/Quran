@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import '../core/error_log.dart';
 import '../core/language.dart';
 
 const _app = 'tareeq-aljannah';
@@ -20,6 +21,8 @@ class BackupException implements Exception {
 String exportBackup(SharedPreferences prefs, {DateTime? now}) {
   final data = <String, Object?>{};
   for (final key in prefs.getKeys()) {
+    // The error log belongs to this phone, not to the user's data.
+    if (key == ErrorLog.key) continue;
     final value = prefs.get(key);
     data[key] = switch (value) {
       bool() => {'bool': value},
@@ -83,7 +86,10 @@ Future<int> importBackup(SharedPreferences prefs, String json) async {
     if (parsed != null) entries[key as String] = parsed;
   }
 
+  final errors = prefs.getStringList(ErrorLog.key);
   await prefs.clear();
+  if (errors != null) await prefs.setStringList(ErrorLog.key, errors);
+  entries.remove(ErrorLog.key);
   for (final MapEntry(:key, :value) in entries.entries) {
     switch (value) {
       case bool():

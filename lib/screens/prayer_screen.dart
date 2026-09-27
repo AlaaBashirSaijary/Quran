@@ -12,6 +12,7 @@ import '../prayer/prayer.dart';
 import '../providers/settings_provider.dart';
 import '../qibla/qibla_screen.dart';
 import '../ramadan/imsakiya_screen.dart';
+import '../hijri/calendar_screen.dart';
 
 class PrayerScreen extends StatelessWidget {
   const PrayerScreen({super.key});
@@ -24,6 +25,11 @@ class PrayerScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(tr('مواقيت الصلاة', 'Prayer Times')),
         actions: [
+          IconButton(
+            tooltip: tr('التقويم الهجري', 'Hijri calendar'),
+            icon: const Icon(Icons.calendar_month_rounded),
+            onPressed: () => HijriCalendarScreen.open(context),
+          ),
           IconButton(
             tooltip: tr('التنبيهات', 'Notifications'),
             icon: const Icon(Icons.notifications_active_rounded),

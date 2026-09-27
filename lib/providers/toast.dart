@@ -11,6 +11,7 @@ class ToastProvider extends ChangeNotifier {
   }
 
   bool isShowToast = false;
+  bool _disposed = false;
 
   double get opacity => isShowToast ? 1 : 0;
 
@@ -19,8 +20,16 @@ class ToastProvider extends ChangeNotifier {
     notifyListeners();
 
     await Future.delayed(const Duration(milliseconds: 1500));
+    // The reader may have closed (and the app been rebuilt) meanwhile.
+    if (_disposed) return;
 
     isShowToast = false;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
   }
 }
