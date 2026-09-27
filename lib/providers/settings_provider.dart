@@ -13,6 +13,7 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   static const languageKey = 'settings.language';
+  static const _translationKey = 'settings.translation';
   static const _scaleKey = 'settings.textScale';
   static const _hijriKey = 'settings.hijriOffset';
   static const scales = [0.85, 1.0, 1.15, 1.3, 1.5];
@@ -31,6 +32,15 @@ class SettingsProvider extends ChangeNotifier {
   /// (AppRoot.restart) for it to take effect.
   Future<void> setLanguage(AppLanguage value) =>
       prefs.setString(languageKey, value.name);
+
+  /// Show the English translation of the meanings beside the Quranic text.
+  /// On by default in the English interface.
+  bool get showTranslation => prefs.getBool(_translationKey) ?? isEnglish;
+
+  void setShowTranslation(bool value) {
+    prefs.setBool(_translationKey, value);
+    notifyListeners();
+  }
 
   void setHijriOffset(int value) {
     hijriOffset = value.clamp(-2, 2);

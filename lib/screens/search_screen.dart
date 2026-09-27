@@ -8,6 +8,8 @@ import 'index_screen.dart';
 import 'tafsir_screen.dart';
 import '../providers/settings_provider.dart';
 import '../share/share_card.dart';
+import '../widgets/translation_text.dart';
+import '../quran/translation.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key, this.isTab = false});
@@ -40,10 +42,34 @@ class _SearchScreenState extends State<SearchScreen> {
     super.dispose();
   }
 
-  void _onChanged(String query) {
+  static final _latin = RegExp('[A-Za-z]');
+
+  Future<void> _onChanged(String query) async {
     final search = _search;
     if (search == null) return;
-    setState(() => _results = search.search(query));
+    if (!_latin.hasMatch(query)) {
+      setState(() => _results = search.search(query));
+      return;
+    }
+    // Words in English: search the translation of the meanings and the
+    // transliterated surah names.
+    final translation = await Translation.load();
+    if (!mounted || _controller.text != query) return;
+    final (found, total) = translation.search(query);
+    final needle = query.trim().toLowerCase();
+    setState(
+      () => _results = SearchResults(
+        [
+          if (needle.length >= 2)
+            for (var s = 1; s <= 114; s++)
+              if (surahNameOf(s).toLowerCase().contains(needle) ||
+                  surahNameEnglish(s).toLowerCase().contains(needle))
+                s,
+        ],
+        [for (final (s, a) in found) search.ayahsOfSurah(s)[a - 1]],
+        total,
+      ),
+    );
   }
 
   void _open(int page) => openQuranPage(context, page, isTab: widget.isTab);
@@ -66,7 +92,7 @@ class _SearchScreenState extends State<SearchScreen> {
               decoration: InputDecoration(
                 hintText: tr(
                   'اكتب كلمة من الآية أو اسم السورة',
-                  'Type a word from the ayah (in Arabic) or a surah name',
+                  'A word in Arabic or English, or a surah name',
                 ),
                 prefixIcon: Icon(Icons.search_rounded, color: colorScheme.gold),
                 suffixIcon: _controller.text.isEmpty
@@ -187,6 +213,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           color: colorScheme.onSurface,
                         ),
                       ),
+                      TranslationText(ayahs: [(ayah.surah, ayah.number)]),
                       const SizedBox(height: 6),
                       Row(
                         children: [

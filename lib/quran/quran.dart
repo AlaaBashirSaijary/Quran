@@ -71,6 +71,10 @@ String surahNameOf(int surahNumber) => isEnglish
     ? surah[surahNumber - 1]['name'] as String
     : getSurahNameArabic(surahNumber);
 
+/// The surah's name translated, e.g. "The Opening".
+String surahNameEnglish(int surahNumber) =>
+    surah[surahNumber - 1]['english'] as String;
+
 /// "سورة الفاتحة" or "Surah Al Fatiha".
 String surahTitle(int surahNumber) => tr(
   'سورة ${getSurahNameArabic(surahNumber)}',

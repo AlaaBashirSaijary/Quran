@@ -8,6 +8,8 @@ import 'package:http/testing.dart';
 import 'package:quranapplication/audio/downloads.dart';
 import 'package:quranapplication/share/share_card.dart';
 import 'package:quranapplication/quran/ayah_regions.dart';
+import 'package:quranapplication/quran/translation.dart';
+import 'package:quranapplication/screens/search_screen.dart';
 import 'package:quranapplication/widgets/quran_page.dart';
 
 import 'package:quranapplication/content/library.dart';
@@ -1306,6 +1308,70 @@ void main() {
       final again = RecitationProvider(prefs);
       expect(again.reciter.name, 'محمود خليل الحصري');
       expect([again.repeat, again.continuous], [3, false]);
+    });
+  });
+
+  group('English translation', () {
+    setUpAll(TestWidgetsFlutterBinding.ensureInitialized);
+
+    test('covers every ayah and finds English words', () async {
+      final translation = await Translation.load();
+      final quran = await QuranSearch.load();
+      for (var s = 1; s <= 114; s++) {
+        final count = quran.ayahsOfSurah(s).length;
+        expect(translation.of(s, count), isNotEmpty);
+      }
+      expect(
+        translation.of(2, 255),
+        startsWith('Allah - there is no deity except Him'),
+      );
+      final (found, total) = translation.search('Ever-Living Sustainer');
+      expect(found, contains((2, 255)));
+      expect(total, found.length);
+      expect(translation.search('x').$2, 0);
+      // Words match from their start, not inside other words.
+      final (mercy, _) = translation.search('merci');
+      expect(mercy, contains((1, 1)));
+      expect(translation.search('ercif').$2, 0);
+    });
+
+    test('is shown by default only in the English interface', () async {
+      SharedPreferences.setMockInitialValues({});
+      addTearDown(() => appLanguage = AppLanguage.ar);
+      final settings = SettingsProvider(await SharedPreferences.getInstance());
+      expect(settings.showTranslation, isFalse);
+      appLanguage = AppLanguage.en;
+      expect(settings.showTranslation, isTrue);
+      settings.setShowTranslation(false);
+      expect(settings.showTranslation, isFalse);
+    });
+
+    testWidgets('an English search finds ayahs by their meaning', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      await tester.runAsync(() async {
+        await QuranSearch.load();
+        await Translation.load();
+      });
+      await tester.pumpWidget(
+        ChangeNotifierProvider(
+          create: (_) => SettingsProvider(prefs)..setShowTranslation(true),
+          child: const MaterialApp(home: SearchScreen()),
+        ),
+      );
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      await tester.enterText(
+        find.byType(TextField),
+        'Sustainer of all existence',
+      );
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      await tester.pump();
+      expect(
+        find.textContaining('the Ever-Living, the Sustainer'),
+        findsWidgets,
+      );
     });
   });
 
