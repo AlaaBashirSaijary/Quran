@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../providers/settings_provider.dart';
 import '../quran/translation.dart';
+import '../quran/translations.dart';
 
 /// The English meaning of [ayahs] (surah, ayah) when the reader has turned
 /// the translation on; nothing otherwise.
@@ -14,18 +15,22 @@ class TranslationText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool show;
+    final String code;
     try {
-      show = Provider.of<SettingsProvider>(context).showTranslation;
+      final settings = Provider.of<SettingsProvider>(context);
+      show = settings.showTranslation;
+      code = settings.translationLang;
     } on ProviderNotFoundException {
       return const SizedBox.shrink();
     }
+    final language = translationLanguage(code);
     if (!show || ayahs.isEmpty) {
       return const SizedBox.shrink();
     }
     final colorScheme = Theme.of(context).colorScheme;
-    return FutureBuilder<Translation>(
-      future: Translation.load(),
-      initialData: Translation.loaded,
+    return FutureBuilder<Translation?>(
+      future: Translations.instance.load(language.code),
+      initialData: Translations.instance.loaded(language.code),
       builder: (context, snapshot) {
         final translation = snapshot.data;
         if (translation == null) return const SizedBox.shrink();
@@ -38,8 +43,8 @@ class TranslationText extends StatelessWidget {
                     ? '($a) ${translation.of(s, a)}'
                     : translation.of(s, a),
             ].join(' '),
-            textDirection: TextDirection.ltr,
-            textAlign: TextAlign.left,
+            textDirection: language.direction,
+            textAlign: TextAlign.start,
             style: TextStyle(
               fontSize: context.contentSize(15),
               height: 1.6,

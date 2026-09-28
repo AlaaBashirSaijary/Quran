@@ -10,6 +10,7 @@ import 'package:quranapplication/share/share_card.dart';
 import 'package:quranapplication/quran/ayah_regions.dart';
 import 'package:quranapplication/quran/translation.dart';
 import 'package:quranapplication/quran/tafsir_sources.dart';
+import 'package:quranapplication/quran/translations.dart';
 import 'package:quranapplication/ramadan/ramadan.dart';
 import 'package:quranapplication/hijri/calendar_screen.dart';
 import 'package:quranapplication/core/error_log.dart';
@@ -1848,6 +1849,68 @@ void main() {
       expect(
         find.textContaining('the Ever-Living, the Sustainer'),
         findsWidgets,
+      );
+    });
+  });
+
+  group('More translations', () {
+    test(
+      'a language is downloaded once and then read from the phone',
+      () async {
+        final temp = Directory.systemTemp.createTempSync('translations');
+        addTearDown(() => temp.deleteSync(recursive: true));
+        var requests = 0;
+        final quranJson = jsonEncode([
+          for (var s = 1; s <= 114; s++)
+            {
+              'id': s,
+              'verses': [
+                {'id': 1, 'text': '...', 'translation': ' ترجمہ $s '},
+              ],
+            },
+        ]);
+        Translations make() => Translations(
+          client: MockClient((request) async {
+            requests++;
+            expect(request.url.path, endsWith('/quran_ur.json'));
+            return http.Response.bytes(utf8.encode(quranJson), 200);
+          }),
+          folder: Future.value(temp.path),
+        );
+
+        final first = make();
+        expect(await first.isDownloaded('ur'), isFalse);
+        expect(await first.load('ur'), isNull);
+        final urdu = await first.download('ur');
+        expect(urdu.of(2, 1), 'ترجمہ 2');
+        expect(requests, 1);
+
+        final later = make();
+        expect(await later.isDownloaded('ur'), isTrue);
+        expect((await later.load('ur'))!.of(114, 1), 'ترجمہ 114');
+        expect(requests, 1);
+        expect(await later.isDownloaded('en'), isTrue, reason: 'bundled');
+      },
+    );
+
+    test('a broken download is not kept', () async {
+      final temp = Directory.systemTemp.createTempSync('translations');
+      addTearDown(() => temp.deleteSync(recursive: true));
+      final translations = Translations(
+        client: MockClient((_) async => http.Response('[]', 200)),
+        folder: Future.value(temp.path),
+      );
+      await expectLater(translations.download('fr'), throwsFormatException);
+      expect(await translations.isDownloaded('fr'), isFalse);
+    });
+
+    test('Urdu reads right to left; unknown codes fall back to English', () {
+      expect(translationLanguage('ur').direction, TextDirection.rtl);
+      expect(translationLanguage('fr').direction, TextDirection.ltr);
+      expect(translationLanguage('xx').code, 'en');
+      expect(
+        translationLanguages.map((l) => l.code).toSet(),
+        hasLength(translationLanguages.length),
       );
     });
   });
