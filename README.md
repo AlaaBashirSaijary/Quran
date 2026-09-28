@@ -97,7 +97,7 @@ git push origin v2.0.0
 قائمة قصيرة بما يلزم تجربته على هاتف حقيقي بعد كل إصدار مهم: [docs/phone-test-checklist.md](docs/phone-test-checklist.md).
 
 ## النشر على Google Play
-الخطوات ونصوص صفحة المتجر وإجابات «أمان البيانات» في [docs/google-play.md](docs/google-play.md)، وسياسة الخصوصية في [docs/privacy-policy.md](docs/privacy-policy.md). بعد إضافة مفتاح التوقيع إلى أسرار GitHub يُرفق CI ملف `manhaj-hayah.aab` بكل إصدار.
+الخطوات ونصوص صفحة المتجر وإجابات «أمان البيانات» في [docs/google-play.md](docs/google-play.md)، وسياسة الخصوصية في [docs/privacy-policy.md](docs/privacy-policy.md) (تُنشر أيضاً على موقع التطبيق، وهو في مستودع منفصل: `manhaj-hayah`). بعد إضافة مفتاح التوقيع إلى أسرار GitHub يُرفق CI ملف `manhaj-hayah.aab` بكل إصدار.
 
 ## بناء نسخة Android بأصغر حجم
 صفحات المصحف هي الجزء الأكبر من حجم التطبيق (حوالي 39 ميغابايت). لتجنب إضافة حجم فوق ذلك:
