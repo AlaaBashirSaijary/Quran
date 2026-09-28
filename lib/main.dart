@@ -25,6 +25,10 @@ import 'screens/index_screen.dart';
 import 'screens/juz_index_screen.dart';
 import 'screens/search_screen.dart';
 import 'screens/splash_screen.dart';
+import 'notes/notes.dart';
+
+/// Lets screens know when another screen covers them.
+final routeObserver = RouteObserver<ModalRoute<void>>();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -96,6 +100,9 @@ class _AppRootState extends State<AppRoot> {
           ChangeNotifierProvider<HifzProvider>(
             create: (context) => HifzProvider(prefs),
           ),
+          ChangeNotifierProvider<NotesProvider>(
+            create: (context) => NotesProvider(prefs),
+          ),
           ChangeNotifierProvider<GroupKhatmaProvider>(
             create: (context) => GroupKhatmaProvider(prefs),
           ),
@@ -140,6 +147,7 @@ class MyApp extends StatelessWidget {
           darkTheme: AppTheme.darkThemeData,
           themeMode: theme.themeMode,
           home: SplashScreen(prefs: prefs),
+          navigatorObservers: [routeObserver],
           localizationsDelegates: const [
             GlobalCupertinoLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,

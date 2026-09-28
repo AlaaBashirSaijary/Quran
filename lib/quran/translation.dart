@@ -5,6 +5,12 @@ import 'package:flutter/services.dart';
 /// The Saheeh International English translation of the meanings of the
 /// Quran (tanzil.net), bundled in assets/translation_en.json.
 class Translation {
+  /// A translation given as, for each surah, the text of each ayah.
+  Translation.fromSurahs(this._surahs)
+    : _lower = [
+        for (final s in _surahs) [for (final a in s) a.toLowerCase()],
+      ];
+
   Translation._(this._surahs)
     : _lower = [
         for (final s in _surahs) [for (final a in s) a.toLowerCase()],

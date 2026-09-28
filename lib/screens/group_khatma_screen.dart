@@ -139,7 +139,7 @@ Future<void> pasteKhatmaMessage(BuildContext context) async {
       ],
     ),
   );
-  controller.dispose();
+  disposeAfterDialog([controller]);
   if (text == null || !context.mounted) return;
 
   final groups = Provider.of<GroupKhatmaProvider>(context, listen: false);

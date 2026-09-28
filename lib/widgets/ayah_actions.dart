@@ -9,6 +9,9 @@ import '../quran/search.dart';
 import '../screens/tafsir_screen.dart';
 import '../share/share_card.dart';
 import 'translation_text.dart';
+import 'package:provider/provider.dart';
+import '../notes/notes.dart';
+import '../notes/notes_screen.dart';
 
 /// What can be done with an ayah long-pressed on a mushaf page.
 Future<void> showAyahActions(
@@ -63,6 +66,24 @@ Future<void> showAyahActions(
                 ),
               ),
               TranslationText(ayahs: [(surah, ayah)]),
+              if (Provider.of<NotesProvider>(sheet).of(surah, ayah)
+                  case final note?)
+                Container(
+                  margin: const EdgeInsets.only(top: 10),
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: colorScheme.gold.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.edit_note_rounded, color: colorScheme.gold),
+                      const SizedBox(width: 8),
+                      Expanded(child: Text(note.text)),
+                    ],
+                  ),
+                ),
               const Divider(height: 24),
               ListTile(
                 leading: Icon(Icons.menu_book_rounded, color: colorScheme.gold),
@@ -81,6 +102,11 @@ Future<void> showAyahActions(
                 ),
                 onTap: () =>
                     act(() => startRecitation(context, from: (surah, ayah))),
+              ),
+              ListTile(
+                leading: Icon(Icons.edit_note_rounded, color: colorScheme.gold),
+                title: Text(tr('ملاحظة تدبّر', 'Reflection note')),
+                onTap: () => act(() => editAyahNote(context, surah, ayah)),
               ),
               ListTile(
                 leading: Icon(Icons.repeat_rounded, color: colorScheme.gold),

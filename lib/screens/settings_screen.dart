@@ -13,6 +13,8 @@ import '../providers/settings_provider.dart';
 import '../providers/theme_provider.dart';
 import '../settings/backup.dart';
 import 'error_log_screen.dart';
+import '../quran/translations.dart';
+import '../widgets/translation_picker.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -60,19 +62,32 @@ class SettingsScreen extends StatelessWidget {
               ),
               SwitchListTile(
                 title: Text(
-                  tr(
-                    'ترجمة معاني القرآن بالإنجليزية',
-                    'English translation of the meanings',
-                  ),
+                  tr('ترجمة معاني القرآن', 'Translation of the meanings'),
                 ),
                 subtitle: Text(
                   tr(
-                    'صحيح إنترناشونال، في التفسير ونتائج البحث',
-                    'Saheeh International, in tafsir and search results',
+                    'في التفسير ونتائج البحث وعند الضغط على آية',
+                    'In tafsir, search results and the ayah actions',
                   ),
                 ),
                 value: settings.showTranslation,
                 onChanged: settings.setShowTranslation,
+              ),
+              ListTile(
+                enabled: settings.showTranslation,
+                leading: const Icon(Icons.translate_rounded),
+                title: Text(tr('لغة الترجمة', 'Translation language')),
+                subtitle: FutureBuilder<bool>(
+                  future: Translations.instance.isDownloaded(
+                    settings.translationLang,
+                  ),
+                  builder: (context, snapshot) => Text(
+                    '${translationLanguage(settings.translationLang).name} · '
+                    '${translationLanguage(settings.translationLang).translator}'
+                    '${snapshot.data == false ? tr(' · غير محمّلة على هذا الهاتف، تُعرض الإنجليزية', ' · not on this phone, English is shown') : ''}',
+                  ),
+                ),
+                onTap: () => chooseTranslation(context, settings),
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),

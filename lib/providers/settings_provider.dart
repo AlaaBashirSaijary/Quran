@@ -16,6 +16,7 @@ class SettingsProvider extends ChangeNotifier {
   static const _translationKey = 'settings.translation';
   static const _textModeKey = 'reader.textMode';
   static const _tafsirKey = 'tafsir.source';
+  static const _translationLangKey = 'settings.translationLang';
   static const _scaleKey = 'settings.textScale';
   static const _hijriKey = 'settings.hijriOffset';
   static const scales = [0.85, 1.0, 1.15, 1.3, 1.5];
@@ -49,6 +50,15 @@ class SettingsProvider extends ChangeNotifier {
 
   void setTextMode(bool value) {
     prefs.setBool(_textModeKey, value);
+    notifyListeners();
+  }
+
+  /// The language of the translation of the meanings (see
+  /// translationLanguages); English unless another was downloaded.
+  String get translationLang => prefs.getString(_translationLangKey) ?? 'en';
+
+  void setTranslationLang(String code) {
+    prefs.setString(_translationLangKey, code);
     notifyListeners();
   }
 

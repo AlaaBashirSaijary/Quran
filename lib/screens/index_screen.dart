@@ -17,6 +17,7 @@ import 'settings_screen.dart';
 import 'hifz_screen.dart';
 import 'wird_screen.dart';
 import '../daily/daily_cards.dart';
+import '../notes/notes_screen.dart';
 
 /// Opens the Quran reader at [page].
 ///
@@ -64,6 +65,12 @@ class IndexScreen extends StatelessWidget {
             icon: const Icon(Icons.bookmarks_rounded),
             onPressed: () => BookmarksScreen.open(context, isTab: isTab),
           ),
+          if (isTab)
+            IconButton(
+              tooltip: tr('ملاحظات التدبّر', 'Reflections'),
+              icon: const Icon(Icons.edit_note_rounded),
+              onPressed: () => NotesScreen.open(context),
+            ),
           if (isTab)
             IconButton(
               tooltip: AppConstant.searchAyah,

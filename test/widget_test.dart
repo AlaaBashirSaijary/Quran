@@ -10,6 +10,9 @@ import 'package:quranapplication/share/share_card.dart';
 import 'package:quranapplication/quran/ayah_regions.dart';
 import 'package:quranapplication/quran/translation.dart';
 import 'package:quranapplication/quran/tafsir_sources.dart';
+import 'package:quranapplication/quran/translations.dart';
+import 'package:quranapplication/notes/notes.dart';
+import 'package:quranapplication/notes/notes_screen.dart';
 import 'package:quranapplication/ramadan/ramadan.dart';
 import 'package:quranapplication/hijri/calendar_screen.dart';
 import 'package:quranapplication/core/error_log.dart';
@@ -17,6 +20,7 @@ import 'package:quranapplication/daily/daily.dart';
 import 'package:quranapplication/screens/error_log_screen.dart';
 import 'package:quranapplication/ramadan/imsakiya_screen.dart';
 import 'package:quranapplication/screens/search_screen.dart';
+import 'package:quranapplication/screens/main_tabs_screen.dart';
 import 'package:quranapplication/widgets/quran_page.dart';
 import 'package:quranapplication/widgets/quran_text_page.dart';
 
@@ -333,6 +337,15 @@ void main() {
     await tester.pump();
     expect(prefs.getInt('sebha.count'), 2);
     expect(find.text('2'), findsWidgets);
+
+    // A screen opened over the tabs gets its volume keys back.
+    final navigator = Navigator.of(tester.element(find.byType(MainTabsScreen)));
+    navigator.push(MaterialPageRoute<void>(builder: (_) => const Scaffold()));
+    await tester.pumpAndSettle();
+    expect(captures.last, isFalse);
+    navigator.pop();
+    await tester.pumpAndSettle();
+    expect(captures.last, isTrue);
 
     await tester.tap(find.text('القرآن').last);
     await tester.pumpAndSettle();
@@ -1852,6 +1865,119 @@ void main() {
     });
   });
 
+  group('Reflection notes', () {
+    test('are saved per ayah, newest first, and empty text removes', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final notes = NotesProvider(prefs)
+        ..save(2, 255, ' عظمة الله ', now: DateTime(2026, 9, 1))
+        ..save(1, 5, 'الاستعانة', now: DateTime(2026, 9, 2));
+      expect(notes.of(2, 255)!.text, 'عظمة الله');
+      expect(notes.all.map((n) => n.ayah), [5, 255]);
+
+      final again = NotesProvider(prefs);
+      expect(again.of(1, 5)!.updated, DateTime(2026, 9, 2));
+      again.save(1, 5, '   ');
+      expect(again.of(1, 5), isNull);
+      expect(NotesProvider(prefs).all, hasLength(1));
+    });
+
+    test('travel in backups', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      NotesProvider(prefs).save(3, 8, 'دعاء الثبات');
+      final backup = exportBackup(prefs);
+      await prefs.clear();
+      await importBackup(prefs, backup);
+      expect(NotesProvider(prefs).of(3, 8)!.text, 'دعاء الثبات');
+    });
+
+    testWidgets('the notes screen lists and filters', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final notes = NotesProvider(prefs)
+        ..save(2, 255, 'آية الكرسي قبل النوم')
+        ..save(94, 5, 'بعد العسر يسر');
+      await tester.pumpWidget(
+        ChangeNotifierProvider.value(
+          value: notes,
+          child: const MaterialApp(home: NotesScreen()),
+        ),
+      );
+      expect(find.text('آية الكرسي قبل النوم'), findsOneWidget);
+      expect(find.text('بعد العسر يسر'), findsOneWidget);
+      await tester.enterText(find.byType(TextField), 'العسر');
+      await tester.pump();
+      expect(find.text('آية الكرسي قبل النوم'), findsNothing);
+      expect(find.text('بعد العسر يسر'), findsOneWidget);
+    });
+  });
+
+  group('More translations', () {
+    test(
+      'a language is downloaded once and then read from the phone',
+      () async {
+        final temp = Directory.systemTemp.createTempSync('translations');
+        addTearDown(() => temp.deleteSync(recursive: true));
+        var requests = 0;
+        final quranJson = jsonEncode([
+          for (var s = 1; s <= 114; s++)
+            {
+              'id': s,
+              'verses': [
+                {'id': 1, 'text': '...', 'translation': ' ترجمہ $s '},
+              ],
+            },
+        ]);
+        Translations make() => Translations(
+          client: MockClient((request) async {
+            requests++;
+            expect(request.url.path, endsWith('/quran_ur.json'));
+            return http.Response.bytes(utf8.encode(quranJson), 200);
+          }),
+          folder: Future.value(temp.path),
+        );
+
+        final first = make();
+        expect(await first.isDownloaded('ur'), isFalse);
+        expect(await first.load('ur'), isNull);
+        final urdu = await first.download('ur');
+        expect(urdu.of(2, 1), 'ترجمہ 2');
+        expect(requests, 1);
+
+        final later = make();
+        // Asked for at the same time, the file is read once.
+        final both = await Future.wait([later.load('ur'), later.load('ur')]);
+        expect(identical(both[0], both[1]), isTrue);
+        expect(await later.isDownloaded('ur'), isTrue);
+        expect((await later.load('ur'))!.of(114, 1), 'ترجمہ 114');
+        expect(requests, 1);
+        expect(await later.isDownloaded('en'), isTrue, reason: 'bundled');
+      },
+    );
+
+    test('a broken download is not kept', () async {
+      final temp = Directory.systemTemp.createTempSync('translations');
+      addTearDown(() => temp.deleteSync(recursive: true));
+      final translations = Translations(
+        client: MockClient((_) async => http.Response('[]', 200)),
+        folder: Future.value(temp.path),
+      );
+      await expectLater(translations.download('fr'), throwsFormatException);
+      expect(await translations.isDownloaded('fr'), isFalse);
+    });
+
+    test('Urdu reads right to left; unknown codes fall back to English', () {
+      expect(translationLanguage('ur').direction, TextDirection.rtl);
+      expect(translationLanguage('fr').direction, TextDirection.ltr);
+      expect(translationLanguage('xx').code, 'en');
+      expect(
+        translationLanguages.map((l) => l.code).toSet(),
+        hasLength(translationLanguages.length),
+      );
+    });
+  });
+
   group('More tafsirs', () {
     test('an entry covers the ayahs up to the next one', () {
       final entries = parseSurahTafsir(
@@ -1907,6 +2033,32 @@ void main() {
       );
       expect((await again.surah(saadi, 1)).last.text, 'تفسير 7');
       expect(requests, isEmpty);
+    });
+
+    test('a response that does not parse is not kept', () async {
+      final temp = Directory.systemTemp.createTempSync('tafsir');
+      addTearDown(() => temp.deleteSync(recursive: true));
+      var good = false;
+      final library = TafsirLibrary(
+        client: MockClient(
+          (_) async => http.Response.bytes(
+            utf8.encode(
+              good
+                  ? jsonEncode([
+                      {'surah': 1, 'ayah': 1, 'text': 'تفسير'},
+                    ])
+                  : '<html>error</html>',
+            ),
+            200,
+          ),
+        ),
+        folder: Future.value(temp.path),
+      );
+      final saadi = tafsirSource('saadi');
+      await expectLater(library.surah(saadi, 1), throwsA(anything));
+      expect(temp.listSync(recursive: true).whereType<File>(), isEmpty);
+      good = true;
+      expect((await library.surah(saadi, 1)).single.text, 'تفسير');
     });
 
     test('the Muyassar stays bundled', () async {
@@ -2042,8 +2194,11 @@ void main() {
         await QuranSearch.load();
       });
       await tester.pumpWidget(
-        ChangeNotifierProvider(
-          create: (_) => RecitationProvider(prefs),
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => RecitationProvider(prefs)),
+            ChangeNotifierProvider(create: (_) => NotesProvider(prefs)),
+          ],
           child: const MaterialApp(
             home: Scaffold(
               body: Directionality(

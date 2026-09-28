@@ -12,6 +12,7 @@ import 'prayer_screen.dart';
 import '../core/language.dart';
 import '../providers/sebha_provider.dart';
 import '../tabs/volume_keys.dart';
+import '../main.dart';
 
 class MainTabsScreen extends StatefulWidget {
   const MainTabsScreen({super.key});
@@ -20,16 +21,32 @@ class MainTabsScreen extends StatefulWidget {
   State<MainTabsScreen> createState() => _MainTabsScreenState();
 }
 
-class _MainTabsScreenState extends State<MainTabsScreen> {
+class _MainTabsScreenState extends State<MainTabsScreen> with RouteAware {
   int _selectedIndex = 0;
   static const _sebhaTab = 3;
   StreamSubscription<void>? _volume;
+
+  /// False while another screen (the reader, settings...) covers the tabs.
+  bool _visible = true;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route != null) routeObserver.subscribe(this, route);
+  }
+
+  @override
+  void didPushNext() => setState(() => _visible = false);
+
+  @override
+  void didPopNext() => setState(() => _visible = true);
 
   @override
   void initState() {
     super.initState();
     _volume = VolumeKeys.presses.listen((_) {
-      if (mounted && _selectedIndex == _sebhaTab) {
+      if (mounted && _visible && _selectedIndex == _sebhaTab) {
         countTasbeeh(context.read<SebhaProvider>());
       }
     });
@@ -37,6 +54,7 @@ class _MainTabsScreenState extends State<MainTabsScreen> {
 
   @override
   void dispose() {
+    routeObserver.unsubscribe(this);
     _volume?.cancel();
     VolumeKeys.capture(false);
     super.dispose();
@@ -53,7 +71,7 @@ class _MainTabsScreenState extends State<MainTabsScreen> {
   @override
   Widget build(BuildContext context) {
     final volumeKeys = context.select<SebhaProvider, bool>((s) => s.volumeKeys);
-    VolumeKeys.capture(volumeKeys && _selectedIndex == _sebhaTab);
+    VolumeKeys.capture(volumeKeys && _visible && _selectedIndex == _sebhaTab);
     return NotificationSync(
       child: Scaffold(
         // IndexedStack keeps each tab's state (e.g. the sebha counter)
