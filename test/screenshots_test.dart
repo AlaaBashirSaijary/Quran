@@ -116,6 +116,16 @@ void main() {
     await tester.pump(const Duration(seconds: 2));
     await _shot(tester, key, '5-mushaf');
 
+    // The same page read as text.
+    Navigator.of(tester.element(find.byType(Scaffold).last)).pop();
+    await tester.pumpAndSettle();
+    prefs.setBool('reader.textMode', true);
+    await tester.tap(find.text('متابعة القراءة'));
+    await tester.pump(const Duration(seconds: 1));
+    await tester.runAsync(() => Future<void>.delayed(const Duration(seconds: 2)));
+    await tester.pump(const Duration(seconds: 2));
+    await _shot(tester, key, '7-text-mode');
+
     // A shared-ayah card on its own.
     final cardKey = GlobalKey();
     await tester.pumpWidget(

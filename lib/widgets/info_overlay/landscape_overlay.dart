@@ -15,6 +15,7 @@ import '../go_to_page_popup.dart';
 import '../horizontal_divider.dart';
 import '../vertical_divider.dart';
 import 'info_text.dart';
+import 'text_mode_button.dart';
 
 class LandscapeOverlay extends StatelessWidget {
   const LandscapeOverlay({super.key});
@@ -78,6 +79,7 @@ class LandscapeOverlay extends StatelessWidget {
                   Navigator.pushNamed(context, '/search');
                 },
               ),
+              const TextModeButton(),
               IconButton(
                 tooltip: Theme.of(context).brightness == Brightness.dark
                     ? tr('الوضع النهاري', 'Light mode')

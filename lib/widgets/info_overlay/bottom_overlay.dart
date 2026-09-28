@@ -16,6 +16,7 @@ import '../go_to_page_popup.dart';
 import '../horizontal_divider.dart';
 import '../vertical_divider.dart';
 import 'search_button.dart';
+import 'text_mode_button.dart';
 
 class BottomOverlay extends StatelessWidget {
   const BottomOverlay({super.key});
@@ -97,6 +98,8 @@ class BottomOverlay extends StatelessWidget {
                     ).hideOverlay();
                   },
                 ),
+                const VerticalDiv(),
+                const TextModeButton(),
                 const VerticalDiv(),
                 IconButton(
                   tooltip: Theme.of(context).brightness == Brightness.dark

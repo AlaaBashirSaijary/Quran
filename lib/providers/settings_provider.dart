@@ -14,6 +14,7 @@ class SettingsProvider extends ChangeNotifier {
 
   static const languageKey = 'settings.language';
   static const _translationKey = 'settings.translation';
+  static const _textModeKey = 'reader.textMode';
   static const _scaleKey = 'settings.textScale';
   static const _hijriKey = 'settings.hijriOffset';
   static const scales = [0.85, 1.0, 1.15, 1.3, 1.5];
@@ -39,6 +40,14 @@ class SettingsProvider extends ChangeNotifier {
 
   void setShowTranslation(bool value) {
     prefs.setBool(_translationKey, value);
+    notifyListeners();
+  }
+
+  /// Read the mushaf as text instead of page images.
+  bool get textMode => prefs.getBool(_textModeKey) ?? false;
+
+  void setTextMode(bool value) {
+    prefs.setBool(_textModeKey, value);
     notifyListeners();
   }
 

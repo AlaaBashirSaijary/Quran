@@ -16,6 +16,7 @@ import 'package:quranapplication/screens/error_log_screen.dart';
 import 'package:quranapplication/ramadan/imsakiya_screen.dart';
 import 'package:quranapplication/screens/search_screen.dart';
 import 'package:quranapplication/widgets/quran_page.dart';
+import 'package:quranapplication/widgets/quran_text_page.dart';
 
 import 'package:quranapplication/content/library.dart';
 import 'package:quranapplication/audio/recitation.dart';
@@ -1651,6 +1652,38 @@ void main() {
       final rect = regions.rectsOf(586, 81, 1).first;
       expect(regions.ayahAt(586, rect.center), (81, 1));
       expect(regions.ayahAt(586, const Offset(0.5, 0.005)), isNull);
+    });
+
+    testWidgets('text mode shows the page’s ayahs with surah headers', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final quran = (await tester.runAsync(() async {
+        await AyahRegions.load();
+        return QuranSearch.load();
+      }))!;
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => RecitationProvider(prefs)),
+            ChangeNotifierProvider(create: (_) => SettingsProvider(prefs)),
+          ],
+          child: const MaterialApp(
+            home: Scaffold(body: QuranTextPage(page: 586)),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('سورة التكوير'), findsOneWidget);
+      // The basmala before At-Takwir, and the end of Abasa above it.
+      expect(find.text(quran.ayahsOfSurah(1).first.text), findsOneWidget);
+      final text = tester
+          .widgetList<RichText>(find.byType(RichText))
+          .map((r) => r.text.toPlainText())
+          .join('\n');
+      expect(text, contains(quran.ayahsOfSurah(80)[40].text));
+      expect(text, contains('${quran.ayahsOfSurah(81).last.text} ﴿٢٩﴾'));
     });
 
     testWidgets('double tap zooms the page in and out', (tester) async {

@@ -63,10 +63,14 @@ class QuranSearch {
   QuranSearch._(this._ayahs, this._normalized);
 
   static Future<QuranSearch>? _instance;
+  static QuranSearch? _loaded;
+
+  /// The text, once [load] has finished.
+  static QuranSearch? get loaded => _loaded;
 
   /// Loads the Quran text once and reuses it.
   static Future<QuranSearch> load() {
-    return _instance ??= _load();
+    return _instance ??= _load().then((q) => _loaded = q);
   }
 
   static Future<QuranSearch> _load() async {
