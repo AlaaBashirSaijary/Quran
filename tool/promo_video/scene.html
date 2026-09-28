@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>منهج حياة — فيديو</title>
+<style>
+  @font-face { font-family: "Diodrum"; src: url(fonts/DiodrumArabic-Regular.ttf); font-weight: 400; }
+  @font-face { font-family: "Diodrum"; src: url(fonts/DiodrumArabic-Medium.ttf); font-weight: 500; }
+  @font-face { font-family: "Diodrum"; src: url(fonts/DiodrumArabic-Semibold.ttf); font-weight: 600; }
+  @font-face { font-family: "Diodrum"; src: url(fonts/DiodrumArabic-Bold.ttf); font-weight: 700; }
+  :root {
+    --night: #071e15; --emerald: #0d3325; --green: #1f5e3b;
+    --gold: #c9a54c; --gold-soft: #e0c27a; --parchment: #f3ecd8; --soft: #c5d3ca;
+    --W: 1920px; --H: 1080px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: var(--W); height: var(--H); overflow: hidden; background: var(--night); }
+  body { font-family: "Diodrum", "Segoe UI", sans-serif; color: var(--parchment); }
+  #stage { position: relative; width: var(--W); height: var(--H); overflow: hidden;
+    background: radial-gradient(ellipse at 20% 30%, #123f2d 0%, var(--emerald) 38%, var(--night) 100%); }
+  #glow { position: absolute; inset: -20%; background:
+    radial-gradient(circle at 70% 60%, rgba(201,165,76,.16), transparent 42%),
+    radial-gradient(circle at 15% 80%, rgba(31,94,59,.55), transparent 45%); }
+  #star { position: absolute; width: 1500px; height: 1500px; opacity: .10; }
+  .dust { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: var(--gold-soft); }
+  #brand { position: absolute; top: 44px; right: 64px; display: flex; align-items: center; gap: 14px;
+    font-weight: 700; font-size: 34px; color: var(--gold-soft); z-index: 5; }
+  #brand img { width: 56px; height: 56px; border-radius: 14px; }
+  #progress { position: absolute; left: 0; bottom: 0; height: 6px; background: linear-gradient(90deg, var(--gold), var(--gold-soft)); z-index: 5; }
+
+  .scene { position: absolute; inset: 0; display: none; z-index: 2; }
+  .scene .layout { position: absolute; inset: 0; padding: 150px 96px 70px; display: flex; flex-direction: row; align-items: center; gap: 40px; }
+  .text { flex: 0 0 800px; display: flex; flex-direction: column; gap: 22px; }
+  .art { flex: 1; height: 100%; position: relative; perspective: 1600px; }
+  h1 { font-size: 92px; line-height: 1.15; font-weight: 700; color: var(--gold-soft); }
+  h2 { font-size: 34px; font-weight: 500; color: var(--soft); direction: ltr; text-align: right; letter-spacing: .01em; }
+  ul { list-style: none; display: flex; flex-direction: column; gap: 16px; margin-top: 18px; }
+  li { display: flex; align-items: flex-start; gap: 18px; font-size: 42px; line-height: 1.45; font-weight: 500; }
+  li::before { content: ""; flex: none; width: 16px; height: 16px; margin-top: 22px; transform: rotate(45deg); background: var(--gold); }
+  .note { font-size: 26px; color: var(--soft); opacity: .8; margin-top: 10px; }
+
+  .phone { position: absolute; top: 50%; left: 50%; width: 470px; height: 1008px; margin: -504px 0 0 -235px;
+    border-radius: 66px; background: #0a0f0c; padding: 14px; box-shadow: 0 50px 110px rgba(0,0,0,.6), inset 0 0 0 3px #2a352e, 0 0 0 2px rgba(201,165,76,.35); }
+  .phone img { width: 100%; height: 100%; display: block; border-radius: 54px; object-fit: cover; object-position: top; }
+  .phone.small { width: 420px; height: 900px; margin: -450px 0 0 -210px; border-radius: 60px; }
+  .phone.small img { border-radius: 48px; }
+  .frame { position: absolute; top: 50%; left: 50%; width: 900px; height: 525px; margin: -262px 0 0 -450px;
+    border-radius: 28px; overflow: hidden; box-shadow: 0 40px 100px rgba(0,0,0,.55), 0 0 0 2px rgba(201,165,76,.5); }
+  .frame img { width: 100%; height: 100%; display: block; }
+
+  .tiles { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 26px; align-content: center; padding: 30px 10px; }
+  .tile { background: linear-gradient(160deg, rgba(31,94,59,.7), rgba(13,51,37,.7)); border: 2px solid rgba(201,165,76,.35);
+    border-radius: 30px; padding: 30px 26px; display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+  .tile .e { font-size: 70px; line-height: 1.1; font-family: "Noto Color Emoji", sans-serif; }
+  .tile .t { font-size: 36px; font-weight: 600; line-height: 1.35; }
+  .tile .s { font-size: 27px; color: var(--soft); line-height: 1.4; }
+
+  .wave { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 12px; }
+  .wave i { display: block; width: 18px; border-radius: 9px; background: linear-gradient(180deg, var(--gold-soft), var(--gold)); }
+
+  .center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 24px; padding: 0 120px; }
+  .center img.logo { width: 250px; height: 250px; border-radius: 60px; box-shadow: 0 30px 80px rgba(0,0,0,.5), 0 0 0 3px rgba(201,165,76,.5); }
+  .center h1 { font-size: 150px; }
+  .center p { font-size: 50px; color: var(--parchment); font-weight: 500; line-height: 1.5; max-width: 1400px; }
+  .center .url { font-size: 44px; color: var(--gold-soft); direction: ltr; font-weight: 600; padding: 20px 44px; border: 3px solid var(--gold); border-radius: 22px; margin-top: 12px; }
+  .center .credit { font-size: 36px; color: var(--soft); margin-top: 22px; }
+  .center .pill { display: inline-block; font-size: 34px; padding: 10px 30px; border-radius: 99px; border: 2px solid rgba(201,165,76,.5); color: var(--soft); }
+
+  /* Portrait 1080 x 1920 */
+  html.portrait { --W: 1080px; --H: 1920px; }
+  .portrait #star { width: 1500px; height: 1500px; }
+  .portrait #brand { right: 50px; top: 52px; }
+  .portrait .scene .layout { flex-direction: column; padding: 170px 64px 90px; gap: 20px; align-items: stretch; }
+  .portrait .text { flex: 0 0 auto; gap: 16px; }
+  .portrait h1 { font-size: 88px; }
+  .portrait h2 { font-size: 34px; }
+  .portrait li { font-size: 40px; }
+  .portrait li::before { margin-top: 20px; }
+  .portrait .art { flex: 1; min-height: 0; }
+  .portrait .phone { width: 400px; height: 858px; margin: -429px 0 0 -200px; }
+  .portrait .phone.small { width: 340px; height: 730px; margin: -365px 0 0 -170px; border-radius: 52px; }
+  .portrait .phone.small img { border-radius: 40px; }
+  .portrait .frame { width: 900px; height: 525px; margin: -262px 0 0 -450px; }
+  .portrait .tiles { grid-template-columns: repeat(2, 1fr); padding: 0; gap: 20px; }
+  .portrait .tile { padding: 24px 22px; }
+  .portrait .tile .e { font-size: 58px; }
+  .portrait .tile .t { font-size: 34px; }
+  .portrait .tile .s { font-size: 25px; }
+  .portrait .center img.logo { width: 280px; height: 280px; }
+  .portrait .center h1 { font-size: 132px; }
+  .portrait .center p { font-size: 48px; }
+  .portrait .center .url { font-size: 38px; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="glow"></div>
+  <svg id="star" viewBox="-100 -100 200 200"><g fill="none" stroke="#c9a54c" stroke-width="1.2">
+    <rect x="-70" y="-70" width="140" height="140"/><rect x="-70" y="-70" width="140" height="140" transform="rotate(45)"/>
+    <rect x="-52" y="-52" width="104" height="104"/><rect x="-52" y="-52" width="104" height="104" transform="rotate(45)"/>
+    <circle r="36"/></g></svg>
+  <div id="dust"></div>
+  <div id="brand"><span>منهج حياة</span><img src="icon.png" alt=""></div>
+  <div id="scenes"></div>
+  <div id="progress"></div>
+</div>
+<script>
+const params = new URLSearchParams(location.search);
+const portrait = params.get('mode') === 'portrait';
+if (portrait) document.documentElement.classList.add('portrait');
+const W = portrait ? 1080 : 1920, H = portrait ? 1920 : 1080;
+
+const img = n => 'img/' + n + '.jpg';
+// kind: phone (one screen), duo (two), frame (a wide image), tiles, wave, intro, outro
+const SCENES = [
+  { kind: 'intro', d: 4.5 },
+  { kind: 'phone', d: 5, img: ['v02-mushaf'], t: 'مصحف المدينة كاملاً', en: 'The complete Madinah Mushaf',
+    b: ['604 صفحات بالخط العثماني', 'فهرس السور والأجزاء والأحزاب', 'يحفظ آخر صفحة قرأتها', 'تكبير الصفحة بإصبعين أو بنقرتين'] },
+  { kind: 'phone', d: 5.5, img: ['v03-ayah-menu'], t: 'اضغط مطوّلاً على أي آية', en: 'Long-press any ayah',
+    b: ['تفسيرها في لحظة', 'الاستماع من هذه الآية', 'ملاحظة تدبّر', 'تكرار مقطع للحفظ', 'مشاركتها كصورة أو نسخها'] },
+  { kind: 'phone', d: 5.5, img: ['v04-tafsir'], t: 'التفسير الميسر', en: 'Tafsir, one tap away',
+    b: ['لكل آية، من المصحف أو من نتائج البحث', 'وتفاسير أخرى: السعدي، المختصر، ابن كثير، القرطبي', 'يُحمَّل التفسير عند أول فتح، ثم يعمل دون إنترنت'] },
+  { kind: 'phone', d: 4.5, img: ['v05-text-mode'], t: 'القراءة نصاً', en: 'Read as text',
+    b: ['الصفحة نفسها بالخط العثماني', 'بحجم الخط الذي تختاره', 'والضغط المطوّل على الآيات كما في المصحف'] },
+  { kind: 'phone', d: 5, img: ['v06-search'], t: 'البحث في القرآن', en: 'Search the Quran',
+    b: ['بكلمة أو جزء من آية أو اسم سورة', 'انتقال مباشر إلى الصفحة', 'مع التفسير والترجمة في النتائج'] },
+  { kind: 'wave', d: 6.5, t: 'الاستماع للتلاوة', en: 'Listen to recitation',
+    b: ['آية آية، وتُميَّز الآية المتلوّة وتنتقل الصفحة معها', 'اختيار القارئ من عدة قرّاء', 'تكرار مقطع كامل للحفظ', 'مؤقت نوم', 'تحميل السور للاستماع دون إنترنت'] },
+  { kind: 'duo', d: 5, img: ['v07-juz', 'v08-bookmarks'], t: 'الأجزاء والعلامات', en: 'Juz index and bookmarks',
+    b: ['الأجزاء والأحزاب وأرباعها', 'علامات مرجعية متعددة'] },
+  { kind: 'phone', d: 5, img: ['v09-notes'], t: 'ملاحظات التدبّر', en: 'Reflection notes',
+    b: ['اكتب خاطرتك على أي آية', 'ابحث في ملاحظاتك', 'تدخل في النسخة الاحتياطية'], note: 'الملاحظات في الصورة أمثلة تجريبية' },
+  { kind: 'duo', d: 5.5, img: ['v11-wird', 'v10-hifz'], t: 'الورد والحفظ', en: 'Daily wird and memorisation',
+    b: ['هدف يومي بالصفحات وتتبّع تلقائي', 'نسبة الختمة وموعد إتمامها المتوقع', 'مراجعة المحفوظ على فترات متباعدة'], note: 'البيانات في الصورة أمثلة تجريبية' },
+  { kind: 'phone', d: 5.5, img: ['v20-group-khatma'], t: 'الختمة الجماعية', en: 'Group khatma',
+    b: ['دون خادم ولا تسجيل', 'وزّع الأجزاء الثلاثين على المشاركين', 'شارك رسالة الختمة في واتساب', 'ويحدّث المنظّم التقدّم برسائل الإنجاز'], note: 'الأسماء في الصورة أمثلة تجريبية' },
+  { kind: 'phone', d: 5, img: ['v12-prayer'], t: 'مواقيت الصلاة', en: 'Prayer times',
+    b: ['تُحسب على هاتفك دون إنترنت', 'عدّ تنازلي للصلاة القادمة', 'اختيار طريقة الحساب والمذهب في العصر', 'من موقعك أو من قائمة المدن'] },
+  { kind: 'tiles', d: 6.5, t: 'التنبيهات والقبلة والودجت', en: 'Reminders, qibla and widget',
+    b: ['تنبيه عند دخول كل صلاة، مع اختيار صوت الأذان', 'بوصلة القبلة تستخدم حساسات الهاتف', 'ودجت للشاشة الرئيسية في أندرويد'],
+    tiles: [['🔔', 'تنبيه كل صلاة', 'وتذكير قبلها بدقائق'], ['🧭', 'بوصلة القبلة', 'الاتجاه والدرجات'], ['📱', 'ودجت الشاشة', 'الصلاة القادمة وأوقات اليوم'], ['🕌', 'يوم الجمعة', 'تذكير بسورة الكهف والدعاء']] },
+  { kind: 'duo', d: 5.5, img: ['v13-hijri', 'v14-imsakiya'], t: 'التقويم الهجري وإمساكية رمضان', en: 'Hijri calendar and Ramadan timetable',
+    b: ['تقويم أم القرى مع تعديل ±يومين', 'تنبيه بالأيام الفاضلة', 'إمساكية الشهر كاملة لمدينتك', 'ختمة رمضان: جزء كل يوم'] },
+  { kind: 'duo', d: 5, img: ['v15-azkar', 'v16-azkar-category'], t: 'الأذكار', en: 'Daily azkar',
+    b: ['الصباح والمساء والنوم وبعد الصلاة', 'من حصن المسلم', 'عدّاد لكل ذكر يُحفظ طوال اليوم'] },
+  { kind: 'phone', d: 4.5, img: ['v17-douaa'], t: 'الأدعية', en: 'Supplications',
+    b: ['أدعية المناسبات: السفر والمطر والكرب والمرض', 'مع البحث', 'ودعاء ختم القرآن'] },
+  { kind: 'phone', d: 5, img: ['v18-tasbeeh'], t: 'السبحة الإلكترونية', en: 'Digital tasbeeh',
+    b: ['اختيار الذكر والعدد المطلوب', 'وإضافة أذكار خاصة', 'إحصاءات يومية وأيام متتالية', 'العدّ بأزرار الصوت دون النظر إلى الشاشة'] },
+  { kind: 'phone', d: 4.5, img: ['v19-hadith'], t: 'الأحاديث النبوية', en: 'Hadith library',
+    b: ['الأربعون النووية والأربعون القدسية', 'رياض الصالحين كاملاً', 'وحديث اليوم'] },
+  { kind: 'frame', d: 4.5, img: ['share'], t: 'المشاركة كصورة', en: 'Share as an image',
+    b: ['آية أو حديث أو ذكر أو دعاء', 'بطاقة أنيقة مع ذكر المصدر', 'بالأخضر والذهبي أو بخلفية فاتحة'] },
+  { kind: 'duo', d: 5, img: ['n02-mushaf', 'e02-prayer'], t: 'وضع ليلي وواجهة إنجليزية', en: 'Night mode and English interface',
+    b: ['وضع ليلي مريح للعين', 'واجهة بالعربية أو بالإنجليزية', 'والقرآن والأحاديث دائماً بالعربية'] },
+  { kind: 'phone', d: 4.5, img: ['v21-settings'], t: 'الإعدادات والنسخ الاحتياطي', en: 'Settings and backup',
+    b: ['حجم الخط والمظهر', 'نسخة احتياطية تنقلها إلى هاتف آخر', 'دعم قارئ الشاشة'] },
+  { kind: 'tiles', d: 5.5, t: 'خصوصيتك محفوظة', en: 'Your privacy comes first',
+    b: ['لا حساب ولا بيانات شخصية', 'لا إعلانات ولا تتبّع', 'يعمل دون إنترنت'],
+    tiles: [['🚫', 'بلا إعلانات', 'ولا أدوات تتبّع'], ['🔒', 'بياناتك على هاتفك', 'ولا خوادم لدينا'], ['✈️', 'دون إنترنت', 'ما عدا التلاوة والتحميل'], ['🎁', 'مجاني', 'لوجه الله']] },
+  { kind: 'outro', d: 6.5 },
+];
+const TOTAL = SCENES.reduce((a, s) => a + s.d, 0);
+window.TOTAL = TOTAL;
+
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const easeOut = x => 1 - Math.pow(1 - clamp(x), 3);
+const easeInOut = x => { x = clamp(x); return x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+
+function el(tag, cls, html) { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+
+const root = document.getElementById('scenes');
+SCENES.forEach((s, i) => {
+  const sc = el('div', 'scene'); s.el = sc;
+  if (s.kind === 'intro' || s.kind === 'outro') {
+    const c = el('div', 'center'); sc.appendChild(c);
+    if (s.kind === 'intro') {
+      s.parts = [
+        c.appendChild(el('img', 'logo')),
+        c.appendChild(el('h1', '', 'منهج حياة')),
+        c.appendChild(el('p', '', 'القرآن والصلاة والذكر<br>في تطبيق واحد هادئ')),
+        c.appendChild(el('span', 'pill', 'تطبيق مجاني لأندرويد')),
+      ];
+      s.parts[0].src = 'icon.png';
+    } else {
+      s.parts = [
+        c.appendChild(el('img', 'logo')),
+        c.appendChild(el('h1', '', 'حمّل منهج حياة مجاناً')),
+        c.appendChild(el('p', '', 'من موقع التطبيق الرسمي')),
+        c.appendChild(el('div', 'url', 'alaabashirsaijary.github.io/manhaj-hayah')),
+        c.appendChild(el('div', 'credit', 'تصميم وتطوير المهندسة ألاء بشير سيجري · © 2026 جميع الحقوق محفوظة')),
+      ];
+      s.parts[0].src = 'icon.png';
+    }
+  } else {
+    const lay = el('div', 'layout'); sc.appendChild(lay);
+    const text = el('div', 'text'); lay.appendChild(text);
+    s.title = text.appendChild(el('h1', '', s.t));
+    s.sub = text.appendChild(el('h2', '', s.en));
+    const ul = text.appendChild(el('ul'));
+    s.lis = s.b.map(b => ul.appendChild(el('li', '', b)));
+    if (s.note) s.noteEl = text.appendChild(el('div', 'note', s.note));
+    const art = el('div', 'art'); lay.appendChild(art); s.art = art;
+    if (s.kind === 'phone' || s.kind === 'duo') {
+      s.phones = s.img.map((n, k) => {
+        const p = el('div', 'phone' + (s.kind === 'duo' ? ' small' : ''));
+        const im = el('img'); im.src = img(n); p.appendChild(im); art.appendChild(p); return p;
+      });
+    } else if (s.kind === 'frame') {
+      const f = el('div', 'frame'); const im = el('img'); im.src = img(s.img[0]); f.appendChild(im); art.appendChild(f); s.frame = f;
+    } else if (s.kind === 'tiles') {
+      const g = el('div', 'tiles'); art.appendChild(g);
+      s.tileEls = s.tiles.map(t => g.appendChild(el('div', 'tile', `<div class="e">${t[0]}</div><div class="t">${t[1]}</div><div class="s">${t[2]}</div>`)));
+    } else if (s.kind === 'wave') {
+      const w = el('div', 'wave'); art.appendChild(w);
+      s.bars = Array.from({ length: 27 }, () => w.appendChild(el('i')));
+    }
+  }
+  root.appendChild(sc);
+});
+
+// Gold dust: fixed pseudo-random start, slow drift.
+let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const dust = Array.from({ length: 44 }, () => {
+  const d = el('div', 'dust'); document.getElementById('dust').appendChild(d);
+  return { d, x: rnd() * W, y: rnd() * H, v: 6 + rnd() * 16, r: 2 + rnd() * 5, ph: rnd() * 6.28 };
+});
+
+function place(e, opacity, transform) { e.style.opacity = opacity; e.style.transform = transform; }
+
+window.renderAt = function (t) {
+  t = clamp(t, 0, TOTAL - 0.001);
+  document.getElementById('progress').style.width = (t / TOTAL * 100) + '%';
+  document.getElementById('star').style.transform = `translate(${W / 2 - 750 + Math.sin(t * .1) * 30}px, ${H / 2 - 750}px) rotate(${t * 2.2}deg)`;
+  document.getElementById('star').style.left = '0'; document.getElementById('star').style.top = '0';
+  dust.forEach(p => {
+    const y = ((p.y - t * p.v) % H + H) % H;
+    p.d.style.transform = `translate(${p.x + Math.sin(t * .4 + p.ph) * 22}px, ${y}px) scale(${p.r / 4})`;
+    p.d.style.opacity = .25 + .35 * Math.abs(Math.sin(t * .6 + p.ph));
+  });
+  document.getElementById('brand').style.opacity = t < 4.5 || t > TOTAL - 6.5 ? 0 : 1;
+
+  let at = 0;
+  SCENES.forEach(s => {
+    const u = t - at; at += s.d;
+    const on = u >= 0 && u < s.d;
+    s.el.style.display = on ? 'block' : 'none';
+    if (!on) return;
+    const fadeIn = easeOut(u / .6), fadeOut = clamp((u - (s.d - .45)) / .45);
+    const vis = fadeIn * (1 - fadeOut);
+    s.el.style.opacity = vis;
+    if (s.kind === 'intro' || s.kind === 'outro') {
+      s.parts.forEach((p, i) => {
+        const k = easeOut((u - .15 - i * .35) / .7);
+        place(p, k, `translateY(${(1 - k) * 50}px) scale(${.94 + .06 * k})`);
+      });
+      return;
+    }
+    const tk = easeOut((u - .1) / .7);
+    place(s.title, tk, `translateY(${(1 - tk) * 50}px)`);
+    const sk = easeOut((u - .3) / .7);
+    place(s.sub, sk, `translateY(${(1 - sk) * 30}px)`);
+    s.lis.forEach((li, i) => {
+      const k = easeOut((u - .8 - i * .45) / .55);
+      place(li, k, `translateX(${(1 - k) * 60}px)`);
+    });
+    if (s.noteEl) { const k = easeOut((u - 1.5) / .8); place(s.noteEl, k * .8, 'none'); }
+    const inn = easeOut(u / .9);
+    if (s.phones) {
+      s.phones.forEach((p, i) => {
+        const dl = easeOut((u - i * .35) / .9);
+        const duo = s.phones.length > 1;
+        const off = duo ? (i === 0 ? (portrait ? -170 : -215) : (portrait ? 170 : 215)) : 0;
+        const lift = duo ? (i === 0 ? -34 : 34) : 0;
+        const bob = Math.sin(u * 1.3 + i) * 9;
+        const ry = (1 - dl) * 38 + (duo ? (i === 0 ? 8 : -8) : 5) + Math.sin(u * .8 + i) * 3;
+        place(p, dl, `translate3d(${off - (1 - dl) * 260}px, ${lift + bob}px, ${duo && i === 0 ? -60 : 0}px) rotateY(${ry}deg) scale(${1 + .02 * u / s.d})`);
+      });
+    }
+    if (s.frame) place(s.frame, inn, `translate3d(${-(1 - inn) * 200}px, ${Math.sin(u * 1.2) * 8}px, 0) rotateY(${(1 - inn) * 30 + 4}deg)`);
+    if (s.tileEls) s.tileEls.forEach((e, i) => { const k = easeOut((u - .5 - i * .4) / .6); place(e, k, `translateY(${(1 - k) * 60}px) scale(${.92 + .08 * k})`); });
+    if (s.bars) s.bars.forEach((b, i) => {
+      const a = (.3 + .7 * Math.abs(Math.sin(u * 2.1 + i * .55) * Math.cos(u * 1.3 + i * .21))) * (1 - Math.abs(i - 13) / 18);
+      b.style.height = (portrait ? 80 : 60) + a * (portrait ? 420 : 640) * inn + 'px';
+      b.style.opacity = inn;
+    });
+  });
+};
+window.renderAt(0);
+</script>
+</body>
+</html>

@@ -41,6 +41,10 @@ Future<void> _loadFonts() async {
     'assets/fonts/UthmanicHafs-Regular.ttf',
     'assets/fonts/UthmanicHafs-Bold.ttf',
   ]);
+  // Stands in for the system font a phone falls back to for the ornate
+  // verse brackets, which the app's own fonts lack.
+  const ornament = '/usr/share/fonts/truetype/freefont/FreeSerif.ttf';
+  if (File(ornament).existsSync()) await family('ornament', [ornament]);
   final root =
       Platform.environment['FLUTTER_ROOT'] ??
       File(Platform.resolvedExecutable).parent.parent.parent.parent.parent.path;
@@ -140,6 +144,11 @@ void main() {
     final cardKey = GlobalKey();
     await tester.pumpWidget(
       MaterialApp(
+        // The app's font, as in the real share flow, so Arabic text draws.
+        theme: ThemeData(
+          fontFamily: 'diodrum',
+          fontFamilyFallback: const ['ornament'],
+        ),
         home: Scaffold(
           body: Center(
             child: RepaintBoundary(
