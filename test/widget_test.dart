@@ -1653,6 +1653,40 @@ void main() {
       expect(regions.ayahAt(586, const Offset(0.5, 0.005)), isNull);
     });
 
+    testWidgets('double tap zooms the page in and out', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      await tester.pumpWidget(
+        ChangeNotifierProvider(
+          create: (_) => RecitationProvider(prefs),
+          child: const MaterialApp(
+            home: Scaffold(body: QuranPage(pageIndex: 2)),
+          ),
+        ),
+      );
+      final viewer = find.byType(InteractiveViewer);
+      Future<void> doubleTap() async {
+        await tester.tap(viewer);
+        await tester.pump(const Duration(milliseconds: 50));
+        await tester.tap(viewer);
+        await tester.pumpAndSettle();
+      }
+
+      expect(readerZoomed.value, isFalse);
+      await doubleTap();
+      expect(readerZoomed.value, isTrue);
+      expect(
+        tester
+            .widget<InteractiveViewer>(viewer)
+            .transformationController!
+            .value
+            .getMaxScaleOnAxis(),
+        2,
+      );
+      await doubleTap();
+      expect(readerZoomed.value, isFalse);
+    });
+
     testWidgets('long-pressing an ayah opens its actions', (tester) async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();

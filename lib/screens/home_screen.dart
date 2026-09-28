@@ -54,37 +54,44 @@ class HomeScreen extends StatelessWidget {
                           )
                         : null,
                     constraints: const BoxConstraints(maxWidth: 500),
-                    child: CarouselSlider.builder(
-                      carouselController: quran.carouselController,
-                      options: CarouselOptions(
-                        enableInfiniteScroll: false,
-                        height: double.infinity,
-                        initialPage: quran.currentPage - 1,
-                        viewportFraction: 1,
-                        enlargeCenterPage: false,
-                        onPageChanged: (int newIndex, _) {
-                          quranListenFalse.changePage(newIndex);
+                    child: ValueListenableBuilder<bool>(
+                      valueListenable: readerZoomed,
+                      builder: (context, zoomed, _) => CarouselSlider.builder(
+                        carouselController: quran.carouselController,
+                        options: CarouselOptions(
+                          // A zoomed page pans instead of turning.
+                          scrollPhysics: zoomed
+                              ? const NeverScrollableScrollPhysics()
+                              : null,
+                          enableInfiniteScroll: false,
+                          height: double.infinity,
+                          initialPage: quran.currentPage - 1,
+                          viewportFraction: 1,
+                          enlargeCenterPage: false,
+                          onPageChanged: (int newIndex, _) {
+                            quranListenFalse.changePage(newIndex);
+                          },
+                        ),
+                        itemCount: quranPages.length,
+                        itemBuilder: (_, pageIndex, _) {
+                          return isLandscape || isKeyboardOpen
+                              ? ListView(
+                                  children: [
+                                    const SimplePageInfo(),
+                                    QuranPage(pageIndex: pageIndex),
+                                  ],
+                                )
+                              : Column(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const SimplePageInfo(),
+                                    QuranPage(pageIndex: pageIndex),
+                                    const PageNumber(),
+                                  ],
+                                );
                         },
                       ),
-                      itemCount: quranPages.length,
-                      itemBuilder: (_, pageIndex, _) {
-                        return isLandscape || isKeyboardOpen
-                            ? ListView(
-                                children: [
-                                  const SimplePageInfo(),
-                                  QuranPage(pageIndex: pageIndex),
-                                ],
-                              )
-                            : Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  const SimplePageInfo(),
-                                  QuranPage(pageIndex: pageIndex),
-                                  const PageNumber(),
-                                ],
-                              );
-                      },
                     ),
                   ),
                 ),
