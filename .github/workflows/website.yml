@@ -1,6 +1,7 @@
 name: Website
 
-# Publishes website/ (with the app screenshots) to GitHub Pages.
+# Publishes website/ (with the app screenshots and the latest APK, so the
+# download button can show progress) to GitHub Pages.
 # One-time setup: Settings → Pages → Build and deployment → Source:
 # "GitHub Actions".
 on:
@@ -10,6 +11,11 @@ on:
       - 'website/**'
       - 'docs/screenshots/**'
       - '.github/workflows/website.yml'
+  # Re-publish after each release so the hosted APK stays current.
+  workflow_run:
+    workflows: [Build APK]
+    types: [completed]
+    branches: [master]
   workflow_dispatch:
 
 permissions:
@@ -23,6 +29,7 @@ concurrency:
 
 jobs:
   deploy:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -35,6 +42,23 @@ jobs:
           mkdir -p _site/screenshots
           cp -r website/. _site/
           cp docs/screenshots/*.png _site/screenshots/
+
+      - name: Add the latest APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p _site/download
+          tag=$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName -q .tagName)
+          # Releases made before the rename carry the former file name.
+          for name in manhaj-hayah.apk tareeq-aljannah.apk; do
+            if gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern "$name" --dir _site/download; then
+              [ "$name" = manhaj-hayah.apk ] || mv "_site/download/$name" _site/download/manhaj-hayah.apk
+              break
+            fi
+          done
+          size=$(stat -c %s _site/download/manhaj-hayah.apk)
+          printf '{"version":"%s","size":%s}\n' "$tag" "$size" > _site/download/latest.json
+          cat _site/download/latest.json
 
       - uses: actions/configure-pages@v5
 

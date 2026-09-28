@@ -11,7 +11,7 @@
 <link rel="icon" href="icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Readex+Pro:wght@300;400;500;600&family=Reem+Kufi:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
 <style>
   :root {
     color-scheme: dark;
@@ -21,10 +21,10 @@
     --gold: #c9a54c;
     --gold-soft: #e0c27a;
     --parchment: #f3ecd8;
-    --ink-soft: #b9c9bf;
+    --ink-soft: #c5d3ca;
     --line: rgba(201, 165, 76, 0.28);
-    --display: "Reem Kufi", "Readex Pro", "Segoe UI", Tahoma, sans-serif;
-    --body: "Readex Pro", "Segoe UI", Tahoma, sans-serif;
+    --display: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+    --body: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
     --quran: "Amiri", "Traditional Arabic", serif;
   }
   * { box-sizing: border-box; }
@@ -34,8 +34,9 @@
     background: var(--night);
     color: var(--parchment);
     font-family: var(--body);
-    font-size: 17px;
-    line-height: 1.8;
+    font-size: 18px;
+    line-height: 1.9;
+    -webkit-font-smoothing: antialiased;
     padding-inline: 16px;
   }
   img { max-width: 100%; }
@@ -48,11 +49,15 @@
     position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10;
     display: flex; align-items: center; justify-content: space-between; gap: 16px;
     padding-block: 12px;
-    background: linear-gradient(var(--night) 70%, transparent);
+    background: var(--night);
+    /* Paint the bar edge to edge, past the page gutter. */
+    box-shadow: 0 0 0 100vmax var(--night);
+    clip-path: inset(0 -100vmax);
+    border-bottom: 1px solid rgba(201, 165, 76, 0.12);
   }
   .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--parchment); }
   .brand img { width: 40px; height: 40px; border-radius: 10px; }
-  .brand span { font-family: var(--display); font-size: 1.35rem; }
+  .brand span { font-family: var(--quran); font-weight: 700; font-size: 1.45rem; }
   nav.links { display: flex; gap: 20px; flex-wrap: wrap; }
   nav.links a { color: var(--ink-soft); text-decoration: none; font-size: 0.95rem; }
   nav.links a:hover { color: var(--gold-soft); }
@@ -62,13 +67,13 @@
     display: grid; grid-template-columns: 1.05fr 1fr; align-items: center; gap: 32px;
     padding-block: 32px 48px;
   }
-  .eyebrow { color: var(--gold); letter-spacing: 0.04em; font-size: 0.95rem; }
+  .eyebrow { color: var(--gold); font-size: 0.95rem; font-weight: 500; }
   h1 {
-    font-family: var(--display); font-weight: 700;
-    font-size: clamp(3rem, 8vw, 5.6rem); line-height: 1.1; margin: 8px 0 12px;
+    font-family: var(--quran); font-weight: 700;
+    font-size: clamp(3.2rem, 8.5vw, 6rem); line-height: 1.25; margin: 8px 0 12px;
     color: var(--gold-soft); text-wrap: balance;
   }
-  .lede { font-size: 1.2rem; color: var(--parchment); max-width: 34ch; margin: 0 0 12px; font-weight: 300; }
+  .lede { font-size: 1.2rem; color: var(--parchment); max-width: 36ch; margin: 0 0 12px; }
   .ayah {
     font-family: var(--quran); font-size: 1.45rem; color: var(--gold);
     margin: 18px 0 26px; line-height: 2;
@@ -85,7 +90,17 @@
   .btn-ghost { border: 1px solid var(--line); color: var(--parchment); }
   .btn-ghost:hover { border-color: var(--gold); }
   .btn svg { width: 22px; height: 22px; }
-  .note { color: var(--ink-soft); font-size: 0.85rem; margin-top: 12px; }
+  .dl-status { margin-top: 14px; max-width: 30rem; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: rgba(13, 51, 37, 0.7); }
+  .dl-track { height: 10px; border-radius: 99px; background: rgba(243, 236, 216, 0.12); overflow: hidden; }
+  .dl-fill { height: 100%; width: 0; border-radius: 99px; background: linear-gradient(90deg, var(--gold), var(--gold-soft)); transition: width .25s linear; }
+  .dl-status.indeterminate .dl-fill { width: 35%; animation: slide 1.2s ease-in-out infinite; }
+  @keyframes slide { from { transform: translateX(100%); } to { transform: translateX(-300%); } }
+  .dl-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 16px; margin-top: 8px; font-variant-numeric: tabular-nums; }
+  .dl-pct { font-weight: 700; font-size: 1.3rem; color: var(--gold-soft); }
+  .dl-info, .dl-eta { color: var(--ink-soft); font-size: 0.95rem; }
+  .dl-cancel { background: none; border: 0; color: var(--gold-soft); font: inherit; font-size: 0.9rem; text-decoration: underline; cursor: pointer; padding: 0; }
+  .btn[aria-busy="true"] { opacity: .7; pointer-events: none; }
+  .note { color: var(--ink-soft); font-size: 0.9rem; margin-top: 12px; }
 
   .stage { position: relative; aspect-ratio: 1 / 1; max-width: 100%; }
   #scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
@@ -97,7 +112,7 @@
 
   /* Sections */
   section { padding-block: 56px; border-top: 1px solid var(--line); }
-  h2 { font-family: var(--display); font-weight: 500; font-size: clamp(1.8rem, 4vw, 2.6rem); margin: 0 0 8px; color: var(--gold-soft); text-wrap: balance; }
+  h2 { font-family: var(--display); font-weight: 600; font-size: clamp(1.8rem, 4vw, 2.6rem); margin: 0 0 8px; color: var(--gold-soft); text-wrap: balance; }
   .section-lede { color: var(--ink-soft); max-width: 60ch; margin: 0 0 32px; }
 
   .pillars { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
@@ -105,7 +120,7 @@
     background: linear-gradient(160deg, rgba(31,94,59,.55), rgba(13,51,37,.55));
     border: 1px solid var(--line); border-radius: 20px; padding: 24px 26px;
   }
-  .pillar h3 { font-family: var(--display); font-weight: 500; font-size: 1.45rem; margin: 0 0 10px; color: var(--parchment); display: flex; align-items: center; gap: 10px; }
+  .pillar h3 { font-family: var(--display); font-weight: 600; font-size: 1.45rem; margin: 0 0 10px; color: var(--parchment); display: flex; align-items: center; gap: 10px; }
   .pillar h3 svg { width: 28px; height: 28px; color: var(--gold); flex: none; }
   .pillar ul { margin: 0; padding-inline-start: 1.1em; color: var(--ink-soft); }
   .pillar li { margin-block: 6px; }
@@ -181,13 +196,13 @@
         <p class="lede">رفيقك اليومي للقرآن الكريم والصلاة والذكر، في تطبيق واحد هادئ يحترم وقتك وخصوصيتك.</p>
         <p class="ayah">﴿قُلۡ إِنَّ صَلَاتِي وَنُسُكِي وَمَحۡيَايَ وَمَمَاتِي لِلَّهِ رَبِّ ٱلۡعَٰلَمِينَ﴾<small>سورة الأنعام · الآية 162</small></p>
         <div class="cta">
-          <a class="btn btn-gold" href="https://github.com/AlaaBashirSaijary/Quran/releases/latest/download/manhaj-hayah.apk">
+          <a class="btn btn-gold dl" href="https://github.com/AlaaBashirSaijary/Quran/releases/latest/download/manhaj-hayah.apk">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
             تحميل التطبيق
           </a>
           <a class="btn btn-ghost" href="https://github.com/AlaaBashirSaijary/Quran/releases/latest">كل الإصدارات</a>
         </div>
-        <p class="note">ملف APK لأندرويد، يعمل على أي هاتف. آخر إصدار دائماً.</p>
+        <p class="note">ملف APK لأندرويد، يعمل على أي هاتف. آخر إصدار دائماً<span class="dl-meta"></span>.</p>
       </div>
       <div class="stage" id="stage">
         <img class="fallback" src="screenshots/1-quran.png" alt="الشاشة الرئيسية لتطبيق منهج حياة">
@@ -283,7 +298,7 @@
       <h2>ابدأ يومك مع منهج حياة</h2>
       <p class="section-lede" style="margin-inline:auto">حمّل التطبيق مجاناً، وشاركه مع من تحب.</p>
       <div class="cta">
-        <a class="btn btn-gold" href="https://github.com/AlaaBashirSaijary/Quran/releases/latest/download/manhaj-hayah.apk">تحميل التطبيق</a>
+        <a class="btn btn-gold dl" href="https://github.com/AlaaBashirSaijary/Quran/releases/latest/download/manhaj-hayah.apk">تحميل التطبيق</a>
       </div>
     </div>
   </main>
@@ -425,6 +440,141 @@
   if (reduce) {
     // One still frame once the screenshot has loaded.
     setTimeout(function () { renderer.render(scene, camera); }, 600);
+  }
+})();
+</script>
+<script>
+// Downloads the APK from this site (same origin) so the button can show
+// progress, size and remaining time. Anywhere else (or if the fetch fails)
+// the link falls back to GitHub Releases.
+(function () {
+  var FILE = 'download/manhaj-hayah.apk';
+  var NAME = 'manhaj-hayah.apk';
+  var hosted = /github\.io$/.test(location.hostname) || location.hostname === 'localhost';
+  var nf = new Intl.NumberFormat('ar', { maximumFractionDigits: 1 });
+  var nf0 = new Intl.NumberFormat('ar', { maximumFractionDigits: 0 });
+  function mb(b) { return nf.format(b / 1048576); }
+  function eta(s) {
+    if (!isFinite(s)) return '';
+    if (s < 60) return 'يتبقى نحو ' + nf0.format(Math.max(1, Math.round(s))) + ' ثانية';
+    var m = Math.round(s / 60);
+    return 'يتبقى نحو ' + (m === 1 ? 'دقيقة' : m === 2 ? 'دقيقتين' : nf0.format(m) + ' دقائق');
+  }
+
+  if (!hosted) return;
+  fetch('download/latest.json', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (info) {
+      if (!info) return;
+      document.querySelectorAll('.dl-meta').forEach(function (el) {
+        el.textContent = ' · الإصدار ' + info.version + ' · الحجم ' + mb(info.size) + ' م.ب';
+      });
+    }).catch(function () {});
+
+  var busy = false;
+  document.querySelectorAll('a.dl').forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      if (!window.fetch || !window.ReadableStream) return;
+      e.preventDefault();
+      if (!busy) start(btn);
+    });
+  });
+
+  function panel(btn) {
+    var host = btn.closest('.cta');
+    var box = host.nextElementSibling;
+    if (!box || !box.classList.contains('dl-status')) {
+      box = document.createElement('div');
+      box.className = 'dl-status';
+      box.setAttribute('role', 'status');
+      box.setAttribute('aria-live', 'polite');
+      box.innerHTML = '<div class="dl-track"><div class="dl-fill"></div></div>' +
+        '<div class="dl-row"><span class="dl-pct"></span><span class="dl-info"></span></div>' +
+        '<div class="dl-row"><span class="dl-eta"></span><button type="button" class="dl-cancel">إلغاء</button></div>';
+      host.insertAdjacentElement('afterend', box);
+      if (host.parentElement.classList.contains('final')) box.style.marginInline = 'auto';
+    }
+    box.hidden = false;
+    return box;
+  }
+
+  function start(btn) {
+    busy = true;
+    var box = panel(btn);
+    var fill = box.querySelector('.dl-fill'), pct = box.querySelector('.dl-pct'),
+        info = box.querySelector('.dl-info'), left = box.querySelector('.dl-eta'),
+        cancel = box.querySelector('.dl-cancel');
+    var ctrl = new AbortController();
+    btn.setAttribute('aria-busy', 'true');
+    box.classList.add('indeterminate');
+    fill.style.width = '';
+    pct.textContent = 'جارٍ بدء التحميل…'; info.textContent = ''; left.textContent = '';
+    cancel.hidden = false; cancel.textContent = 'إلغاء';
+    cancel.onclick = function () { ctrl.abort(); };
+
+    function finish() { busy = false; btn.removeAttribute('aria-busy'); }
+
+    fetch(FILE, { signal: ctrl.signal, cache: 'no-store' }).then(function (res) {
+      if (!res.ok || !res.body) throw new Error('http ' + res.status);
+      var total = +res.headers.get('Content-Length') || 0;
+      var reader = res.body.getReader();
+      var got = 0, chunks = [], t0 = performance.now(), lastT = t0, lastGot = 0, speed = 0, shown = 0;
+      if (total) box.classList.remove('indeterminate');
+      function pump() {
+        return reader.read().then(function (step) {
+          if (step.done) return;
+          chunks.push(step.value);
+          got += step.value.length;
+          var now = performance.now();
+          if (now - lastT > 400) {
+            var s = (got - lastGot) / ((now - lastT) / 1000);
+            speed = speed ? speed * 0.7 + s * 0.3 : s;
+            lastT = now; lastGot = got;
+          }
+          if (now - shown > 200) {
+            shown = now;
+            if (total) {
+              var p = got / total;
+              fill.style.width = (p * 100).toFixed(1) + '%';
+              pct.textContent = nf0.format(Math.floor(p * 100)) + '٪';
+              info.textContent = mb(got) + ' من ' + mb(total) + ' م.ب' + (speed ? ' · ' + mb(speed) + ' م.ب/ث' : '');
+              left.textContent = speed ? eta((total - got) / speed) : 'جارٍ حساب الوقت المتبقي…';
+            } else {
+              pct.textContent = mb(got) + ' م.ب';
+              info.textContent = speed ? mb(speed) + ' م.ب/ث' : '';
+            }
+          }
+          return pump();
+        });
+      }
+      return pump().then(function () {
+        var blob = new Blob(chunks, { type: 'application/vnd.android.package-archive' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url; a.download = NAME;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+        box.classList.remove('indeterminate');
+        fill.style.width = '100%';
+        pct.textContent = 'اكتمل التحميل ✓';
+        info.textContent = mb(got) + ' م.ب';
+        left.textContent = 'افتح الملف من إشعار التنزيل أو من مجلد «التنزيلات» لتثبيته.';
+        cancel.hidden = true;
+        finish();
+      });
+    }).catch(function (err) {
+      finish();
+      box.classList.remove('indeterminate');
+      if (err && err.name === 'AbortError') {
+        fill.style.width = '0';
+        pct.textContent = 'أُلغي التحميل';
+        info.textContent = ''; left.textContent = '';
+        cancel.hidden = true;
+        return;
+      }
+      // Not available here: let GitHub serve the file directly.
+      box.hidden = true;
+      location.href = btn.href;
+    });
   }
 })();
 </script>
