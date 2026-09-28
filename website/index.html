@@ -445,15 +445,18 @@
 </script>
 <script>
 // Downloads the APK from this site (same origin) so the button can show
-// progress, size and remaining time. Anywhere else (or if the fetch fails)
-// the link falls back to GitHub Releases.
+// progress, size and remaining time. Two things keep it fast: phones get
+// the build for their processor (much smaller than the universal one),
+// and the file comes down in parallel chunks. Anywhere else, or if the
+// fetch fails, the link falls back to the GitHub release.
 (function () {
-  var FILE = 'download/manhaj-hayah.apk';
   var NAME = 'manhaj-hayah.apk';
+  var CHUNK = 4 * 1048576, PARALLEL = 6, RETRIES = 3;
   var hosted = /github\.io$/.test(location.hostname) || location.hostname === 'localhost';
   var nf = new Intl.NumberFormat('ar', { maximumFractionDigits: 1 });
   var nf0 = new Intl.NumberFormat('ar', { maximumFractionDigits: 0 });
   function mb(b) { return nf.format(b / 1048576); }
+  function rate(bps) { return bps < 1048576 ? nf0.format(bps / 1024) + ' ك.ب/ث' : mb(bps) + ' م.ب/ث'; }
   function eta(s) {
     if (!isFinite(s)) return '';
     if (s < 60) return 'يتبقى نحو ' + nf0.format(Math.max(1, Math.round(s))) + ' ثانية';
@@ -462,18 +465,39 @@
   }
 
   if (!hosted) return;
-  fetch('download/latest.json', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; })
-    .then(function (info) {
-      if (!info) return;
-      document.querySelectorAll('.dl-meta').forEach(function (el) {
-        el.textContent = ' · الإصدار ' + info.version + ' · الحجم ' + mb(info.size) + ' م.ب';
-      });
-    }).catch(function () {});
+
+  // Which build this device needs. Unknown → the universal one, which
+  // installs everywhere.
+  var variant = Promise.resolve('universal');
+  if (/Android/i.test(navigator.userAgent) && navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
+    variant = navigator.userAgentData.getHighEntropyValues(['architecture', 'bitness']).then(function (h) {
+      if (/arm/i.test(h.architecture) && h.bitness === '64') return 'arm64-v8a';
+      if (/arm/i.test(h.architecture) && h.bitness === '32') return 'armeabi-v7a';
+      return 'universal';
+    }).catch(function () { return 'universal'; });
+  }
+  var manifest = fetch('download/latest.json', { cache: 'no-store' })
+    .then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
+  var pick = Promise.all([manifest, variant]).then(function (v) {
+    var info = v[0], want = v[1];
+    if (!info) return null;
+    var files = info.files || {};
+    var f = files[want] || files.universal ||
+      (info.size ? { file: NAME, size: info.size } : null);
+    return f ? { version: info.version, file: f.file, size: f.size, small: want !== 'universal' && !!files[want] } : null;
+  });
+  pick.then(function (p) {
+    if (!p) return;
+    document.querySelectorAll('.dl-meta').forEach(function (el) {
+      el.textContent = ' · الإصدار ' + p.version + ' · الحجم ' + mb(p.size) + ' م.ب' +
+        (p.small ? ' (نسخة مخصّصة لمعالج هاتفك)' : '');
+    });
+  });
 
   var busy = false;
   document.querySelectorAll('a.dl').forEach(function (btn) {
     btn.addEventListener('click', function (e) {
-      if (!window.fetch || !window.ReadableStream) return;
+      if (!window.fetch || !window.AbortController) return;
       e.preventDefault();
       if (!busy) start(btn);
     });
@@ -497,6 +521,46 @@
     return box;
   }
 
+  // Fetches bytes [from, to] and reports each piece as it arrives; retries
+  // a dropped chunk from where it stopped.
+  function getRange(url, from, to, signal, onBytes) {
+    var parts = [], have = 0, tries = 0;
+    function attempt() {
+      return fetch(url, { signal: signal, headers: { Range: 'bytes=' + (from + have) + '-' + to } }).then(function (res) {
+        if (res.status !== 206 || !res.body) throw new Error('range ' + res.status);
+        var reader = res.body.getReader();
+        function pump() {
+          return reader.read().then(function (s) {
+            if (s.done) return;
+            parts.push(s.value); have += s.value.length; onBytes(s.value.length);
+            return pump();
+          });
+        }
+        return pump();
+      }).then(function () {
+        if (have < to - from + 1) throw new Error('short');
+        return new Blob(parts);
+      }).catch(function (err) {
+        if (signal.aborted || ++tries > RETRIES) throw err;
+        return new Promise(function (r) { setTimeout(r, 800 * tries); }).then(attempt);
+      });
+    }
+    return attempt();
+  }
+
+  // Whole file on one connection, for servers that ignore Range.
+  function getWhole(res, onBytes) {
+    var parts = [], reader = res.body.getReader();
+    function pump() {
+      return reader.read().then(function (s) {
+        if (s.done) return new Blob(parts);
+        parts.push(s.value); onBytes(s.value.length);
+        return pump();
+      });
+    }
+    return pump();
+  }
+
   function start(btn) {
     busy = true;
     var box = panel(btn);
@@ -508,69 +572,88 @@
     box.classList.add('indeterminate');
     fill.style.width = '';
     pct.textContent = 'جارٍ بدء التحميل…'; info.textContent = ''; left.textContent = '';
-    cancel.hidden = false; cancel.textContent = 'إلغاء';
+    cancel.hidden = false;
     cancel.onclick = function () { ctrl.abort(); };
 
+    var total = 0, got = 0, t0 = 0, samples = [], shown = 0;
+    function onBytes(n) {
+      got += n;
+      var now = performance.now();
+      if (!t0) t0 = now;
+      samples.push([now, got]);
+      while (samples.length > 2 && now - samples[0][0] > 4000) samples.shift();
+      if (now - shown < 200) return;
+      shown = now;
+      var span = (now - samples[0][0]) / 1000;
+      var speed = span > 0.5 ? (got - samples[0][1]) / span : 0;
+      if (total) {
+        var p = Math.min(1, got / total);
+        fill.style.width = (p * 100).toFixed(1) + '%';
+        pct.textContent = nf0.format(Math.floor(p * 100)) + '٪';
+        info.textContent = mb(got) + ' من ' + mb(total) + ' م.ب' + (speed ? ' · ' + rate(speed) : '');
+        left.textContent = speed && now - t0 > 1500 ? eta((total - got) / speed) : 'جارٍ حساب الوقت المتبقي…';
+      } else {
+        pct.textContent = mb(got) + ' م.ب';
+        info.textContent = speed ? rate(speed) : '';
+      }
+    }
     function finish() { busy = false; btn.removeAttribute('aria-busy'); }
 
-    fetch(FILE, { signal: ctrl.signal, cache: 'no-store' }).then(function (res) {
-      if (!res.ok || !res.body) throw new Error('http ' + res.status);
-      var total = +res.headers.get('Content-Length') || 0;
-      var reader = res.body.getReader();
-      var got = 0, chunks = [], t0 = performance.now(), lastT = t0, lastGot = 0, speed = 0, shown = 0;
-      if (total) box.classList.remove('indeterminate');
-      function pump() {
-        return reader.read().then(function (step) {
-          if (step.done) return;
-          chunks.push(step.value);
-          got += step.value.length;
-          var now = performance.now();
-          if (now - lastT > 400) {
-            var s = (got - lastGot) / ((now - lastT) / 1000);
-            speed = speed ? speed * 0.7 + s * 0.3 : s;
-            lastT = now; lastGot = got;
-          }
-          if (now - shown > 200) {
-            shown = now;
-            if (total) {
-              var p = got / total;
-              fill.style.width = (p * 100).toFixed(1) + '%';
-              pct.textContent = nf0.format(Math.floor(p * 100)) + '٪';
-              info.textContent = mb(got) + ' من ' + mb(total) + ' م.ب' + (speed ? ' · ' + mb(speed) + ' م.ب/ث' : '');
-              left.textContent = speed ? eta((total - got) / speed) : 'جارٍ حساب الوقت المتبقي…';
-            } else {
-              pct.textContent = mb(got) + ' م.ب';
-              info.textContent = speed ? mb(speed) + ' م.ب/ث' : '';
-            }
-          }
-          return pump();
-        });
-      }
-      return pump().then(function () {
-        var blob = new Blob(chunks, { type: 'application/vnd.android.package-archive' });
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement('a');
-        a.href = url; a.download = NAME;
-        document.body.appendChild(a); a.click(); a.remove();
-        setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+    pick.then(function (p) {
+      var url = 'download/' + (p ? p.file : NAME);
+      // The first chunk also tells us whether the server takes ranges.
+      return fetch(url, { signal: ctrl.signal, headers: { Range: 'bytes=0-' + (CHUNK - 1) } }).then(function (res) {
+        if (!res.ok || !res.body) throw new Error('http ' + res.status);
+        var cr = res.headers.get('Content-Range');
+        if (res.status !== 206 || !cr) {
+          total = +res.headers.get('Content-Length') || 0;
+          if (total) box.classList.remove('indeterminate');
+          return getWhole(res, onBytes);
+        }
+        total = +cr.split('/')[1];
         box.classList.remove('indeterminate');
-        fill.style.width = '100%';
-        pct.textContent = 'اكتمل التحميل ✓';
-        info.textContent = mb(got) + ' م.ب';
-        left.textContent = 'افتح الملف من إشعار التنزيل أو من مجلد «التنزيلات» لتثبيته.';
-        cancel.hidden = true;
-        finish();
+        var first = getWhole(res, onBytes);
+        var ranges = [];
+        for (var at = CHUNK; at < total; at += CHUNK) ranges.push([at, Math.min(total, at + CHUNK) - 1]);
+        var blobs = new Array(ranges.length), next = 0;
+        function worker() {
+          if (next >= ranges.length) return Promise.resolve();
+          var i = next++;
+          return getRange(url, ranges[i][0], ranges[i][1], ctrl.signal, onBytes)
+            .then(function (b) { blobs[i] = b; return worker(); });
+        }
+        var workers = [];
+        for (var w = 0; w < PARALLEL - 1; w++) workers.push(worker());
+        return Promise.all([first].concat(workers)).then(function (r) {
+          return new Blob([r[0]].concat(blobs));
+        });
       });
+    }).then(function (blob) {
+      if (total && blob.size !== total) throw new Error('size');
+      var url = URL.createObjectURL(new Blob([blob], { type: 'application/vnd.android.package-archive' }));
+      var a = document.createElement('a');
+      a.href = url; a.download = NAME;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+      var secs = (performance.now() - t0) / 1000;
+      box.classList.remove('indeterminate');
+      fill.style.width = '100%';
+      pct.textContent = 'اكتمل التحميل ✓';
+      info.textContent = mb(blob.size) + ' م.ب' + (secs > 0 ? ' · ' + rate(blob.size / secs) : '');
+      left.textContent = 'افتح الملف من إشعار التنزيل أو من مجلد «التنزيلات» لتثبيته.';
+      cancel.hidden = true;
+      finish();
     }).catch(function (err) {
       finish();
       box.classList.remove('indeterminate');
-      if (err && err.name === 'AbortError') {
+      if (ctrl.signal.aborted) {
         fill.style.width = '0';
         pct.textContent = 'أُلغي التحميل';
         info.textContent = ''; left.textContent = '';
         cancel.hidden = true;
         return;
       }
+      ctrl.abort();
       // Not available here: let GitHub serve the file directly.
       box.hidden = true;
       location.href = btn.href;
