@@ -99,14 +99,18 @@ class TafsirLibrary {
     final count = (await QuranSearch.load()).ayahsOfSurah(surah).length;
     final folder = await _folder;
     final path = folder == null ? null : '$folder/$slug/$surah.json';
-    var body = path == null ? null : await readText(path);
-    if (body == null) {
-      body = await _download(slug, surah);
-      if (path != null) {
-        await writeFile(path, Uint8List.fromList(utf8.encode(body)));
-      }
+    final saved = path == null ? null : await readText(path);
+    if (saved != null) {
+      return _memory[key] = parseSurahTafsir(saved, surah, count);
     }
-    return _memory[key] = parseSurahTafsir(body, surah, count);
+    final body = await _download(slug, surah);
+    // Only a file that parses is kept, so a bad response can be retried.
+    final entries = parseSurahTafsir(body, surah, count);
+    if (entries.isEmpty) throw const FormatException('no tafsir entries');
+    if (path != null) {
+      await writeFile(path, Uint8List.fromList(utf8.encode(body)));
+    }
+    return _memory[key] = entries;
   }
 
   Future<String> _download(String slug, int surah) async {

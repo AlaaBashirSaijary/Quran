@@ -20,6 +20,7 @@ import 'package:quranapplication/daily/daily.dart';
 import 'package:quranapplication/screens/error_log_screen.dart';
 import 'package:quranapplication/ramadan/imsakiya_screen.dart';
 import 'package:quranapplication/screens/search_screen.dart';
+import 'package:quranapplication/screens/main_tabs_screen.dart';
 import 'package:quranapplication/widgets/quran_page.dart';
 import 'package:quranapplication/widgets/quran_text_page.dart';
 
@@ -336,6 +337,15 @@ void main() {
     await tester.pump();
     expect(prefs.getInt('sebha.count'), 2);
     expect(find.text('2'), findsWidgets);
+
+    // A screen opened over the tabs gets its volume keys back.
+    final navigator = Navigator.of(tester.element(find.byType(MainTabsScreen)));
+    navigator.push(MaterialPageRoute<void>(builder: (_) => const Scaffold()));
+    await tester.pumpAndSettle();
+    expect(captures.last, isFalse);
+    navigator.pop();
+    await tester.pumpAndSettle();
+    expect(captures.last, isTrue);
 
     await tester.tap(find.text('القرآن').last);
     await tester.pumpAndSettle();
@@ -2023,6 +2033,32 @@ void main() {
       );
       expect((await again.surah(saadi, 1)).last.text, 'تفسير 7');
       expect(requests, isEmpty);
+    });
+
+    test('a response that does not parse is not kept', () async {
+      final temp = Directory.systemTemp.createTempSync('tafsir');
+      addTearDown(() => temp.deleteSync(recursive: true));
+      var good = false;
+      final library = TafsirLibrary(
+        client: MockClient(
+          (_) async => http.Response.bytes(
+            utf8.encode(
+              good
+                  ? jsonEncode([
+                      {'surah': 1, 'ayah': 1, 'text': 'تفسير'},
+                    ])
+                  : '<html>error</html>',
+            ),
+            200,
+          ),
+        ),
+        folder: Future.value(temp.path),
+      );
+      final saadi = tafsirSource('saadi');
+      await expectLater(library.surah(saadi, 1), throwsA(anything));
+      expect(temp.listSync(recursive: true).whereType<File>(), isEmpty);
+      good = true;
+      expect((await library.surah(saadi, 1)).single.text, 'تفسير');
     });
 
     test('the Muyassar stays bundled', () async {

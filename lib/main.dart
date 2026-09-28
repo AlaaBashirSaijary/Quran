@@ -27,6 +27,9 @@ import 'screens/search_screen.dart';
 import 'screens/splash_screen.dart';
 import 'notes/notes.dart';
 
+/// Lets screens know when another screen covers them.
+final routeObserver = RouteObserver<ModalRoute<void>>();
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -144,6 +147,7 @@ class MyApp extends StatelessWidget {
           darkTheme: AppTheme.darkThemeData,
           themeMode: theme.themeMode,
           home: SplashScreen(prefs: prefs),
+          navigatorObservers: [routeObserver],
           localizationsDelegates: const [
             GlobalCupertinoLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
