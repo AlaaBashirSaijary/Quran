@@ -44,7 +44,7 @@ class _SplashScreenState extends State<SplashScreen> {
             Image.asset('assets/splash.png', width: 160),
             const SizedBox(height: 24),
             Text(
-              tr('طريق الجنة', 'Tareeq Al-Jannah'),
+              tr('منهج حياة', 'Manhaj Hayah'),
               style: TextStyle(
                 fontFamily: AppTheme.secondaryFontFamily,
                 color: AppColor.green,

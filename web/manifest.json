@@ -1,11 +1,11 @@
 {
-    "name": "طريق الجنة",
-    "short_name": "طريق الجنة",
+    "name": "منهج حياة",
+    "short_name": "منهج حياة",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#1F5E3B",
     "theme_color": "#1F5E3B",
-    "description": "طريق الجنة - القرآن الكريم والأحاديث والسبحة",
+    "description": "منهج حياة - القرآن الكريم والأحاديث والسبحة",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

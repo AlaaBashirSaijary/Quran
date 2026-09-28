@@ -91,10 +91,10 @@ jobs:
         run: |
           mkdir -p dist
           cd build/app/outputs/flutter-apk
-          cp app-release.apk ../../../../dist/tareeq-aljannah.apk
-          cp app-arm64-v8a-release.apk ../../../../dist/tareeq-aljannah-arm64-v8a.apk
-          cp app-armeabi-v7a-release.apk ../../../../dist/tareeq-aljannah-armeabi-v7a.apk
-          cp app-x86_64-release.apk ../../../../dist/tareeq-aljannah-x86_64.apk
+          cp app-release.apk ../../../../dist/manhaj-hayah.apk
+          cp app-arm64-v8a-release.apk ../../../../dist/manhaj-hayah-arm64-v8a.apk
+          cp app-armeabi-v7a-release.apk ../../../../dist/manhaj-hayah-armeabi-v7a.apk
+          cp app-x86_64-release.apk ../../../../dist/manhaj-hayah-x86_64.apk
           ls -lh ../../../../dist
 
       - uses: actions/upload-artifact@v7
@@ -112,7 +112,7 @@ jobs:
         run: |
           flutter build appbundle --release --build-name=$VERSION --build-number=${{ github.run_number }}
           mkdir -p aab
-          cp build/app/outputs/bundle/release/app-release.aab aab/tareeq-aljannah.aab
+          cp build/app/outputs/bundle/release/app-release.aab aab/manhaj-hayah.aab
 
       - uses: actions/upload-artifact@v7
         if: env.HAS_KEYSTORE == 'true' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v'))
@@ -158,22 +158,22 @@ jobs:
         with:
           tag_name: ${{ steps.version.outputs.tag }}
           target_commitish: ${{ github.sha }}
-          name: طريق الجنة ${{ steps.version.outputs.tag }}
+          name: منهج حياة ${{ steps.version.outputs.tag }}
           make_latest: true
           files: |
-            dist/tareeq-aljannah.apk
-            dist/tareeq-aljannah-arm64-v8a.apk
-            dist/tareeq-aljannah-armeabi-v7a.apk
-            dist/tareeq-aljannah.aab
+            dist/manhaj-hayah.apk
+            dist/manhaj-hayah-arm64-v8a.apk
+            dist/manhaj-hayah-armeabi-v7a.apk
+            dist/manhaj-hayah.aab
           body: |
             ## التثبيت على الهاتف
-            حمّل **`tareeq-aljannah.apk`** من قسم Assets في الأسفل وافتحه على هاتفك (يعمل على أي هاتف Android).
+            حمّل **`manhaj-hayah.apk`** من قسم Assets في الأسفل وافتحه على هاتفك (يعمل على أي هاتف Android).
 
             ملفات أصغر حجماً لمن يعرف نوع معالج هاتفه:
-            - `tareeq-aljannah-arm64-v8a.apk`: معظم الهواتف الحديثة
-            - `tareeq-aljannah-armeabi-v7a.apk`: الهواتف القديمة
+            - `manhaj-hayah-arm64-v8a.apk`: معظم الهواتف الحديثة
+            - `manhaj-hayah-armeabi-v7a.apk`: الهواتف القديمة
 
             عند أول تثبيت قد يطلب الهاتف السماح بـ«تثبيت التطبيقات من مصادر غير معروفة».
 
-            ملف `tareeq-aljannah.aab` (إن وُجد) هو الحزمة التي تُرفع إلى Google Play، ولا يُثبَّت مباشرة على الهاتف.
+            ملف `manhaj-hayah.aab` (إن وُجد) هو الحزمة التي تُرفع إلى Google Play، ولا يُثبَّت مباشرة على الهاتف.
           generate_release_notes: true

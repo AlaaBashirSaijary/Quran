@@ -4,7 +4,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../core/error_log.dart';
 import '../core/language.dart';
 
-const _app = 'tareeq-aljannah';
+const _app = 'manhaj-hayah';
+
+/// Backups made before the app was renamed.
+const _formerApp = 'tareeq-aljannah';
 const _format = 1;
 
 class BackupException implements Exception {
@@ -53,11 +56,12 @@ Future<int> importBackup(SharedPreferences prefs, String json) async {
       tr('الملف ليس نسخة احتياطية صالحة.', 'The file is not a valid backup.'),
     );
   }
-  if (backup['app'] != _app || backup['data'] is! Map) {
+  if ((backup['app'] != _app && backup['app'] != _formerApp) ||
+      backup['data'] is! Map) {
     throw BackupException(
       tr(
-        'هذا الملف ليس نسخة احتياطية من طريق الجنة.',
-        'This file is not a Tareeq Al-Jannah backup.',
+        'هذا الملف ليس نسخة احتياطية من منهج حياة.',
+        'This file is not a Manhaj Hayah backup.',
       ),
     );
   }

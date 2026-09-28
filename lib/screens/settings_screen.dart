@@ -307,7 +307,7 @@ class SettingsScreen extends StatelessWidget {
     final prefs = await SharedPreferences.getInstance();
     final now = DateTime.now();
     final name =
-        'tareeq-aljannah-${now.year}-${now.month.toString().padLeft(2, '0')}-'
+        'manhaj-hayah-${now.year}-${now.month.toString().padLeft(2, '0')}-'
         '${now.day.toString().padLeft(2, '0')}.json';
     try {
       final bytes = utf8.encode(exportBackup(prefs, now: now));
@@ -317,7 +317,7 @@ class SettingsScreen extends StatelessWidget {
             XFile.fromData(bytes, name: name, mimeType: 'application/json'),
           ],
           fileNameOverrides: [name],
-          subject: tr('نسخة احتياطية من طريق الجنة', 'Tareeq Al-Jannah backup'),
+          subject: tr('نسخة احتياطية من منهج حياة', 'Manhaj Hayah backup'),
         ),
       );
     } catch (_) {

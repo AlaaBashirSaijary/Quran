@@ -7,7 +7,7 @@
 		<key>NSLocationWhenInUseUsageDescription</key>
 		<string>يُستخدم موقعك لحساب مواقيت الصلاة واتجاه القبلة على هاتفك فقط.</string>
 	<key>CFBundleDisplayName</key>
-		<string>طريق الجنة</string>
+		<string>منهج حياة</string>
 		<key>CFBundleExecutable</key>
 		<string>$(EXECUTABLE_NAME)</string>
 		<key>CFBundleIdentifier</key>

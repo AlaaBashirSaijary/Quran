@@ -1,8 +1,8 @@
-# سياسة الخصوصية — تطبيق «طريق الجنة»
+# سياسة الخصوصية — تطبيق «منهج حياة»
 
 آخر تحديث: 27 سبتمبر 2026
 
-«طريق الجنة» تطبيق مجاني للقرآن الكريم والأذكار ومواقيت الصلاة. لا يطلب التطبيق إنشاء حساب، ولا يجمع أي بيانات شخصية، ولا يرسلها إلى خوادمنا (لا توجد لدينا خوادم)، ولا يحتوي على إعلانات أو أدوات تتبّع أو تحليلات.
+«منهج حياة» تطبيق مجاني للقرآن الكريم والأذكار ومواقيت الصلاة. لا يطلب التطبيق إنشاء حساب، ولا يجمع أي بيانات شخصية، ولا يرسلها إلى خوادمنا (لا توجد لدينا خوادم)، ولا يحتوي على إعلانات أو أدوات تتبّع أو تحليلات.
 
 ## ما يُحفظ على هاتفك فقط
 - إعداداتك، والعلامات المرجعية، وتقدّم الورد والختمة، والحفظ والمراجعة، والسبحة، والختمات الجماعية.
@@ -34,11 +34,11 @@ https://github.com/AlaaBashirSaijary/Quran/issues
 
 ---
 
-# Privacy Policy — Tareeq Al-Jannah
+# Privacy Policy — Manhaj Hayah
 
 Last updated: 27 September 2026
 
-Tareeq Al-Jannah is a free app for the Quran, azkar and prayer times. It needs no account, collects no personal data, and sends nothing to us (we run no servers). It has no ads, trackers or analytics.
+Manhaj Hayah is a free app for the Quran, azkar and prayer times. It needs no account, collects no personal data, and sends nothing to us (we run no servers). It has no ads, trackers or analytics.
 
 ## Stored on your phone only
 Your settings, bookmarks, reading and khatma progress, memorization reviews, tasbeeh counts, group khatmas and any recitations you download stay inside the app on your phone and are removed when you uninstall it.

@@ -57,7 +57,7 @@ class ErrorLog {
 
   /// The log as text to share, with the platform it came from.
   String report() => [
-    'Tareeq Al-Jannah error log · ${defaultTargetPlatform.name}',
+    'Manhaj Hayah error log · ${defaultTargetPlatform.name}',
     ...entries,
   ].join('\n\n');
 }
