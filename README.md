@@ -2,6 +2,8 @@
 
 تطبيق عربي يعمل دون إنترنت، مبني بـ Flutter.
 
+من تصميم وتطوير **المهندسة ألاء بشير سيجري**. © 2026 جميع الحقوق محفوظة، ولا يجوز نسخ الكود أو استخدامه دون إذن كتابي منها. التفاصيل في [LICENSE](LICENSE).
+
 <p align="center">
   <img src="docs/screenshots/1-quran.png" width="15%" alt="فهرس السور">
   <img src="docs/screenshots/5-mushaf.png" width="15%" alt="المصحف">
