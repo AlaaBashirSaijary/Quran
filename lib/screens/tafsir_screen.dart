@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../core/index.dart';
 import '../providers/settings_provider.dart';
 import '../quran/quran.dart';
 import '../quran/search.dart';
+import '../quran/ayah_regions.dart';
 import '../quran/tafsir.dart';
+import '../quran/tafsir_sources.dart';
 import '../share/share_card.dart';
 import '../widgets/translation_text.dart';
 
-/// Al-Tafsir al-Muyassar for the ayahs on one mushaf page.
+/// The chosen tafsir for the ayahs on one mushaf page.
 class TafsirScreen extends StatefulWidget {
   const TafsirScreen({super.key, required this.page, this.focusAyah});
 
@@ -31,42 +34,113 @@ class TafsirScreen extends StatefulWidget {
 }
 
 class _TafsirScreenState extends State<TafsirScreen> {
-  late int _page = widget.page;
-  late final Future<(QuranSearch, Tafsir)> _data = Future.wait([
-    QuranSearch.load(),
-    Tafsir.load(),
-  ]).then((r) => (r[0] as QuranSearch, r[1] as Tafsir));
+  /// The page as this mushaf's images show it (a search result's page
+  /// number follows another edition on a few pages).
+  late int _page = _imagePage(widget.page, widget.focusAyah);
+  late final int _focusPage = _page;
+  late Future<List<(TafsirEntry, List<Ayah>)>> _groups;
+  TafsirSource? _source;
   final _focusKey = GlobalKey();
+
+  static int _imagePage(int page, Ayah? focus) {
+    final regions = AyahRegions.loaded;
+    if (focus == null || regions == null) return page;
+    return regions.pageOf(focus.surah, focus.number) ?? page;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final source = tafsirSource(
+      Provider.of<SettingsProvider>(context).tafsirSourceId,
+    );
+    if (source.id != _source?.id) {
+      _source = source;
+      _load();
+    }
+  }
+
+  void _load() {
+    final source = _source!;
+    final page = _page;
+    _groups = () async {
+      final regions = await AyahRegions.load();
+      final quran = await QuranSearch.load();
+      final ayahs = [
+        for (final (s, a) in regions.ayahsOn(page))
+          quran.ayahsOfSurah(s)[a - 1],
+      ];
+      return TafsirLibrary.instance.forAyahs(source, ayahs);
+    }();
+  }
 
   void _go(int page) {
     if (page < 1 || page > 604) return;
-    setState(() => _page = page);
+    setState(() {
+      _page = page;
+      _load();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final settings = Provider.of<SettingsProvider>(context);
+    final source = _source!;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          tr(
-            'التفسير الميسر · ${AppConstant.page} $_page',
-            'Tafsir al-Muyassar · ${AppConstant.page} $_page',
+        title: Text('${source.name} · ${AppConstant.page} $_page'),
+        actions: [
+          PopupMenuButton<String>(
+            tooltip: tr('اختيار التفسير', 'Choose the tafsir'),
+            icon: const Icon(Icons.library_books_rounded),
+            initialValue: source.id,
+            onSelected: settings.setTafsirSource,
+            itemBuilder: (context) => [
+              for (final s in tafsirSources)
+                CheckedPopupMenuItem(
+                  value: s.id,
+                  checked: s.id == source.id,
+                  child: Text(s.name),
+                ),
+            ],
           ),
-        ),
+        ],
       ),
-      body: FutureBuilder(
-        future: _data,
+      body: FutureBuilder<List<(TafsirEntry, List<Ayah>)>>(
+        future: _groups,
         builder: (context, snapshot) {
-          final data = snapshot.data;
-          if (data == null) {
+          if (snapshot.hasError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      tr(
+                        'يُحمَّل ${source.name} سورةً سورةً عند أول فتح ثم يبقى على هاتفك. تعذّر التحميل الآن؛ تحقق من الإنترنت.',
+                        '${source.name} downloads a surah at a time the first time it is opened, then stays on your phone. It could not be downloaded now; check your internet connection.',
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    FilledButton(
+                      onPressed: () => setState(_load),
+                      child: Text(tr('إعادة المحاولة', 'Retry')),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+          final groups = snapshot.data;
+          if (groups == null) {
             return const Center(child: CircularProgressIndicator());
           }
-          final (quran, tafsir) = data;
-          final groups = tafsir.forAyahs(quran.ayahsOnPage(_page));
           final focus = widget.focusAyah;
-          if (focus != null && _page == widget.page) {
+          if (focus != null && _page == _focusPage) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               final target = _focusKey.currentContext;
               if (target != null) Scrollable.ensureVisible(target);
@@ -86,7 +160,7 @@ class _TafsirScreenState extends State<TafsirScreen> {
                     final (entry, ayahs) = groups[index];
                     final isFocus =
                         focus != null &&
-                        _page == widget.page &&
+                        _page == _focusPage &&
                         ayahs.any(
                           (a) =>
                               a.surah == focus.surah &&

@@ -15,6 +15,7 @@ class SettingsProvider extends ChangeNotifier {
   static const languageKey = 'settings.language';
   static const _translationKey = 'settings.translation';
   static const _textModeKey = 'reader.textMode';
+  static const _tafsirKey = 'tafsir.source';
   static const _scaleKey = 'settings.textScale';
   static const _hijriKey = 'settings.hijriOffset';
   static const scales = [0.85, 1.0, 1.15, 1.3, 1.5];
@@ -48,6 +49,14 @@ class SettingsProvider extends ChangeNotifier {
 
   void setTextMode(bool value) {
     prefs.setBool(_textModeKey, value);
+    notifyListeners();
+  }
+
+  /// The tafsir shown (see tafsirSources).
+  String? get tafsirSourceId => prefs.getString(_tafsirKey);
+
+  void setTafsirSource(String id) {
+    prefs.setString(_tafsirKey, id);
     notifyListeners();
   }
 

@@ -9,6 +9,7 @@ import 'package:quranapplication/audio/downloads.dart';
 import 'package:quranapplication/share/share_card.dart';
 import 'package:quranapplication/quran/ayah_regions.dart';
 import 'package:quranapplication/quran/translation.dart';
+import 'package:quranapplication/quran/tafsir_sources.dart';
 import 'package:quranapplication/ramadan/ramadan.dart';
 import 'package:quranapplication/hijri/calendar_screen.dart';
 import 'package:quranapplication/core/error_log.dart';
@@ -1848,6 +1849,73 @@ void main() {
         find.textContaining('the Ever-Living, the Sustainer'),
         findsWidgets,
       );
+    });
+  });
+
+  group('More tafsirs', () {
+    test('an entry covers the ayahs up to the next one', () {
+      final entries = parseSurahTafsir(
+        jsonEncode([
+          {'surah': '1', 'ayah': '1', 'text': 'first'},
+          {'surah': 1, 'ayah': 3, 'text': ' third '},
+          {'surah': 1, 'ayah': 4, 'text': ''},
+          {'surah': 1, 'ayah': 6, 'text': 'sixth'},
+        ]),
+        1,
+        7,
+      );
+      expect(
+        [for (final e in entries) (e.from, e.to, e.text)],
+        [(1, 2, 'first'), (3, 5, 'third'), (6, 7, 'sixth')],
+      );
+    });
+
+    test('a surah is downloaded once, with a fallback mirror', () async {
+      final temp = Directory.systemTemp.createTempSync('tafsir');
+      addTearDown(() => temp.deleteSync(recursive: true));
+      final requests = <String>[];
+      MockClient client() => MockClient((request) async {
+        requests.add(request.url.host);
+        if (request.url.host.contains('jsdelivr')) {
+          return http.Response('', 503);
+        }
+        return http.Response.bytes(
+          utf8.encode(
+            jsonEncode([
+              for (var a = 1; a <= 7; a++)
+                {'surah': 1, 'ayah': a, 'text': 'تفسير $a'},
+            ]),
+          ),
+          200,
+        );
+      });
+      final saadi = tafsirSource('saadi');
+      final library = TafsirLibrary(
+        client: client(),
+        folder: Future.value(temp.path),
+      );
+      final entries = await library.surah(saadi, 1);
+      expect(entries, hasLength(7));
+      expect(entries[1].text, 'تفسير 2');
+      expect(requests, ['cdn.jsdelivr.net', 'raw.githubusercontent.com']);
+
+      // Another start reads the saved file without the network.
+      requests.clear();
+      final again = TafsirLibrary(
+        client: client(),
+        folder: Future.value(temp.path),
+      );
+      expect((await again.surah(saadi, 1)).last.text, 'تفسير 7');
+      expect(requests, isEmpty);
+    });
+
+    test('the Muyassar stays bundled', () async {
+      final muyassar = tafsirSource(null);
+      expect(muyassar.bundled, isTrue);
+      final entries = await TafsirLibrary(
+        client: MockClient((_) async => throw StateError('no network')),
+      ).surah(muyassar, 112);
+      expect(entries, isNotEmpty);
     });
   });
 

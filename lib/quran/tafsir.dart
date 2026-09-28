@@ -49,6 +49,8 @@ class Tafsir {
 
   final List<List<TafsirEntry>> _bySurah;
 
+  List<TafsirEntry> ofSurah(int surah) => _bySurah[surah - 1];
+
   TafsirEntry of(int surah, int ayah) =>
       _bySurah[surah - 1].firstWhere((e) => e.covers(surah, ayah));
 
