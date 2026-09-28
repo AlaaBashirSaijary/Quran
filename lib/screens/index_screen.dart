@@ -16,6 +16,7 @@ import 'search_screen.dart';
 import 'settings_screen.dart';
 import 'hifz_screen.dart';
 import 'wird_screen.dart';
+import '../daily/daily_cards.dart';
 
 /// Opens the Quran reader at [page].
 ///
@@ -112,6 +113,8 @@ class IndexScreen extends StatelessWidget {
                       const SizedBox(height: 12),
                       const FridayCard(),
                     ],
+                    const SizedBox(height: 12),
+                    const AyahOfDayCard(),
                     const SizedBox(height: 12),
                     const WirdCard(),
                     const SizedBox(height: 12),

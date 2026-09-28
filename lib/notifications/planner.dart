@@ -1,11 +1,23 @@
 import 'package:adhan_dart/adhan_dart.dart';
 
+import '../hijri/hijri.dart';
 import '../prayer/prayer.dart';
 import '../ramadan/ramadan.dart';
 import 'notification_settings.dart';
 import '../core/language.dart';
+import '../quran/quran.dart';
+import '../quran/search.dart';
 
-enum ReminderKind { prayer, beforePrayer, azkar, wird, friday, ramadan }
+enum ReminderKind {
+  prayer,
+  beforePrayer,
+  azkar,
+  wird,
+  friday,
+  ramadan,
+  fasting,
+  daily,
+}
 
 /// How long before Fajr the suhoor reminder comes.
 const suhoorBefore = Duration(minutes: 45);
@@ -52,6 +64,7 @@ List<PlannedNotification> planNotifications({
   required bool wirdDoneToday,
   int days = 7,
   int hijriOffset = 0,
+  Ayah? Function(DateTime day)? ayahOfDay,
 }) {
   final planned = <PlannedNotification>[];
   final today = DateTime(now.year, now.month, now.day);
@@ -142,6 +155,46 @@ List<PlannedNotification> planNotifications({
           kind: ReminderKind.ramadan,
         ),
       );
+    }
+
+    if (settings.dailyAyah && ayahOfDay != null) {
+      final ayah = ayahOfDay(date);
+      if (ayah != null) {
+        planned.add(
+          PlannedNotification(
+            id: base + 17,
+            time: date.add(const Duration(hours: 9)),
+            title: tr('آية اليوم', 'Ayah of the day'),
+            body:
+                '${ayah.text} ﴿${ayah.number}﴾ — '
+                '${surahTitle(ayah.surah)}',
+            kind: ReminderKind.daily,
+          ),
+        );
+      }
+    }
+
+    if (settings.fasting) {
+      final tomorrow = DateTime(date.year, date.month, date.day + 1);
+      final note = fastingReminderFor(
+        tomorrow,
+        offset: hijriOffset,
+        weekly: settings.fastingWeekly,
+      );
+      if (note != null) {
+        final isha = prayer.hasLocation
+            ? prayer.timesOn(date).last.time.add(const Duration(minutes: 30))
+            : null;
+        planned.add(
+          PlannedNotification(
+            id: base + 16,
+            time: isha ?? date.add(const Duration(hours: 21)),
+            title: tr('صيام التطوّع', 'Voluntary fast'),
+            body: note,
+            kind: ReminderKind.fasting,
+          ),
+        );
+      }
     }
 
     if (settings.friday && date.weekday == DateTime.friday) {

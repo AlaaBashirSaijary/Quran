@@ -13,6 +13,8 @@ import '../widgets/info_overlay/info_overlay.dart';
 import '../widgets/marker.dart';
 import '../widgets/page_number.dart';
 import '../widgets/simple_page_info.dart';
+import '../providers/settings_provider.dart';
+import '../widgets/quran_text_page.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -26,6 +28,7 @@ class HomeScreen extends StatelessWidget {
     final isLandscape = size.aspectRatio > 0.54;
     final isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
     final colorScheme = Theme.of(context).colorScheme;
+    final textMode = Provider.of<SettingsProvider>(context).textMode;
 
     return SafeArea(
       child: GestureDetector(
@@ -74,6 +77,17 @@ class HomeScreen extends StatelessWidget {
                         ),
                         itemCount: quranPages.length,
                         itemBuilder: (_, pageIndex, _) {
+                          if (textMode) {
+                            return Column(
+                              children: [
+                                const SimplePageInfo(),
+                                Expanded(
+                                  child: QuranTextPage(page: pageIndex + 1),
+                                ),
+                                const PageNumber(),
+                              ],
+                            );
+                          }
                           return isLandscape || isKeyboardOpen
                               ? ListView(
                                   children: [

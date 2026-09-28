@@ -6,6 +6,7 @@ import '../content/text_screens.dart';
 import '../core/index.dart';
 import '../providers/ahadith_details_provider.dart';
 import '../widgets/hadith_details.dart';
+import '../daily/daily_cards.dart';
 
 /// The forty hadith of al-Nawawi, with their explanations.
 class NawawiScreen extends StatelessWidget {
@@ -78,6 +79,8 @@ class AhadithTab extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          const HadithOfDayCard(),
+          const SizedBox(height: 12),
           _BookCard(
             title: tr('الأربعون النووية', 'Al-Nawawi’s Forty Hadith'),
             subtitle: tr('للإمام النووي', 'By Imam al-Nawawi'),

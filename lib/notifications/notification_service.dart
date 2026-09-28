@@ -166,6 +166,11 @@ class NotificationService {
       ),
       ReminderKind.friday => ('friday', tr('يوم الجمعة', 'Friday')),
       ReminderKind.ramadan => ('ramadan', tr('رمضان', 'Ramadan')),
+      ReminderKind.daily => ('daily', tr('آية اليوم', 'Ayah of the day')),
+      ReminderKind.fasting => (
+        'fasting',
+        tr('صيام التطوّع', 'Voluntary fasts'),
+      ),
     };
     return NotificationDetails(
       android: AndroidNotificationDetails(
@@ -177,6 +182,8 @@ class NotificationService {
         priority: kind == ReminderKind.prayer
             ? Priority.high
             : Priority.defaultPriority,
+        // Long texts (the ayah of the day) are shown in full when expanded.
+        styleInformation: const BigTextStyleInformation(''),
         category: kind == ReminderKind.prayer
             ? AndroidNotificationCategory.alarm
             : AndroidNotificationCategory.reminder,
