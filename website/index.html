@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>منهج حياة</title>
 <meta name="description" content="منهج حياة: تطبيق مجاني للقرآن الكريم ومواقيت الصلاة والأذكار والحديث، يعمل دون إنترنت ودون إعلانات.">
+<meta name="author" content="ألاء بشير سيجري">
+<meta name="copyright" content="© 2026 ألاء بشير سيجري. جميع الحقوق محفوظة.">
 <meta property="og:title" content="منهج حياة">
 <meta property="og:description" content="القرآن الكريم، مواقيت الصلاة والقبلة، الأذكار، التفسير والتلاوة، في تطبيق واحد مجاني دون إعلانات.">
 <meta property="og:image" content="screenshots/1-quran.png">
@@ -105,7 +107,7 @@
   .stage { position: relative; aspect-ratio: 1 / 1; max-width: 100%; }
   #scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   .stage .fallback {
-    position: absolute; inset: 10% 25%; border-radius: 28px; overflow: hidden;
+    position: absolute; inset: 10% 25%; width: 50%; height: 80%; object-fit: cover; object-position: top; border-radius: 28px; overflow: hidden;
     border: 2px solid var(--gold); box-shadow: 0 30px 80px rgba(0,0,0,.5);
   }
   .stage.ready .fallback { display: none; }
@@ -152,6 +154,7 @@
   .facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
   .fact { text-align: center; padding: 18px 10px; }
   .fact strong { display: block; font-family: var(--display); font-size: 2.2rem; color: var(--gold-soft); font-variant-numeric: tabular-nums; }
+  .author { color: var(--gold-soft); font-weight: 600; }
   .fact span { color: var(--ink-soft); font-size: 0.95rem; }
 
   details { border-bottom: 1px solid var(--line); padding-block: 14px; }
@@ -196,11 +199,11 @@
         <p class="lede">رفيقك اليومي للقرآن الكريم والصلاة والذكر، في تطبيق واحد هادئ يحترم وقتك وخصوصيتك.</p>
         <p class="ayah">﴿قُلۡ إِنَّ صَلَاتِي وَنُسُكِي وَمَحۡيَايَ وَمَمَاتِي لِلَّهِ رَبِّ ٱلۡعَٰلَمِينَ﴾<small>سورة الأنعام · الآية 162</small></p>
         <div class="cta">
-          <a class="btn btn-gold dl" href="https://github.com/AlaaBashirSaijary/Quran/releases/latest/download/manhaj-hayah.apk">
+          <a class="btn btn-gold dl" href="download/manhaj-hayah.apk" download>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
             تحميل التطبيق
           </a>
-          <a class="btn btn-ghost" href="https://github.com/AlaaBashirSaijary/Quran/releases/latest">كل الإصدارات</a>
+          <a class="btn btn-ghost" href="#features">تعرّف على الميزات</a>
         </div>
         <p class="note">ملف APK لأندرويد، يعمل على أي هاتف. آخر إصدار دائماً<span class="dl-meta"></span>.</p>
       </div>
@@ -290,7 +293,7 @@
       <details><summary>هل التطبيق مجاني فعلاً؟</summary><p>نعم، مجاني بالكامل، دون إعلانات ودون مشتريات داخل التطبيق.</p></details>
       <details><summary>هل يعمل دون إنترنت؟</summary><p>نعم. المصحف والتفسير الميسر والأذكار والأحاديث ومواقيت الصلاة كلها تعمل دون إنترنت. الإنترنت يُحتاج فقط للاستماع إلى التلاوة أو لتحميل تفسير أو ترجمة إضافية مرة واحدة.</p></details>
       <details><summary>من أين المحتوى الديني؟</summary><p>نص القرآن من الموسوعة القرآنية (quranenc.com)، والتفاسير من بيانات quran.com، والأحاديث من sunnah.com، والأذكار من حصن المسلم، والتلاوات من alquran.cloud. لا يُكتب شيء من الذاكرة، وتُعرض النصوص كما هي في مصادرها.</p></details>
-      <details><summary>ماذا يعرف التطبيق عني؟</summary><p>لا شيء يُرسل إلى أي جهة. موقعك يُستخدم على الهاتف فقط لحساب المواقيت والقبلة، ويمكنك اختيار مدينتك بدلاً منه. <a href="https://github.com/AlaaBashirSaijary/Quran/blob/master/docs/privacy-policy.md">سياسة الخصوصية</a>.</p></details>
+      <details><summary>ماذا يعرف التطبيق عني؟</summary><p>لا شيء يُرسل إلى أي جهة. موقعك يُستخدم على الهاتف فقط لحساب المواقيت والقبلة، ويمكنك اختيار مدينتك بدلاً منه. <a href="privacy.html">سياسة الخصوصية</a>.</p></details>
       <details><summary>هل يوجد على آيفون؟</summary><p>الإصدار الحالي لأندرويد فقط.</p></details>
     </section>
 
@@ -298,14 +301,15 @@
       <h2>ابدأ يومك مع منهج حياة</h2>
       <p class="section-lede" style="margin-inline:auto">حمّل التطبيق مجاناً، وشاركه مع من تحب.</p>
       <div class="cta">
-        <a class="btn btn-gold dl" href="https://github.com/AlaaBashirSaijary/Quran/releases/latest/download/manhaj-hayah.apk">تحميل التطبيق</a>
+        <a class="btn btn-gold dl" href="download/manhaj-hayah.apk" download>تحميل التطبيق</a>
       </div>
     </div>
   </main>
 
   <footer>
     <span>منهج حياة · تطبيق مجاني للقرآن والصلاة والذكر</span>
-    <span><a href="https://github.com/AlaaBashirSaijary/Quran">الكود المصدري على GitHub</a> · <a href="https://github.com/AlaaBashirSaijary/Quran/blob/master/docs/privacy-policy.md">الخصوصية</a></span>
+    <span>من تصميم وتطوير <strong class="author">المهندسة ألاء بشير سيجري</strong></span>
+    <span>© 2026 ألاء بشير سيجري. جميع الحقوق محفوظة. · <a href="privacy.html">سياسة الخصوصية</a></span>
   </footer>
 </div>
 
@@ -448,7 +452,7 @@
 // progress, size and remaining time. Two things keep it fast: phones get
 // the build for their processor (much smaller than the universal one),
 // and the file comes down in parallel chunks. Anywhere else, or if the
-// fetch fails, the link falls back to the GitHub release.
+// fetch fails, the link downloads the file the ordinary way.
 (function () {
   var NAME = 'manhaj-hayah.apk';
   var CHUNK = 4 * 1048576, PARALLEL = 6, RETRIES = 3;
@@ -654,7 +658,7 @@
         return;
       }
       ctrl.abort();
-      // Not available here: let GitHub serve the file directly.
+      // Let the browser download the file the ordinary way.
       box.hidden = true;
       location.href = btn.href;
     });

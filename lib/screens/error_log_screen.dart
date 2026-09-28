@@ -54,7 +54,7 @@ class _ErrorLogScreenState extends State<ErrorLogScreen> {
           Text(
             tr(
               'يحفظ التطبيق هنا الأخطاء التي تحدث، على هاتفك فقط ولا يُرسل شيئاً. '
-                  'إن واجهت مشكلة فشارك هذا السجل مع المطوّر ليصلحها.',
+                  'إن واجهت مشكلة فشارك هذا السجل مع المطوّرة لتصلحها.',
               'The app keeps any errors here, on your phone only; nothing is '
                   'sent. If something goes wrong, share this log with the '
                   'developer so it can be fixed.',

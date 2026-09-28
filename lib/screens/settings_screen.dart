@@ -290,11 +290,29 @@ class SettingsScreen extends StatelessWidget {
                 title: Text(tr('سجل الأخطاء', 'Error log')),
                 subtitle: Text(
                   tr(
-                    'لمشاركته مع المطوّر عند حدوث مشكلة',
+                    'لمشاركته مع المطوّرة عند حدوث مشكلة',
                     'To share with the developer if something goes wrong',
                   ),
                 ),
                 onTap: () => ErrorLogScreen.open(context),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _Section(
+            title: tr('حول التطبيق', 'About'),
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: Text(
+                  tr(
+                    'منهج حياة، من تصميم وتطوير المهندسة ألاء بشير سيجري.\n'
+                        '© 2026 ألاء بشير سيجري. جميع الحقوق محفوظة.',
+                    'Manhaj Hayah, designed and developed by Eng. Alaa Bashir Saijary.\n'
+                        '© 2026 Alaa Bashir Saijary. All rights reserved.',
+                  ),
+                  style: TextStyle(color: colorScheme.pageNumber, fontSize: 13),
+                ),
               ),
             ],
           ),
