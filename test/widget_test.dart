@@ -9,6 +9,7 @@ import 'package:quranapplication/audio/downloads.dart';
 import 'package:quranapplication/share/share_card.dart';
 import 'package:quranapplication/quran/ayah_regions.dart';
 import 'package:quranapplication/quran/translation.dart';
+import 'package:quranapplication/quran/tafsir_sources.dart';
 import 'package:quranapplication/ramadan/ramadan.dart';
 import 'package:quranapplication/hijri/calendar_screen.dart';
 import 'package:quranapplication/core/error_log.dart';
@@ -292,6 +293,50 @@ void main() {
       );
     }
     handle.dispose();
+  });
+
+  testWidgets('volume keys count on the tasbeeh tab when chosen', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({
+      'seenOnboarding': true,
+      'sebha.volumeKeys': true,
+    });
+    final prefs = await SharedPreferences.getInstance();
+    final captures = <Object?>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      const MethodChannel('tareeq/volume'),
+      (call) async {
+        captures.add(call.arguments);
+        return null;
+      },
+    );
+    await tester.pumpWidget(buildApp(prefs));
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pumpAndSettle();
+    expect(captures, isNot(contains(true)), reason: 'not on the Quran tab');
+
+    await tester.tap(find.text('السبحة').last);
+    await tester.pumpAndSettle();
+    expect(captures.last, isTrue);
+
+    Future<void> press() =>
+        tester.binding.defaultBinaryMessenger.handlePlatformMessage(
+          'tareeq/volume',
+          const StandardMethodCodec().encodeMethodCall(
+            const MethodCall('press'),
+          ),
+          (_) {},
+        );
+    await press();
+    await press();
+    await tester.pump();
+    expect(prefs.getInt('sebha.count'), 2);
+    expect(find.text('2'), findsWidgets);
+
+    await tester.tap(find.text('القرآن').last);
+    await tester.pumpAndSettle();
+    expect(captures.last, isFalse);
   });
 
   group('Sebha', () {
@@ -1506,6 +1551,74 @@ void main() {
       expect(repeated, [1, 1, 1, 2, 2, 2]);
     });
 
+    test('a range can be looped as a whole', () {
+      const a = AyahAudio(1, 1, 'a');
+      const b = AyahAudio(1, 2, 'b');
+      final queue = RecitationQueue([a, b], repeat: 2, loops: 2);
+      final played = [queue.current.ayah];
+      while (queue.advance()) {
+        played.add(queue.current.ayah);
+      }
+      expect(played, [1, 1, 2, 2, 1, 1, 2, 2]);
+      expect(queue.loop, 3, reason: 'past the last pass');
+    });
+
+    test('a page plays the ayahs its image shows', () async {
+      SharedPreferences.setMockInitialValues({});
+      final requests = <String>[];
+      final client = MockClient((request) async {
+        requests.add(request.url.path);
+        final surah = int.parse(request.url.pathSegments[2]);
+        final count = surah == 80 ? 42 : 29;
+        return http.Response(
+          jsonEncode({
+            'code': 200,
+            'data': {
+              'ayahs': [
+                for (var a = 1; a <= count; a++)
+                  {
+                    'numberInSurah': a,
+                    'audio': 'https://cdn.test/$surah/$a.mp3',
+                  },
+              ],
+            },
+          }),
+          200,
+        );
+      });
+      final recitation = RecitationProvider(
+        await SharedPreferences.getInstance(),
+        client: client,
+      );
+      // In this mushaf 80:41-42 open page 586, before At-Takwir.
+      final audio = await recitation.pageAudio(586);
+      expect(audio.first.surah, 80);
+      expect(audio.first.ayah, 41);
+      expect(audio.first.url, 'https://cdn.test/80/41.mp3');
+      expect(audio.last.ayah, 29);
+      expect(audio, hasLength(31));
+      final before = requests.length;
+      await recitation.pageAudio(586);
+      expect(requests.length, before, reason: 'surah links are cached');
+    });
+
+    testWidgets('the sleep timer stops the recitation', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final recitation = RecitationProvider(
+        await SharedPreferences.getInstance(),
+      );
+      recitation.setSleepTimer(const Duration(minutes: 15));
+      expect(recitation.sleepAt, isNotNull);
+      await tester.pump(const Duration(minutes: 14));
+      expect(recitation.sleepAt, isNotNull);
+      await tester.pump(const Duration(minutes: 2));
+      expect(recitation.sleepAt, isNull);
+      expect(recitation.status, RecitationStatus.idle);
+      recitation.setSleepTimer(const Duration(minutes: 5));
+      recitation.setSleepTimer(null);
+      expect(recitation.sleepAt, isNull);
+    });
+
     test('reciter and options are saved', () async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
@@ -1736,6 +1849,73 @@ void main() {
         find.textContaining('the Ever-Living, the Sustainer'),
         findsWidgets,
       );
+    });
+  });
+
+  group('More tafsirs', () {
+    test('an entry covers the ayahs up to the next one', () {
+      final entries = parseSurahTafsir(
+        jsonEncode([
+          {'surah': '1', 'ayah': '1', 'text': 'first'},
+          {'surah': 1, 'ayah': 3, 'text': ' third '},
+          {'surah': 1, 'ayah': 4, 'text': ''},
+          {'surah': 1, 'ayah': 6, 'text': 'sixth'},
+        ]),
+        1,
+        7,
+      );
+      expect(
+        [for (final e in entries) (e.from, e.to, e.text)],
+        [(1, 2, 'first'), (3, 5, 'third'), (6, 7, 'sixth')],
+      );
+    });
+
+    test('a surah is downloaded once, with a fallback mirror', () async {
+      final temp = Directory.systemTemp.createTempSync('tafsir');
+      addTearDown(() => temp.deleteSync(recursive: true));
+      final requests = <String>[];
+      MockClient client() => MockClient((request) async {
+        requests.add(request.url.host);
+        if (request.url.host.contains('jsdelivr')) {
+          return http.Response('', 503);
+        }
+        return http.Response.bytes(
+          utf8.encode(
+            jsonEncode([
+              for (var a = 1; a <= 7; a++)
+                {'surah': 1, 'ayah': a, 'text': 'تفسير $a'},
+            ]),
+          ),
+          200,
+        );
+      });
+      final saadi = tafsirSource('saadi');
+      final library = TafsirLibrary(
+        client: client(),
+        folder: Future.value(temp.path),
+      );
+      final entries = await library.surah(saadi, 1);
+      expect(entries, hasLength(7));
+      expect(entries[1].text, 'تفسير 2');
+      expect(requests, ['cdn.jsdelivr.net', 'raw.githubusercontent.com']);
+
+      // Another start reads the saved file without the network.
+      requests.clear();
+      final again = TafsirLibrary(
+        client: client(),
+        folder: Future.value(temp.path),
+      );
+      expect((await again.surah(saadi, 1)).last.text, 'تفسير 7');
+      expect(requests, isEmpty);
+    });
+
+    test('the Muyassar stays bundled', () async {
+      final muyassar = tafsirSource(null);
+      expect(muyassar.bundled, isTrue);
+      final entries = await TafsirLibrary(
+        client: MockClient((_) async => throw StateError('no network')),
+      ).surah(muyassar, 112);
+      expect(entries, isNotEmpty);
     });
   });
 

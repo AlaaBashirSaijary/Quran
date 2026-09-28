@@ -101,6 +101,15 @@ class SebhaProvider extends ChangeNotifier {
 
   bool vibration = true;
 
+  /// Count with the volume buttons while the tasbeeh tab is open.
+  bool volumeKeys = false;
+
+  void setVolumeKeys(bool value) {
+    volumeKeys = value;
+    prefs.setBool('sebha.volumeKeys', value);
+    notifyListeners();
+  }
+
   List<Zikr> get azkar => List.unmodifiable(_azkar);
 
   Zikr get selected =>
@@ -299,6 +308,7 @@ class SebhaProvider extends ChangeNotifier {
             (k, v) => MapEntry(k, v as int),
           );
     vibration = prefs.getBool('sebha.vibration') ?? true;
+    volumeKeys = prefs.getBool('sebha.volumeKeys') ?? false;
 
     // A new day since the last visit: show zero for today, but keep the
     // streak until the next tap decides whether it continues.

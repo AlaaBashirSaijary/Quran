@@ -38,3 +38,17 @@ Future<void> deleteFolder(String path) async {
   final dir = Directory(path);
   if (await dir.exists()) await dir.delete(recursive: true);
 }
+
+Future<String?> dataFolder(String name) async {
+  try {
+    final base = await getApplicationSupportDirectory();
+    return '${base.path}/$name';
+  } catch (_) {
+    return null;
+  }
+}
+
+Future<String?> readText(String path) async {
+  final file = File(path);
+  return await file.exists() ? file.readAsString() : null;
+}
