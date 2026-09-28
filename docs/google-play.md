@@ -7,7 +7,7 @@
 2. **مفتاح التوقيع في أسرار GitHub** (راجع قسم «مفتاح التوقيع» في README). بعد إضافته يبني CI عند كل دمج في `master` ملف **`manhaj-hayah.aab`** ويرفقه بالإصدار في صفحة Releases.
    احتفظ بملف المفتاح وكلمة مروره في مكان آمن؛ فقدانه يعني عدم القدرة على تحديث التطبيق.
 3. **رابط سياسة الخصوصية** (مطلوب):
-   `https://github.com/AlaaBashirSaijary/Quran/blob/master/docs/privacy-policy.md`
+   `https://alaabashirsaijary.github.io/manhaj-hayah/privacy.html`
 
 ## 2. إنشاء التطبيق في Play Console
 - اسم التطبيق: **منهج حياة**
