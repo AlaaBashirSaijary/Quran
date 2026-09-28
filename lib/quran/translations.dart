@@ -74,6 +74,7 @@ class Translations {
   final http.Client _client;
   final Future<String?> _folder;
   final _loaded = <String, Translation>{};
+  final _loading = <String, Future<Translation?>>{};
 
   Translation? loaded(String code) =>
       code == 'en' ? Translation.loaded : _loaded[code];
@@ -91,10 +92,19 @@ class Translations {
   }
 
   /// The translation in [code], or null if it has not been downloaded.
-  Future<Translation?> load(String code) async {
+  /// Callers asking at the same time share one read of the file.
+  Future<Translation?> load(String code) {
     if (code == 'en') return Translation.load();
     final cached = _loaded[code];
-    if (cached != null) return cached;
+    if (cached != null) return Future.value(cached);
+    // A block body: returning the removed future would make it wait for
+    // itself.
+    return _loading[code] ??= _read(code).whenComplete(() {
+      _loading.remove(code);
+    });
+  }
+
+  Future<Translation?> _read(String code) async {
     final path = await _path(code);
     final body = path == null ? null : await readText(path);
     if (body == null) return null;

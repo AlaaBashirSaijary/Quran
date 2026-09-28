@@ -28,12 +28,21 @@ class TranslationText extends StatelessWidget {
       return const SizedBox.shrink();
     }
     final colorScheme = Theme.of(context).colorScheme;
+    // A chosen language that is not on this phone (e.g. after restoring a
+    // backup elsewhere) falls back to the built-in English.
+    final chosen = Translations.instance.loaded(language.code);
     return FutureBuilder<Translation?>(
-      future: Translations.instance.load(language.code),
-      initialData: Translations.instance.loaded(language.code),
+      future: Translations.instance
+          .load(language.code)
+          .then((t) => t ?? Translation.load()),
+      initialData: chosen ?? (language.bundled ? Translation.loaded : null),
       builder: (context, snapshot) {
         final translation = snapshot.data;
         if (translation == null) return const SizedBox.shrink();
+        final direction =
+            identical(translation, Translations.instance.loaded(language.code))
+            ? language.direction
+            : TextDirection.ltr;
         return Padding(
           padding: const EdgeInsets.only(top: 8),
           child: Text(
@@ -43,7 +52,7 @@ class TranslationText extends StatelessWidget {
                     ? '($a) ${translation.of(s, a)}'
                     : translation.of(s, a),
             ].join(' '),
-            textDirection: language.direction,
+            textDirection: direction,
             textAlign: TextAlign.start,
             style: TextStyle(
               fontSize: context.contentSize(15),

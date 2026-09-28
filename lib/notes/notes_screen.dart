@@ -46,7 +46,7 @@ Future<void> editAyahNote(BuildContext context, int surah, int ayah) async {
       ],
     ),
   );
-  controller.dispose();
+  disposeAfterDialog([controller]);
   if (text != null) notes.save(surah, ayah, text);
 }
 

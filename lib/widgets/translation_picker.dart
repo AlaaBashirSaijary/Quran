@@ -42,6 +42,10 @@ class _PickerState extends State<_Picker> {
 
   Future<void> _choose(TranslationLanguage language) async {
     if (_downloading != null) return;
+    if (!_downloaded.contains(language.code) &&
+        await Translations.instance.isDownloaded(language.code)) {
+      _downloaded.add(language.code);
+    }
     if (!_downloaded.contains(language.code)) {
       setState(() {
         _downloading = language.code;

@@ -77,9 +77,15 @@ class SettingsScreen extends StatelessWidget {
                 enabled: settings.showTranslation,
                 leading: const Icon(Icons.translate_rounded),
                 title: Text(tr('لغة الترجمة', 'Translation language')),
-                subtitle: Text(
-                  '${translationLanguage(settings.translationLang).name} · '
-                  '${translationLanguage(settings.translationLang).translator}',
+                subtitle: FutureBuilder<bool>(
+                  future: Translations.instance.isDownloaded(
+                    settings.translationLang,
+                  ),
+                  builder: (context, snapshot) => Text(
+                    '${translationLanguage(settings.translationLang).name} · '
+                    '${translationLanguage(settings.translationLang).translator}'
+                    '${snapshot.data == false ? tr(' · غير محمّلة على هذا الهاتف، تُعرض الإنجليزية', ' · not on this phone, English is shown') : ''}',
+                  ),
                 ),
                 onTap: () => chooseTranslation(context, settings),
               ),

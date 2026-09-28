@@ -446,8 +446,7 @@ Future<void> _showAddZikr(BuildContext context) async {
       int.tryParse(targetController.text) ?? 33,
     );
   }
-  textController.dispose();
-  targetController.dispose();
+  disposeAfterDialog([textController, targetController]);
 }
 
 Future<void> _showTargetPicker(BuildContext context, Zikr zikr) async {
@@ -497,7 +496,7 @@ Future<void> _showTargetPicker(BuildContext context, Zikr zikr) async {
   );
 
   if (target != null && target > 0) sebha.setTarget(zikr.id, target);
-  controller.dispose();
+  disposeAfterDialog([controller]);
 }
 
 Future<void> _confirmRemove(
