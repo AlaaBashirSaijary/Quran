@@ -15,6 +15,8 @@ class NotificationSettings extends ChangeNotifier {
     wirdMinutes = prefs.getInt('notify.wirdMinutes') ?? 21 * 60;
     friday = prefs.getBool('notify.friday') ?? true;
     suhoor = prefs.getBool('notify.suhoor') ?? true;
+    fasting = prefs.getBool('notify.fasting') ?? true;
+    fastingWeekly = prefs.getBool('notify.fastingWeekly') ?? true;
     adhanUri = prefs.getString('notify.adhanUri');
     adhanTitle = prefs.getString('notify.adhanTitle');
   }
@@ -62,6 +64,23 @@ class NotificationSettings extends ChangeNotifier {
 
   /// Al-Kahf in the morning and du'a in the last hour of Friday.
   late bool friday;
+
+  /// The evening before a recommended fast (Arafah, Ashura, the white
+  /// days...), and before Mondays and Thursdays when [fastingWeekly].
+  late bool fasting;
+  late bool fastingWeekly;
+
+  void setFasting(bool value) {
+    fasting = value;
+    prefs.setBool('notify.fasting', value);
+    notifyListeners();
+  }
+
+  void setFastingWeekly(bool value) {
+    fastingWeekly = value;
+    prefs.setBool('notify.fastingWeekly', value);
+    notifyListeners();
+  }
 
   /// In Ramadan, a reminder to eat suhoor before Fajr.
   late bool suhoor;
@@ -126,6 +145,8 @@ class NotificationSettings extends ChangeNotifier {
     wirdMinutes,
     friday,
     suhoor,
+    fasting,
+    fastingWeekly,
     adhanUri,
   ].join(',');
 }

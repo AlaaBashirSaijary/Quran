@@ -915,7 +915,7 @@ void main() {
       );
       expect(plan.map((n) => n.id).toSet(), hasLength(plan.length));
       expect(plan.every((n) => n.time.isAfter(now)), isTrue);
-      expect(plan.length, lessThan(7 * 13 + 2 + 1));
+      expect(plan.length, lessThan(7 * 15));
       final before = plan.firstWhere(
         (n) => n.kind == ReminderKind.beforePrayer,
       );
@@ -1110,6 +1110,73 @@ void main() {
       expect(log.entries, isEmpty);
       expect(find.text('لا أخطاء مسجّلة'), findsOneWidget);
     });
+  });
+
+  group('Voluntary fasts', () {
+    // Dates checked against the hijri-converter (Umm al-Qura) package.
+    test('the evening before a recommended fast gets a note', () {
+      expect(fastingReminderFor(DateTime(2027, 5, 15)), 'غداً يوم عرفة');
+      expect(fastingReminderFor(DateTime(2026, 6, 25)), 'غداً يوم عاشوراء');
+      expect(fastingReminderFor(DateTime(2026, 6, 24)), contains('تاسوعاء'));
+      expect(
+        fastingReminderFor(DateTime(2026, 9, 24)),
+        contains('الأيام البيض'),
+      );
+      expect(
+        fastingReminderFor(DateTime(2027, 3, 10)),
+        contains('الست من شوال'),
+      );
+      expect(fastingReminderFor(DateTime(2026, 9, 28)), contains('الاثنين'));
+    });
+
+    test('nothing on forbidden days, in Ramadan, or twice a week unasked', () {
+      expect(
+        fastingReminderFor(DateTime(2026, 9, 25)),
+        isNull,
+        reason: 'white 14',
+      );
+      expect(fastingReminderFor(DateTime(2027, 3, 9)), isNull, reason: 'Eid');
+      expect(
+        fastingReminderFor(DateTime(2027, 5, 17)),
+        isNull,
+        reason: 'Tashreeq',
+      );
+      expect(
+        fastingReminderFor(DateTime(2027, 2, 8)),
+        isNull,
+        reason: 'Ramadan',
+      );
+      expect(fastingReminderFor(DateTime(2026, 9, 28), weekly: false), isNull);
+    });
+
+    test(
+      'is planned after Isha the day before, and can be turned off',
+      () async {
+        SharedPreferences.setMockInitialValues({});
+        final prefs = await SharedPreferences.getInstance();
+        final prayer = PrayerProvider(prefs)
+          ..setCity(cities.firstWhere((c) => c.arabicName == 'دمشق'));
+        final settings = NotificationSettings(prefs);
+        List<PlannedNotification> plan() => planNotifications(
+          prayer: prayer,
+          settings: settings,
+          now: DateTime(2026, 9, 27),
+          wirdDoneToday: false,
+          days: 1,
+        );
+        final fast = plan().where((n) => n.kind == ReminderKind.fasting);
+        final isha = prayer.timesOn(DateTime(2026, 9, 27)).last.time;
+        expect(fast.single.time, isha.add(const Duration(minutes: 30)));
+        expect(fast.single.body, contains('الاثنين'));
+        settings.setFastingWeekly(false);
+        expect(plan().any((n) => n.kind == ReminderKind.fasting), isFalse);
+        settings
+          ..setFastingWeekly(true)
+          ..setFasting(false);
+        expect(plan().any((n) => n.kind == ReminderKind.fasting), isFalse);
+        expect(NotificationSettings(prefs).fasting, isFalse);
+      },
+    );
   });
 
   group('Hijri calendar', () {

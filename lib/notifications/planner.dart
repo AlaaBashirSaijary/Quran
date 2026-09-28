@@ -1,11 +1,20 @@
 import 'package:adhan_dart/adhan_dart.dart';
 
+import '../hijri/hijri.dart';
 import '../prayer/prayer.dart';
 import '../ramadan/ramadan.dart';
 import 'notification_settings.dart';
 import '../core/language.dart';
 
-enum ReminderKind { prayer, beforePrayer, azkar, wird, friday, ramadan }
+enum ReminderKind {
+  prayer,
+  beforePrayer,
+  azkar,
+  wird,
+  friday,
+  ramadan,
+  fasting,
+}
 
 /// How long before Fajr the suhoor reminder comes.
 const suhoorBefore = Duration(minutes: 45);
@@ -142,6 +151,29 @@ List<PlannedNotification> planNotifications({
           kind: ReminderKind.ramadan,
         ),
       );
+    }
+
+    if (settings.fasting) {
+      final tomorrow = DateTime(date.year, date.month, date.day + 1);
+      final note = fastingReminderFor(
+        tomorrow,
+        offset: hijriOffset,
+        weekly: settings.fastingWeekly,
+      );
+      if (note != null) {
+        final isha = prayer.hasLocation
+            ? prayer.timesOn(date).last.time.add(const Duration(minutes: 30))
+            : null;
+        planned.add(
+          PlannedNotification(
+            id: base + 16,
+            time: isha ?? date.add(const Duration(hours: 21)),
+            title: tr('صيام التطوّع', 'Voluntary fast'),
+            body: note,
+            kind: ReminderKind.fasting,
+          ),
+        );
+      }
     }
 
     if (settings.friday && date.weekday == DateTime.friday) {

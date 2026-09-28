@@ -255,6 +255,26 @@ class _NotificationSettingsScreenState
                   onChanged: settings.setEveningAzkar,
                 ),
                 SwitchListTile(
+                  title: Text(tr('صيام التطوّع', 'Voluntary fasts')),
+                  subtitle: Text(
+                    tr(
+                      'مساء اليوم السابق: عرفة، عاشوراء، الأيام البيض، الست من شوال',
+                      'The evening before: Arafah, Ashura, the White Days, six of Shawwal',
+                    ),
+                  ),
+                  value: settings.fasting,
+                  onChanged: settings.setFasting,
+                ),
+                SwitchListTile(
+                  title: Text(
+                    tr('والاثنين والخميس', 'And Mondays and Thursdays'),
+                  ),
+                  value: settings.fastingWeekly,
+                  onChanged: settings.fasting
+                      ? settings.setFastingWeekly
+                      : null,
+                ),
+                SwitchListTile(
                   title: Text(tr('السحور في رمضان', 'Suhoor in Ramadan')),
                   subtitle: Text(
                     tr(

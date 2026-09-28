@@ -116,3 +116,56 @@ List<DateTime> hijriMonthDays(DateTime date, {int offset = 0}) {
       d,
   ];
 }
+
+/// A recommended fast worth a reminder the evening before [date], or null.
+///
+/// The white days are announced once, before the 13th, and the six days
+/// of Shawwal once, on the evening of Eid, rather than every day. Nothing
+/// is suggested on the Eids, the days of Tashreeq or in Ramadan.
+String? fastingReminderFor(
+  DateTime date, {
+  int offset = 0,
+  bool weekly = true,
+}) {
+  final h = hijriOf(date, offset: offset);
+  final eid =
+      (h.month == _shawwal && h.day == 1) ||
+      (h.month == _dhulHijjah && h.day == 10);
+  final tashreeq = h.month == _dhulHijjah && h.day >= 11 && h.day <= 13;
+  if (eid || tashreeq || h.month == _ramadan) return null;
+
+  if (h.month == _dhulHijjah && h.day == 9) {
+    return tr('غداً يوم عرفة', 'Tomorrow is the Day of Arafah');
+  }
+  if (h.month == _muharram && h.day == 10) {
+    return tr('غداً يوم عاشوراء', 'Tomorrow is the Day of Ashura');
+  }
+  if (h.month == _muharram && h.day == 9) {
+    return tr('غداً تاسوعاء، التاسع من محرم', 'Tomorrow is Tasu‘a, 9 Muharram');
+  }
+  if (h.day == 13) {
+    return tr(
+      'تبدأ غداً الأيام البيض (13 و14 و15)',
+      'The White Days (13th–15th) begin tomorrow',
+    );
+  }
+  if (h.month == _shawwal && h.day == 2) {
+    return tr(
+      'يمكنك من غد البدء بصيام الست من شوال',
+      'From tomorrow you can fast the six days of Shawwal',
+    );
+  }
+  if (weekly && date.weekday == DateTime.monday) {
+    return tr(
+      'غداً الاثنين، يُستحب صيامه',
+      'Tomorrow is Monday, a sunnah fast',
+    );
+  }
+  if (weekly && date.weekday == DateTime.thursday) {
+    return tr(
+      'غداً الخميس، يُستحب صيامه',
+      'Tomorrow is Thursday, a sunnah fast',
+    );
+  }
+  return null;
+}

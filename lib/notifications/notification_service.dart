@@ -166,6 +166,10 @@ class NotificationService {
       ),
       ReminderKind.friday => ('friday', tr('يوم الجمعة', 'Friday')),
       ReminderKind.ramadan => ('ramadan', tr('رمضان', 'Ramadan')),
+      ReminderKind.fasting => (
+        'fasting',
+        tr('صيام التطوّع', 'Voluntary fasts'),
+      ),
     };
     return NotificationDetails(
       android: AndroidNotificationDetails(
