@@ -1506,6 +1506,74 @@ void main() {
       expect(repeated, [1, 1, 1, 2, 2, 2]);
     });
 
+    test('a range can be looped as a whole', () {
+      const a = AyahAudio(1, 1, 'a');
+      const b = AyahAudio(1, 2, 'b');
+      final queue = RecitationQueue([a, b], repeat: 2, loops: 2);
+      final played = [queue.current.ayah];
+      while (queue.advance()) {
+        played.add(queue.current.ayah);
+      }
+      expect(played, [1, 1, 2, 2, 1, 1, 2, 2]);
+      expect(queue.loop, 3, reason: 'past the last pass');
+    });
+
+    test('a page plays the ayahs its image shows', () async {
+      SharedPreferences.setMockInitialValues({});
+      final requests = <String>[];
+      final client = MockClient((request) async {
+        requests.add(request.url.path);
+        final surah = int.parse(request.url.pathSegments[2]);
+        final count = surah == 80 ? 42 : 29;
+        return http.Response(
+          jsonEncode({
+            'code': 200,
+            'data': {
+              'ayahs': [
+                for (var a = 1; a <= count; a++)
+                  {
+                    'numberInSurah': a,
+                    'audio': 'https://cdn.test/$surah/$a.mp3',
+                  },
+              ],
+            },
+          }),
+          200,
+        );
+      });
+      final recitation = RecitationProvider(
+        await SharedPreferences.getInstance(),
+        client: client,
+      );
+      // In this mushaf 80:41-42 open page 586, before At-Takwir.
+      final audio = await recitation.pageAudio(586);
+      expect(audio.first.surah, 80);
+      expect(audio.first.ayah, 41);
+      expect(audio.first.url, 'https://cdn.test/80/41.mp3');
+      expect(audio.last.ayah, 29);
+      expect(audio, hasLength(31));
+      final before = requests.length;
+      await recitation.pageAudio(586);
+      expect(requests.length, before, reason: 'surah links are cached');
+    });
+
+    testWidgets('the sleep timer stops the recitation', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final recitation = RecitationProvider(
+        await SharedPreferences.getInstance(),
+      );
+      recitation.setSleepTimer(const Duration(minutes: 15));
+      expect(recitation.sleepAt, isNotNull);
+      await tester.pump(const Duration(minutes: 14));
+      expect(recitation.sleepAt, isNotNull);
+      await tester.pump(const Duration(minutes: 2));
+      expect(recitation.sleepAt, isNull);
+      expect(recitation.status, RecitationStatus.idle);
+      recitation.setSleepTimer(const Duration(minutes: 5));
+      recitation.setSleepTimer(null);
+      expect(recitation.sleepAt, isNull);
+    });
+
     test('reciter and options are saved', () async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();

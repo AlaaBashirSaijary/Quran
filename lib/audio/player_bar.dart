@@ -16,6 +16,21 @@ void startRecitation(BuildContext context, {(int, int)? from}) {
   recitation.playPage(quran.currentPage, from: from);
 }
 
+/// Repeats ayahs [from] to [to] of [surah] [times] times, turning the
+/// reader to follow them.
+void startRange(
+  BuildContext context,
+  int surah,
+  int from,
+  int to, {
+  int times = 1,
+}) {
+  final quran = Provider.of<Quran>(context, listen: false);
+  final recitation = Provider.of<RecitationProvider>(context, listen: false);
+  recitation.onPageChanged = quran.goToPage;
+  recitation.playRange(surah, from, to, times: times);
+}
+
 /// Floating controls shown in the reader while a recitation is active.
 class RecitationBar extends StatelessWidget {
   const RecitationBar({super.key});
@@ -91,7 +106,11 @@ class RecitationBar extends StatelessWidget {
                   style: const TextStyle(color: Colors.white),
                 ),
                 Text(
-                  recitation.reciter.name,
+                  [
+                    recitation.reciter.name,
+                    if (recitation.rangePass case (final pass, final of))
+                      tr('التكرار $pass من $of', 'Pass $pass of $of'),
+                  ].join(' · '),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(color: colorScheme.gold, fontSize: 12),
@@ -99,6 +118,11 @@ class RecitationBar extends StatelessWidget {
               ],
             ),
           ),
+          if (recitation.sleepAt != null)
+            Tooltip(
+              message: tr('مؤقت النوم يعمل', 'Sleep timer on'),
+              child: Icon(Icons.bedtime_rounded, color: colorScheme.gold),
+            ),
           IconButton(
             tooltip: tr('إعدادات التلاوة', 'Recitation settings'),
             icon: const Icon(Icons.tune_rounded, color: Colors.white),
@@ -140,6 +164,37 @@ Future<void> showRecitationSettings(BuildContext context) {
                 selected: {recitation.repeat},
                 onSelectionChanged: (v) => recitation.setRepeat(v.first),
                 showSelectedIcon: false,
+              ),
+            ),
+            ListTile(
+              title: Text(tr('مؤقت النوم', 'Sleep timer')),
+              subtitle: recitation.sleepAt == null
+                  ? null
+                  : Text(
+                      tr(
+                        'يتوقف الساعة ${_clock(recitation.sleepAt!)}',
+                        'Stops at ${_clock(recitation.sleepAt!)}',
+                      ),
+                    ),
+              trailing: DropdownButton<int>(
+                value: recitation.sleepAt == null ? 0 : -1,
+                underline: const SizedBox(),
+                items: [
+                  DropdownMenuItem(value: 0, child: Text(tr('إيقاف', 'Off'))),
+                  if (recitation.sleepAt != null)
+                    DropdownMenuItem(value: -1, child: Text(tr('يعمل', 'On'))),
+                  for (final m in const [10, 15, 30, 45, 60])
+                    DropdownMenuItem(
+                      value: m,
+                      child: Text(tr('$m دقيقة', '$m min')),
+                    ),
+                ],
+                onChanged: (m) {
+                  if (m == null || m == -1) return;
+                  recitation.setSleepTimer(
+                    m == 0 ? null : Duration(minutes: m),
+                  );
+                },
               ),
             ),
             SwitchListTile(
@@ -203,3 +258,6 @@ Future<void> showRecitationSettings(BuildContext context) {
     ),
   );
 }
+
+String _clock(DateTime t) =>
+    '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';

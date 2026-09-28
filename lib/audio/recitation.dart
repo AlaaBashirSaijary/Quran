@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:just_audio/just_audio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/language.dart';
-import '../quran/search.dart';
+import '../quran/ayah_regions.dart';
 import 'downloads.dart';
 
 /// Verse-by-verse recitations from the alquran.cloud API (Islamic Network).
@@ -80,16 +80,22 @@ List<Reciter> parseReciters(String body) {
   ];
 }
 
-/// Which ayah plays next, repeating each one [repeat] times.
+/// Which ayah plays next, repeating each one [repeat] times and the whole
+/// list [loops] times.
 class RecitationQueue {
-  RecitationQueue(this.items, {this.repeat = 1});
+  RecitationQueue(this.items, {this.repeat = 1, this.loops = 1});
 
   final List<AyahAudio> items;
   final int repeat;
+  final int loops;
   int index = 0;
   int _played = 0;
+  int _loop = 0;
 
   AyahAudio get current => items[index];
+
+  /// Which pass over the list is playing, from 1.
+  int get loop => _loop + 1;
 
   /// Moves on after the current ayah finished. Returns false at the end.
   bool advance() {
@@ -97,7 +103,11 @@ class RecitationQueue {
     if (_played < repeat) return true;
     _played = 0;
     index++;
-    return index < items.length;
+    if (index < items.length) return true;
+    _loop++;
+    if (_loop >= loops) return false;
+    index = 0;
+    return true;
   }
 }
 
@@ -106,13 +116,15 @@ enum RecitationStatus { idle, loading, playing, paused, error }
 /// Plays the ayahs of a mushaf page one after another, optionally
 /// continuing with the following pages.
 class RecitationProvider extends ChangeNotifier {
-  RecitationProvider(this.prefs, {this.downloads}) {
+  RecitationProvider(this.prefs, {this.downloads, http.Client? client})
+    : _client = client ?? http.Client() {
     reciterId = prefs.getString('audio.reciter') ?? defaultReciters.first.id;
     repeat = prefs.getInt('audio.repeat') ?? 1;
     continuous = prefs.getBool('audio.continuous') ?? true;
   }
 
   final SharedPreferences prefs;
+  final http.Client _client;
 
   /// Saved recitations, played instead of streaming when available.
   final AudioDownloads? downloads;
@@ -127,6 +139,17 @@ class RecitationProvider extends ChangeNotifier {
 
   RecitationStatus status = RecitationStatus.idle;
   int? page;
+
+  /// A range being repeated for memorization: (surah, from, to), or null
+  /// while reciting pages.
+  (int, int, int)? range;
+
+  /// Audio links per reciter and surah, fetched once.
+  final _surahAudio = <(String, int), Map<int, String>>{};
+
+  /// When the sleep timer stops the recitation, if set.
+  DateTime? sleepAt;
+  Timer? _sleepTimer;
   String? error;
 
   /// Called when playback moves on to [page], so the reader can follow.
@@ -151,7 +174,7 @@ class RecitationProvider extends ChangeNotifier {
 
   Future<void> loadReciters() async {
     try {
-      final res = await http.get(
+      final res = await _client.get(
         Uri.parse('$recitationApi/edition?format=audio&type=versebyverse'),
       );
       final list = parseReciters(res.body);
@@ -167,6 +190,7 @@ class RecitationProvider extends ChangeNotifier {
   /// Plays [page], starting at the ayah [from] (surah, ayah) if given.
   Future<void> playPage(int page, {(int, int)? from}) async {
     this.page = page;
+    range = null;
     status = RecitationStatus.loading;
     error = null;
     notifyListeners();
@@ -190,32 +214,96 @@ class RecitationProvider extends ChangeNotifier {
     }
   }
 
-  /// The page's ayahs from the saved files when every one is downloaded,
-  /// otherwise from the API, still preferring any saved file.
+  /// The page's ayahs, as the page image shows them, each from its saved
+  /// file when downloaded or else from the API.
   @visibleForTesting
   Future<List<AyahAudio>> pageAudio(int page) async {
+    final regions = await AyahRegions.load();
+    return _audioFor(regions.ayahsOn(page));
+  }
+
+  Future<List<AyahAudio>> _audioFor(List<(int, int)> ayahs) async {
     final saved = downloads;
-    if (saved != null) {
-      await saved.ready;
-      final ayahs = (await QuranSearch.load()).ayahsOnPage(page);
-      final local = [
-        for (final a in ayahs)
-          if (saved.localUri(reciterId, a.surah, a.number) case final uri?)
-            AyahAudio(a.surah, a.number, uri),
-      ];
-      if (ayahs.isNotEmpty && local.length == ayahs.length) return local;
+    if (saved != null) await saved.ready;
+    final result = <AyahAudio>[];
+    for (final (surah, ayah) in ayahs) {
+      var url = saved?.localUri(reciterId, surah, ayah);
+      url ??= (await _surahUrls(surah))[ayah];
+      if (url == null) throw StateError('no audio for $surah:$ayah');
+      result.add(AyahAudio(surah, ayah, url));
     }
-    final res = await http
-        .get(Uri.parse('$recitationApi/page/$page/$reciterId'))
+    return result;
+  }
+
+  Future<Map<int, String>> _surahUrls(int surah) async {
+    final key = (reciterId, surah);
+    final cached = _surahAudio[key];
+    if (cached != null) return cached;
+    final res = await _client
+        .get(Uri.parse('$recitationApi/surah/$surah/$reciterId'))
         .timeout(const Duration(seconds: 20));
-    return [
-      for (final a in parsePageAudio(res.body))
-        AyahAudio(
-          a.surah,
-          a.ayah,
-          saved?.localUri(reciterId, a.surah, a.ayah) ?? a.url,
-        ),
-    ];
+    return _surahAudio[key] = {
+      for (final (ayah, url) in parseSurahAudio(res.body)) ayah: url,
+    };
+  }
+
+  /// Repeats ayahs [from] to [to] of [surah] [times] times, for
+  /// memorization; each ayah is still repeated [repeat] times.
+  Future<void> playRange(int surah, int from, int to, {int times = 1}) async {
+    range = (surah, from, to);
+    status = RecitationStatus.loading;
+    error = null;
+    notifyListeners();
+    try {
+      final items = await _audioFor([
+        for (var a = from; a <= to; a++) (surah, a),
+      ]);
+      _queue = RecitationQueue(items, repeat: repeat, loops: times);
+      await _followPage();
+      await _playCurrent();
+    } catch (_) {
+      status = RecitationStatus.error;
+      error = tr(
+        'تعذّر التشغيل، تحقق من الإنترنت',
+        'Could not play. Check your internet connection.',
+      );
+      notifyListeners();
+    }
+  }
+
+  /// Which pass of a repeated range is playing, and how many there are.
+  (int, int)? get rangePass {
+    final queue = _queue;
+    if (range == null || queue == null) return null;
+    return (queue.loop, queue.loops);
+  }
+
+  /// In a range, keeps [page] on the current ayah's page and turns the
+  /// reader there.
+  Future<void> _followPage() async {
+    final current = _queue?.current;
+    if (range == null || current == null) return;
+    final p = (await AyahRegions.load()).pageOf(current.surah, current.ayah);
+    if (p != null && p != page) {
+      page = p;
+      onPageChanged?.call(p);
+    }
+  }
+
+  /// Stops the recitation after [duration], or cancels the timer (null).
+  void setSleepTimer(Duration? duration) {
+    _sleepTimer?.cancel();
+    _sleepTimer = null;
+    sleepAt = null;
+    if (duration != null) {
+      sleepAt = DateTime.now().add(duration);
+      _sleepTimer = Timer(duration, () {
+        sleepAt = null;
+        _sleepTimer = null;
+        stop();
+      });
+    }
+    notifyListeners();
   }
 
   Future<void> _playCurrent() async {
@@ -231,11 +319,12 @@ class RecitationProvider extends ChangeNotifier {
     final queue = _queue;
     if (queue == null || status != RecitationStatus.playing) return;
     if (queue.advance()) {
+      await _followPage();
       await _playCurrent();
       return;
     }
     final finished = page;
-    if (continuous && finished != null && finished < 604) {
+    if (range == null && continuous && finished != null && finished < 604) {
       onPageChanged?.call(finished + 1);
       await playPage(finished + 1);
     } else {
@@ -259,6 +348,7 @@ class RecitationProvider extends ChangeNotifier {
     status = RecitationStatus.idle;
     _queue = null;
     page = null;
+    range = null;
     notifyListeners();
     await _player?.stop();
   }
@@ -268,7 +358,14 @@ class RecitationProvider extends ChangeNotifier {
     prefs.setString('audio.reciter', id);
     notifyListeners();
     final current = page;
-    if (status != RecitationStatus.idle && current != null) playPage(current);
+    final repeating = range;
+    if (status == RecitationStatus.idle || current == null) return;
+    if (repeating != null) {
+      final (surah, from, to) = repeating;
+      playRange(surah, from, to, times: _queue?.loops ?? 1);
+    } else {
+      playPage(current);
+    }
   }
 
   void setRepeat(int value) {
@@ -285,6 +382,7 @@ class RecitationProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    _sleepTimer?.cancel();
     _sub?.cancel();
     _player?.dispose();
     super.dispose();

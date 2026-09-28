@@ -83,6 +83,30 @@ Future<void> showAyahActions(
                     act(() => startRecitation(context, from: (surah, ayah))),
               ),
               ListTile(
+                leading: Icon(Icons.repeat_rounded, color: colorScheme.gold),
+                title: Text(
+                  tr('تكرار مقطع للحفظ', 'Repeat a passage to memorize'),
+                ),
+                onTap: () async {
+                  Navigator.pop(sheet);
+                  final choice = await _askRange(
+                    context,
+                    surah,
+                    ayah,
+                    quran.ayahsOfSurah(surah).length,
+                  );
+                  if (choice != null && context.mounted) {
+                    startRange(
+                      context,
+                      surah,
+                      ayah,
+                      choice.$1,
+                      times: choice.$2,
+                    );
+                  }
+                },
+              ),
+              ListTile(
                 leading: Icon(Icons.ios_share_rounded, color: colorScheme.gold),
                 title: Text(tr('مشاركة كصورة', 'Share as image')),
                 onTap: () => act(
@@ -113,5 +137,69 @@ Future<void> showAyahActions(
         ),
       );
     },
+  );
+}
+
+/// Asks up to which ayah, and how many times, to repeat from [from].
+Future<(int, int)?> _askRange(
+  BuildContext context,
+  int surah,
+  int from,
+  int count,
+) {
+  var to = (from + 4).clamp(from, count);
+  var times = 3;
+  return showDialog<(int, int)>(
+    context: context,
+    builder: (context) => StatefulBuilder(
+      builder: (context, setState) => AlertDialog(
+        title: Text(tr('تكرار مقطع للحفظ', 'Repeat a passage')),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              tr(
+                '${surahTitle(surah)}: من الآية $from إلى الآية $to',
+                '${surahTitle(surah)}: ayahs $from to $to',
+              ),
+            ),
+            if (count > from)
+              Slider(
+                value: to.toDouble(),
+                min: from.toDouble(),
+                max: count.toDouble(),
+                divisions: count - from,
+                label: '$to',
+                onChanged: (v) => setState(() => to = v.round()),
+              ),
+            const SizedBox(height: 8),
+            Text(tr('عدد مرات التكرار', 'Times')),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 6,
+              children: [
+                for (final n in const [1, 3, 5, 10, 20])
+                  ChoiceChip(
+                    label: Text('$n'),
+                    selected: times == n,
+                    onSelected: (_) => setState(() => times = n),
+                  ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(AppConstant.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, (to, times)),
+            child: Text(tr('ابدأ', 'Start')),
+          ),
+        ],
+      ),
+    ),
   );
 }

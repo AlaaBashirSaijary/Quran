@@ -63,6 +63,14 @@ class AyahRegions {
     return const [];
   }
 
+  late final Map<(int, int), int> _pageOf = {
+    for (var p = 0; p < _pages.length; p++)
+      for (final a in _pages[p]) (a.surah, a.ayah): p + 1,
+  };
+
+  /// The page [ayah] of [surah] is on, in this mushaf.
+  int? pageOf(int surah, int ayah) => _pageOf[(surah, ayah)];
+
   /// The ayahs on [page] in reading order.
   List<(int, int)> ayahsOn(int page) => [
     for (final a in _pages[page - 1]) (a.surah, a.ayah),
