@@ -11,6 +11,10 @@ import 'invert_color.dart';
 /// Aspect ratio of the page images (width / height).
 const _pageRatio = 512 / 828;
 
+/// Whether the page being read is zoomed in; page swiping pauses meanwhile
+/// so a drag pans the page instead.
+final readerZoomed = ValueNotifier<bool>(false);
+
 /// A mushaf page. Long-pressing an ayah highlights it and offers tafsir,
 /// recitation and sharing; the ayah being recited is highlighted too.
 class QuranPage extends StatefulWidget {
@@ -24,6 +28,40 @@ class QuranPage extends StatefulWidget {
 
 class _QuranPageState extends State<QuranPage> {
   (int, int)? _selected;
+  final _zoom = TransformationController();
+  bool _zoomed = false;
+  Offset _doubleTapAt = Offset.zero;
+
+  void _setZoomed(bool value) {
+    if (_zoomed == value) return;
+    setState(() => _zoomed = value);
+    readerZoomed.value = value;
+  }
+
+  void _onInteractionEnd(ScaleEndDetails _) =>
+      _setZoomed(_zoom.value.getMaxScaleOnAxis() > 1.01);
+
+  /// Double tap zooms in to twice the size around the tap, or back out.
+  void _onDoubleTap() {
+    if (_zoomed) {
+      _zoom.value = Matrix4.identity();
+      _setZoomed(false);
+    } else {
+      const scale = 2.0;
+      final p = _doubleTapAt;
+      _zoom.value = Matrix4.identity()
+        ..translateByDouble(-p.dx * (scale - 1), -p.dy * (scale - 1), 0, 1)
+        ..scaleByDouble(scale, scale, 1, 1);
+      _setZoomed(true);
+    }
+  }
+
+  @override
+  void dispose() {
+    if (_zoomed) readerZoomed.value = false;
+    _zoom.dispose();
+    super.dispose();
+  }
 
   int get _page => widget.pageIndex + 1;
 
@@ -75,30 +113,40 @@ class _QuranPageState extends State<QuranPage> {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final size = constraints.biggest;
-          return GestureDetector(
-            onLongPressStart: (d) => _onLongPress(d.localPosition, size),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                if (rects.isNotEmpty)
-                  CustomPaint(
-                    painter: _HighlightPainter(
-                      rects,
-                      colorScheme.gold.withValues(alpha: 0.28),
+          return InteractiveViewer(
+            transformationController: _zoom,
+            minScale: 1,
+            maxScale: 4,
+            // Unzoomed, a horizontal drag must reach the page swiper.
+            panEnabled: _zoomed,
+            onInteractionEnd: _onInteractionEnd,
+            child: GestureDetector(
+              onLongPressStart: (d) => _onLongPress(d.localPosition, size),
+              onDoubleTapDown: (d) => _doubleTapAt = d.localPosition,
+              onDoubleTap: _onDoubleTap,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (rects.isNotEmpty)
+                    CustomPaint(
+                      painter: _HighlightPainter(
+                        rects,
+                        colorScheme.gold.withValues(alpha: 0.28),
+                      ),
+                    ),
+                  InvertColor(
+                    isInvert: Theme.of(context).brightness == Brightness.dark,
+                    child: Image.asset(
+                      pageDir(_page),
+                      fit: BoxFit.fill,
+                      semanticLabel: tr(
+                        'صفحة $_page من المصحف',
+                        'Mushaf page $_page',
+                      ),
                     ),
                   ),
-                InvertColor(
-                  isInvert: Theme.of(context).brightness == Brightness.dark,
-                  child: Image.asset(
-                    pageDir(_page),
-                    fit: BoxFit.fill,
-                    semanticLabel: tr(
-                      'صفحة $_page من المصحف',
-                      'Mushaf page $_page',
-                    ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           );
         },
