@@ -294,6 +294,50 @@ void main() {
     handle.dispose();
   });
 
+  testWidgets('volume keys count on the tasbeeh tab when chosen', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({
+      'seenOnboarding': true,
+      'sebha.volumeKeys': true,
+    });
+    final prefs = await SharedPreferences.getInstance();
+    final captures = <Object?>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      const MethodChannel('tareeq/volume'),
+      (call) async {
+        captures.add(call.arguments);
+        return null;
+      },
+    );
+    await tester.pumpWidget(buildApp(prefs));
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pumpAndSettle();
+    expect(captures, isNot(contains(true)), reason: 'not on the Quran tab');
+
+    await tester.tap(find.text('السبحة').last);
+    await tester.pumpAndSettle();
+    expect(captures.last, isTrue);
+
+    Future<void> press() =>
+        tester.binding.defaultBinaryMessenger.handlePlatformMessage(
+          'tareeq/volume',
+          const StandardMethodCodec().encodeMethodCall(
+            const MethodCall('press'),
+          ),
+          (_) {},
+        );
+    await press();
+    await press();
+    await tester.pump();
+    expect(prefs.getInt('sebha.count'), 2);
+    expect(find.text('2'), findsWidgets);
+
+    await tester.tap(find.text('القرآن').last);
+    await tester.pumpAndSettle();
+    expect(captures.last, isFalse);
+  });
+
   group('Sebha', () {
     late DateTime now;
 

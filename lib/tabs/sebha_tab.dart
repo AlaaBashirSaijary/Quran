@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../core/index.dart';
 import '../providers/sebha_provider.dart';
+import 'volume_keys.dart';
 
 class SebhaTab extends StatelessWidget {
   const SebhaTab({super.key});
@@ -26,6 +27,7 @@ class SebhaTab extends StatelessWidget {
             icon: const Icon(Icons.more_vert_rounded),
             onSelected: (value) {
               if (value == 'vibration') sebha.setVibration(!sebha.vibration);
+              if (value == 'volume') sebha.setVolumeKeys(!sebha.volumeKeys);
               if (value == 'add') _showAddZikr(context);
             },
             itemBuilder: (context) => [
@@ -38,6 +40,14 @@ class SebhaTab extends StatelessWidget {
                 checked: sebha.vibration,
                 child: Text(tr('الاهتزاز', 'Vibration')),
               ),
+              if (VolumeKeys.supported)
+                CheckedPopupMenuItem(
+                  value: 'volume',
+                  checked: sebha.volumeKeys,
+                  child: Text(
+                    tr('العدّ بأزرار الصوت', 'Count with volume keys'),
+                  ),
+                ),
             ],
           ),
         ],
@@ -204,15 +214,7 @@ class _Counter extends StatelessWidget {
 
   final SebhaProvider sebha;
 
-  void _tap() {
-    final reached = sebha.tap();
-    if (!sebha.vibration) return;
-    if (reached) {
-      HapticFeedback.heavyImpact();
-    } else {
-      HapticFeedback.selectionClick();
-    }
-  }
+  void _tap() => countTasbeeh(sebha);
 
   @override
   Widget build(BuildContext context) {
@@ -521,4 +523,15 @@ Future<void> _confirmRemove(
     ),
   );
   if (remove == true) sebha.removeZikr(zikr.id);
+}
+
+/// One count, with a vibration if chosen (stronger on reaching the target).
+void countTasbeeh(SebhaProvider sebha) {
+  final reached = sebha.tap();
+  if (!sebha.vibration) return;
+  if (reached) {
+    HapticFeedback.heavyImpact();
+  } else {
+    HapticFeedback.selectionClick();
+  }
 }

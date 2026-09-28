@@ -6,6 +6,7 @@ import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import android.view.KeyEvent
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -13,6 +14,10 @@ import java.io.File
 
 class MainActivity : FlutterActivity() {
   private var pendingPick: MethodChannel.Result? = null
+  private var volumeChannel: MethodChannel? = null
+
+  /** While the tasbeeh counter is open (and the user chose it), the volume keys count. */
+  private var captureVolume = false
 
   override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
     super.configureFlutterEngine(flutterEngine)
@@ -26,6 +31,35 @@ class MainActivity : FlutterActivity() {
             else -> result.notImplemented()
           }
         }
+    volumeChannel =
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "tareeq/volume").apply {
+          setMethodCallHandler { call, result ->
+            if (call.method == "capture") {
+              captureVolume = call.arguments as? Boolean ?: false
+              result.success(null)
+            } else {
+              result.notImplemented()
+            }
+          }
+        }
+  }
+
+  override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+    if (captureVolume &&
+        (keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)) {
+      // One count per press, not per auto-repeat while held.
+      if ((event?.repeatCount ?: 0) == 0) volumeChannel?.invokeMethod("press", null)
+      return true
+    }
+    return super.onKeyDown(keyCode, event)
+  }
+
+  override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
+    if (captureVolume &&
+        (keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)) {
+      return true
+    }
+    return super.onKeyUp(keyCode, event)
   }
 
   /** Opens the system picker of notification and alarm sounds. */
