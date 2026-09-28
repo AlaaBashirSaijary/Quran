@@ -1151,7 +1151,7 @@ void main() {
         startsWith('2026-09-27T12:00:54  Bad state: boom 54'),
       );
       expect(log.entries.last, contains('#1 run (x.dart:2)'));
-      expect(log.report(), startsWith('Tareeq Al-Jannah error log'));
+      expect(log.report(), startsWith('Manhaj Hayah error log'));
       log.clear();
       expect(log.entries, isEmpty);
     });
@@ -1865,6 +1865,23 @@ void main() {
     });
   });
 
+  test('backups made under the former name still restore', () async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    await importBackup(
+      prefs,
+      jsonEncode({
+        'app': 'tareeq-aljannah',
+        'format': 1,
+        'data': {
+          'wird.goal': {'int': 10},
+        },
+      }),
+    );
+    expect(prefs.getInt('wird.goal'), 10);
+    expect(exportBackup(prefs), contains('"app": "manhaj-hayah"'));
+  });
+
   group('Reflection notes', () {
     test('are saved per ayah, newest first, and empty text removes', () async {
       SharedPreferences.setMockInitialValues({});
@@ -2243,7 +2260,7 @@ void main() {
         ),
       );
       expect(find.text('سورة البقرة ﴿255﴾'), findsOneWidget);
-      expect(find.text('طريق الجنة'), findsOneWidget);
+      expect(find.text('منهج حياة'), findsOneWidget);
 
       final boundary = tester.renderObject<RenderRepaintBoundary>(
         find

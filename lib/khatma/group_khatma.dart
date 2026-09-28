@@ -115,8 +115,8 @@ String khatmaMessage(GroupKhatma k) {
     ..add('')
     ..add(
       tr(
-        'افتح تطبيق «طريق الجنة» ← الورد والختمة ← ختمة جماعية، والصق هذه الرسالة للانضمام.',
-        'Open Tareeq Al-Jannah → Daily Reading & Khatma → Group khatma, and paste this message to join.',
+        'افتح تطبيق «منهج حياة» ← الورد والختمة ← ختمة جماعية، والصق هذه الرسالة للانضمام.',
+        'Open Manhaj Hayah → Daily Reading & Khatma → Group khatma, and paste this message to join.',
       ),
     )
     ..add(khatmaCode(k));

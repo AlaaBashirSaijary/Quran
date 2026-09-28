@@ -142,7 +142,7 @@ class MyApp extends StatelessWidget {
       builder: (context, theme, child) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
-          title: tr('طريق الجنة', 'Tareeq Al-Jannah'),
+          title: tr('منهج حياة', 'Manhaj Hayah'),
           theme: AppTheme.lightThemeData,
           darkTheme: AppTheme.darkThemeData,
           themeMode: theme.themeMode,

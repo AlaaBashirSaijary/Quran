@@ -61,10 +61,10 @@ class _ShareCardScreenState extends State<ShareCardScreen> {
             XFile.fromData(
               png!.buffer.asUint8List(),
               mimeType: 'image/png',
-              name: 'tareeq-aljannah.png',
+              name: 'manhaj-hayah.png',
             ),
           ],
-          fileNameOverrides: ['tareeq-aljannah.png'],
+          fileNameOverrides: ['manhaj-hayah.png'],
         ),
       );
     } catch (_) {
@@ -237,7 +237,7 @@ class ShareCard extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               Text(
-                'طريق الجنة',
+                'منهج حياة',
                 style: TextStyle(
                   fontSize: 11,
                   color: ink.withValues(alpha: 0.7),
