@@ -11,6 +11,8 @@ import 'package:quranapplication/quran/ayah_regions.dart';
 import 'package:quranapplication/quran/translation.dart';
 import 'package:quranapplication/quran/tafsir_sources.dart';
 import 'package:quranapplication/quran/translations.dart';
+import 'package:quranapplication/notes/notes.dart';
+import 'package:quranapplication/notes/notes_screen.dart';
 import 'package:quranapplication/ramadan/ramadan.dart';
 import 'package:quranapplication/hijri/calendar_screen.dart';
 import 'package:quranapplication/core/error_log.dart';
@@ -1853,6 +1855,54 @@ void main() {
     });
   });
 
+  group('Reflection notes', () {
+    test('are saved per ayah, newest first, and empty text removes', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final notes = NotesProvider(prefs)
+        ..save(2, 255, ' عظمة الله ', now: DateTime(2026, 9, 1))
+        ..save(1, 5, 'الاستعانة', now: DateTime(2026, 9, 2));
+      expect(notes.of(2, 255)!.text, 'عظمة الله');
+      expect(notes.all.map((n) => n.ayah), [5, 255]);
+
+      final again = NotesProvider(prefs);
+      expect(again.of(1, 5)!.updated, DateTime(2026, 9, 2));
+      again.save(1, 5, '   ');
+      expect(again.of(1, 5), isNull);
+      expect(NotesProvider(prefs).all, hasLength(1));
+    });
+
+    test('travel in backups', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      NotesProvider(prefs).save(3, 8, 'دعاء الثبات');
+      final backup = exportBackup(prefs);
+      await prefs.clear();
+      await importBackup(prefs, backup);
+      expect(NotesProvider(prefs).of(3, 8)!.text, 'دعاء الثبات');
+    });
+
+    testWidgets('the notes screen lists and filters', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final notes = NotesProvider(prefs)
+        ..save(2, 255, 'آية الكرسي قبل النوم')
+        ..save(94, 5, 'بعد العسر يسر');
+      await tester.pumpWidget(
+        ChangeNotifierProvider.value(
+          value: notes,
+          child: const MaterialApp(home: NotesScreen()),
+        ),
+      );
+      expect(find.text('آية الكرسي قبل النوم'), findsOneWidget);
+      expect(find.text('بعد العسر يسر'), findsOneWidget);
+      await tester.enterText(find.byType(TextField), 'العسر');
+      await tester.pump();
+      expect(find.text('آية الكرسي قبل النوم'), findsNothing);
+      expect(find.text('بعد العسر يسر'), findsOneWidget);
+    });
+  });
+
   group('More translations', () {
     test(
       'a language is downloaded once and then read from the phone',
@@ -2105,8 +2155,11 @@ void main() {
         await QuranSearch.load();
       });
       await tester.pumpWidget(
-        ChangeNotifierProvider(
-          create: (_) => RecitationProvider(prefs),
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => RecitationProvider(prefs)),
+            ChangeNotifierProvider(create: (_) => NotesProvider(prefs)),
+          ],
           child: const MaterialApp(
             home: Scaffold(
               body: Directionality(

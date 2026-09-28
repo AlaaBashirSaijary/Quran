@@ -25,6 +25,7 @@ import 'screens/index_screen.dart';
 import 'screens/juz_index_screen.dart';
 import 'screens/search_screen.dart';
 import 'screens/splash_screen.dart';
+import 'notes/notes.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -95,6 +96,9 @@ class _AppRootState extends State<AppRoot> {
           ),
           ChangeNotifierProvider<HifzProvider>(
             create: (context) => HifzProvider(prefs),
+          ),
+          ChangeNotifierProvider<NotesProvider>(
+            create: (context) => NotesProvider(prefs),
           ),
           ChangeNotifierProvider<GroupKhatmaProvider>(
             create: (context) => GroupKhatmaProvider(prefs),
