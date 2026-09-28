@@ -15,6 +15,7 @@ class NotificationSettings extends ChangeNotifier {
     wirdMinutes = prefs.getInt('notify.wirdMinutes') ?? 21 * 60;
     friday = prefs.getBool('notify.friday') ?? true;
     suhoor = prefs.getBool('notify.suhoor') ?? true;
+    dailyAyah = prefs.getBool('notify.dailyAyah') ?? true;
     fasting = prefs.getBool('notify.fasting') ?? true;
     fastingWeekly = prefs.getBool('notify.fastingWeekly') ?? true;
     adhanUri = prefs.getString('notify.adhanUri');
@@ -64,6 +65,15 @@ class NotificationSettings extends ChangeNotifier {
 
   /// Al-Kahf in the morning and du'a in the last hour of Friday.
   late bool friday;
+
+  /// The ayah of the day, each morning.
+  late bool dailyAyah;
+
+  void setDailyAyah(bool value) {
+    dailyAyah = value;
+    prefs.setBool('notify.dailyAyah', value);
+    notifyListeners();
+  }
 
   /// The evening before a recommended fast (Arafah, Ashura, the white
   /// days...), and before Mondays and Thursdays when [fastingWeekly].
@@ -145,6 +155,7 @@ class NotificationSettings extends ChangeNotifier {
     wirdMinutes,
     friday,
     suhoor,
+    dailyAyah,
     fasting,
     fastingWeekly,
     adhanUri,

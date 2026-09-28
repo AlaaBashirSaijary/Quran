@@ -12,7 +12,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quranapplication/content/library.dart';
 import 'package:quranapplication/main.dart';
+import 'package:quranapplication/quran/ayah_regions.dart';
+import 'package:quranapplication/quran/search.dart';
 import 'package:quranapplication/share/share_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -67,7 +70,12 @@ Future<void> _shot(WidgetTester tester, GlobalKey key, String name) async {
 
 void main() {
   testWidgets('screenshots', skip: !_enabled, (tester) async {
-    await tester.runAsync(_loadFonts);
+    await tester.runAsync(() async {
+      await _loadFonts();
+      await QuranSearch.load();
+      await AyahRegions.load();
+      await loadRiyad();
+    });
     tester.view.physicalSize = const Size(1080, 2340);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);

@@ -12,6 +12,8 @@ import 'notification_settings.dart';
 import 'planner.dart';
 import '../quran/quran.dart';
 import '../screens/index_screen.dart';
+import '../quran/search.dart';
+import '../daily/daily.dart';
 
 /// Keeps the scheduled reminders in step with the prayer times, the
 /// reminder choices and today's wird, and the home-screen widget in step
@@ -27,6 +29,7 @@ class NotificationSync extends StatefulWidget {
 
 class _NotificationSyncState extends State<NotificationSync> {
   String? _last;
+  int _generation = 0;
 
   @override
   void initState() {
@@ -75,13 +78,29 @@ class _NotificationSyncState extends State<NotificationSync> {
     _last = signature;
     updatePrayerWidget(prayer, now);
     if (!NotificationService.supported) return;
-    NotificationService.instance.schedule(
+    _schedule(prayer, settings, now, reading.goalMet, hijriOffset);
+  }
+
+  /// The ayah of the day needs the Quran text, so wait for it first.
+  Future<void> _schedule(
+    PrayerProvider prayer,
+    NotificationSettings settings,
+    DateTime now,
+    bool wirdDone,
+    int hijriOffset,
+  ) async {
+    final generation = ++_generation;
+    final quran = await QuranSearch.load();
+    // A newer change has scheduled (or is scheduling) since.
+    if (generation != _generation) return;
+    await NotificationService.instance.schedule(
       planNotifications(
         prayer: prayer,
         settings: settings,
         now: now,
-        wirdDoneToday: reading.goalMet,
+        wirdDoneToday: wirdDone,
         hijriOffset: hijriOffset,
+        ayahOfDay: (day) => ayahOfDayText(quran, day),
       ),
       adhanUri: settings.adhanUri,
     );
@@ -253,6 +272,14 @@ class _NotificationSettingsScreenState
                   ),
                   value: settings.eveningAzkar,
                   onChanged: settings.setEveningAzkar,
+                ),
+                SwitchListTile(
+                  title: Text(tr('آية اليوم', 'Ayah of the day')),
+                  subtitle: Text(
+                    tr('كل صباح الساعة التاسعة', 'Every morning at 9'),
+                  ),
+                  value: settings.dailyAyah,
+                  onChanged: settings.setDailyAyah,
                 ),
                 SwitchListTile(
                   title: Text(tr('صيام التطوّع', 'Voluntary fasts')),

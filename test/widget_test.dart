@@ -12,6 +12,7 @@ import 'package:quranapplication/quran/translation.dart';
 import 'package:quranapplication/ramadan/ramadan.dart';
 import 'package:quranapplication/hijri/calendar_screen.dart';
 import 'package:quranapplication/core/error_log.dart';
+import 'package:quranapplication/daily/daily.dart';
 import 'package:quranapplication/screens/error_log_screen.dart';
 import 'package:quranapplication/ramadan/imsakiya_screen.dart';
 import 'package:quranapplication/screens/search_screen.dart';
@@ -56,6 +57,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 Widget buildApp(SharedPreferences prefs) => AppRoot(prefs: prefs);
 
 void main() {
+  // Shared data is loaded once, for real: a first load started inside a
+  // widget test's fake time would never finish, and it is cached.
+  setUpAll(() async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    await QuranSearch.load();
+    await AyahRegions.load();
+    await loadRiyad();
+    await Translation.load();
+  });
+
   testWidgets('first launch shows onboarding, then the main tabs', (
     tester,
   ) async {
@@ -232,7 +243,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Surah Index'), findsOneWidget);
-    expect(find.text('Al Fatiha'), findsOneWidget);
+    expect(find.text('Surah Al Fatiha'), findsOneWidget);
     expect(
       Directionality.of(tester.element(find.text('Surah Index'))),
       TextDirection.ltr,
@@ -1109,6 +1120,62 @@ void main() {
       await tester.pump();
       expect(log.entries, isEmpty);
       expect(find.text('لا أخطاء مسجّلة'), findsOneWidget);
+    });
+  });
+
+  group('Ayah and hadith of the day', () {
+    setUpAll(TestWidgetsFlutterBinding.ensureInitialized);
+
+    test('every listed ayah exists and days take them in turn', () async {
+      final quran = await QuranSearch.load();
+      for (final (s, a) in dailyAyahs) {
+        expect(
+          a,
+          lessThanOrEqualTo(quran.ayahsOfSurah(s).length),
+          reason: '$s:$a',
+        );
+      }
+      expect(dailyAyahs.toSet(), hasLength(dailyAyahs.length));
+      final today = DateTime(2026, 9, 28);
+      final tomorrow = DateTime(2026, 9, 29);
+      expect(ayahOfDay(today), isNot(ayahOfDay(tomorrow)));
+      expect(ayahOfDay(DateTime(2026, 9, 28, 23, 59)), ayahOfDay(today));
+      expect(
+        ayahOfDay(today.add(Duration(days: dailyAyahs.length))),
+        ayahOfDay(today),
+      );
+      expect(ayahOfDayText(quran, today)!.surah, ayahOfDay(today).$1);
+    });
+
+    test('the hadith of the day is of moderate length', () async {
+      final riyad = await loadRiyad();
+      final (book, text) = hadithOfDay(riyad, DateTime(2026, 9, 28))!;
+      expect(book, isNotEmpty);
+      expect(text.length, inInclusiveRange(80, 450));
+      expect(hadithOfDay(riyad, DateTime(2026, 9, 29))!.$2, isNot(text));
+    });
+
+    test('a morning notification carries the ayah', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final quran = await QuranSearch.load();
+      final settings = NotificationSettings(prefs);
+      List<PlannedNotification> plan() => planNotifications(
+        prayer: PrayerProvider(prefs),
+        settings: settings,
+        now: DateTime(2026, 9, 28),
+        wirdDoneToday: false,
+        days: 1,
+        ayahOfDay: (day) => ayahOfDayText(quran, day),
+      );
+      final daily = plan().singleWhere((n) => n.kind == ReminderKind.daily);
+      expect(daily.time, DateTime(2026, 9, 28, 9));
+      expect(
+        daily.body,
+        contains(ayahOfDayText(quran, DateTime(2026, 9, 28))!.text),
+      );
+      settings.setDailyAyah(false);
+      expect(plan().any((n) => n.kind == ReminderKind.daily), isFalse);
     });
   });
 
