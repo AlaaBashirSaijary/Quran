@@ -1936,6 +1936,9 @@ void main() {
         expect(requests, 1);
 
         final later = make();
+        // Asked for at the same time, the file is read once.
+        final both = await Future.wait([later.load('ur'), later.load('ur')]);
+        expect(identical(both[0], both[1]), isTrue);
         expect(await later.isDownloaded('ur'), isTrue);
         expect((await later.load('ur'))!.of(114, 1), 'ترجمہ 114');
         expect(requests, 1);
