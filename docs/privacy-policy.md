@@ -29,8 +29,7 @@
 لا يجمع التطبيق بيانات من أي مستخدم، بمن فيهم الأطفال.
 
 ## التواصل
-للأسئلة: افتح مسألة (Issue) في مستودع التطبيق على GitHub:
-https://github.com/AlaaBashirSaijary/Quran/issues
+للأسئلة والملاحظات والإبلاغ عن مشكلة: alaabashersaijary@gmail.com
 
 ---
 
@@ -59,4 +58,4 @@ Backups are files you create and place yourself. Group khatma messages and image
 The app collects no data from anyone, including children.
 
 ## Contact
-Open an issue at https://github.com/AlaaBashirSaijary/Quran/issues
+Questions, feedback or to report a problem: alaabashersaijary@gmail.com
