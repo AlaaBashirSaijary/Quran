@@ -50,6 +50,7 @@ import 'package:quranapplication/providers/bookmark.dart';
 import 'package:quranapplication/providers/quran.dart';
 import 'package:quranapplication/providers/reading_provider.dart';
 import 'package:quranapplication/providers/theme_provider.dart';
+import 'package:quranapplication/screens/settings_screen.dart';
 import 'package:quranapplication/quran/quran.dart';
 import 'package:quranapplication/quran/search.dart';
 import 'package:quranapplication/providers/sebha_provider.dart';
@@ -1178,6 +1179,51 @@ void main() {
       await tester.pump();
       expect(log.entries, isEmpty);
       expect(find.text('لا أخطاء مسجّلة'), findsOneWidget);
+    });
+  });
+
+  group('Settings about section', () {
+    testWidgets('shows the developer credit and copies the contacts', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(900, 3600);
+      tester.view.devicePixelRatio = 1.5;
+      addTearDown(tester.view.reset);
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final copied = <String>[];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (call) async {
+          if (call.method == 'Clipboard.setData') {
+            copied.add((call.arguments as Map)['text'] as String);
+          }
+          return null;
+        },
+      );
+      addTearDown(
+        () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          null,
+        ),
+      );
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => SettingsProvider(prefs)),
+            ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
+          ],
+          child: const MaterialApp(home: SettingsScreen()),
+        ),
+      );
+      expect(find.textContaining('ألاء بشير سيجري'), findsWidgets);
+      await tester.ensureVisible(find.text(contactEmail));
+      await tester.tap(find.text(contactEmail));
+      await tester.pump();
+      await tester.ensureVisible(find.text(contactTelegram));
+      await tester.tap(find.text(contactTelegram));
+      await tester.pump();
+      expect(copied, [contactEmail, contactTelegram]);
     });
   });
 

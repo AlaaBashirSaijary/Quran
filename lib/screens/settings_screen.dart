@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,6 +16,11 @@ import '../settings/backup.dart';
 import 'error_log_screen.dart';
 import '../quran/translations.dart';
 import '../widgets/translation_picker.dart';
+
+/// Where people can reach the developer. Shown in Settings → About; the
+/// same addresses are on the website.
+const contactEmail = 'alaabashersaijary@gmail.com';
+const contactTelegram = 'https://t.me/+xMPal7qF5NgwZmJk';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -314,11 +320,40 @@ class SettingsScreen extends StatelessWidget {
                   style: TextStyle(color: colorScheme.pageNumber, fontSize: 13),
                 ),
               ),
+              ListTile(
+                leading: const Icon(Icons.send_rounded),
+                title: Text(tr('قناة تيليغرام', 'Telegram channel')),
+                subtitle: const Text(
+                  contactTelegram,
+                  textDirection: TextDirection.ltr,
+                ),
+                trailing: const Icon(Icons.copy_rounded, size: 20),
+                onTap: () => _copy(context, contactTelegram),
+              ),
+              ListTile(
+                leading: const Icon(Icons.mail_outline_rounded),
+                title: Text(
+                  tr('للتواصل والملاحظات', 'Contact and feedback'),
+                ),
+                subtitle: const Text(
+                  contactEmail,
+                  textDirection: TextDirection.ltr,
+                ),
+                trailing: const Icon(Icons.copy_rounded, size: 20),
+                onTap: () => _copy(context, contactEmail),
+              ),
             ],
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _copy(BuildContext context, String value) async {
+    await Clipboard.setData(ClipboardData(text: value));
+    if (context.mounted) {
+      _message(context, tr('تم نسخ الرابط.', 'Copied.'));
+    }
   }
 
   Future<void> _export(BuildContext context) async {
