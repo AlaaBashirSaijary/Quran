@@ -1217,6 +1217,9 @@ void main() {
         ),
       );
       expect(find.textContaining('ألاء بشير سيجري'), findsWidgets);
+      expect(find.text('شارك التطبيق'), findsOneWidget);
+      expect(shareAppMessage(), contains(appLink));
+      expect(appLink, contains('/get/'));
       await tester.ensureVisible(find.text(contactEmail));
       await tester.tap(find.text(contactEmail));
       await tester.pump();

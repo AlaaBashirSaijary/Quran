@@ -21,6 +21,13 @@ import '../widgets/translation_picker.dart';
 /// same addresses are on the website.
 const contactEmail = 'alaabashersaijary@gmail.com';
 const contactTelegram = 'https://t.me/+xMPal7qF5NgwZmJk';
+const appLink = 'https://alaabashirsaijary.github.io/manhaj-hayah/get/?s=app';
+
+/// The message sent by "Share the app".
+String shareAppMessage() => tr(
+  'منهج حياة: تطبيق مجاني للقرآن والصلاة والأذكار دون إعلانات (لأندرويد).\n$appLink',
+  'Manhaj Hayah: a free Quran, prayer times and azkar app with no ads (Android).\n$appLink',
+);
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -318,6 +325,19 @@ class SettingsScreen extends StatelessWidget {
                         '© 2026 Alaa Bashir Saijary. All rights reserved.',
                   ),
                   style: TextStyle(color: colorScheme.pageNumber, fontSize: 13),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.share_rounded),
+                title: Text(tr('شارك التطبيق', 'Share the app')),
+                subtitle: Text(
+                  tr(
+                    'أرسل رابط التحميل لمن تحب',
+                    'Send the download link to someone',
+                  ),
+                ),
+                onTap: () => SharePlus.instance.share(
+                  ShareParams(text: shareAppMessage()),
                 ),
               ),
               ListTile(
