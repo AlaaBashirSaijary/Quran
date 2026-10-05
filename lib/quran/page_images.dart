@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:collection';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -22,7 +21,7 @@ const mushafPageCount = 604;
 class PageImages {
   PageImages._();
 
-  static final _recent = LinkedHashMap<int, Uint8List>();
+  static final _recent = <int, Uint8List>{};
 
   /// Progress (0 to 1) of "download the whole mushaf", or null when idle.
   static final progress = ValueNotifier<double?>(null);

@@ -552,8 +552,8 @@ class _MushafDownloadTileState extends State<_MushafDownloadTile> {
           subtitle: Text(
             busy
                 ? tr(
-                    'جارٍ التنزيل ${(progress! * 100).round()}٪',
-                    'Downloading ${(progress! * 100).round()}%',
+                    'جارٍ التنزيل ${(progress * 100).round()}٪',
+                    'Downloading ${(progress * 100).round()}%',
                   )
                 : tr(
                     'للقراءة دون إنترنت (نحو 41 ميغابايت). المحمَّل: $_saved من $mushafPageCount صفحة',

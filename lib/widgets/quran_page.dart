@@ -5,7 +5,6 @@ import '../audio/recitation.dart';
 import '../core/index.dart';
 import '../quran/ayah_regions.dart';
 import '../quran/page_images.dart';
-import '../quran/quran.dart';
 import 'ayah_actions.dart';
 import 'invert_color.dart';
 
