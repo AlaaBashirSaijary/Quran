@@ -14,6 +14,7 @@ import '../providers/settings_provider.dart';
 import '../providers/theme_provider.dart';
 import '../settings/backup.dart';
 import 'error_log_screen.dart';
+import '../quran/page_images.dart';
 import '../quran/translations.dart';
 import '../widgets/translation_picker.dart';
 
@@ -280,6 +281,13 @@ class SettingsScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
+          if (kLite) ...[
+            _Section(
+              title: tr('المصحف دون إنترنت', 'Mushaf offline'),
+              children: const [_MushafDownloadTile()],
+            ),
+            const SizedBox(height: 16),
+          ],
           _Section(
             title: tr('الخصوصية', 'Privacy'),
             children: [
@@ -289,11 +297,13 @@ class SettingsScreen extends StatelessWidget {
                   tr(
                     'لا يجمع التطبيق أي بيانات شخصية ولا يحتوي إعلانات أو تتبّعاً. '
                         'بياناتك تبقى على هاتفك، ويُستخدم موقعك على الهاتف فقط لحساب '
-                        'المواقيت والقبلة. الإنترنت للتلاوة فقط (alquran.cloud).',
+                        'المواقيت والقبلة. الإنترنت للتلاوة (alquran.cloud) ولتنزيل المحتوى الذي تطلبه '
+                        '(التفاسير والترجمات، وصفحات المصحف في النسخة الخفيفة).',
                     'The app collects no personal data and has no ads or tracking. '
                         'Your data stays on your phone, and your location is used on '
                         'the phone only, for prayer times and the qibla. The internet '
-                        'is used only for recitations (alquran.cloud).',
+                        'is used for recitations (alquran.cloud) and to download content you ask for '
+                        '(tafsirs, translations, and mushaf pages in the light version).',
                   ),
                   style: TextStyle(color: colorScheme.pageNumber, fontSize: 13),
                 ),
@@ -483,6 +493,86 @@ class _Section extends StatelessWidget {
           ...children,
         ],
       ),
+    );
+  }
+}
+
+
+/// "Download the whole mushaf", shown only in the light build.
+class _MushafDownloadTile extends StatefulWidget {
+  const _MushafDownloadTile();
+
+  @override
+  State<_MushafDownloadTile> createState() => _MushafDownloadTileState();
+}
+
+class _MushafDownloadTileState extends State<_MushafDownloadTile> {
+  int _saved = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _refresh();
+  }
+
+  Future<void> _refresh() async {
+    final n = await PageImages.savedCount();
+    if (mounted) setState(() => _saved = n);
+  }
+
+  Future<void> _download() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final failed = await PageImages.downloadAll();
+    await _refresh();
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          failed == 0
+              ? tr('اكتمل تنزيل المصحف', 'The whole mushaf is downloaded')
+              : tr(
+                  'تعذّر تنزيل $failed صفحة. أعد المحاولة بعد اتصال أفضل.',
+                  '$failed pages could not be downloaded. Try again on a better connection.',
+                ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<double?>(
+      valueListenable: PageImages.progress,
+      builder: (context, progress, _) {
+        final busy = progress != null;
+        return ListTile(
+          leading: const Icon(Icons.download_for_offline_outlined),
+          title: Text(
+            tr('تنزيل المصحف كاملاً', 'Download the whole mushaf'),
+          ),
+          subtitle: Text(
+            busy
+                ? tr(
+                    'جارٍ التنزيل ${(progress! * 100).round()}٪',
+                    'Downloading ${(progress! * 100).round()}%',
+                  )
+                : tr(
+                    'للقراءة دون إنترنت (نحو 41 ميغابايت). المحمَّل: $_saved من $mushafPageCount صفحة',
+                    'To read without internet (about 41 MB). Downloaded: $_saved of $mushafPageCount pages',
+                  ),
+          ),
+          trailing: busy
+              ? SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3,
+                    value: progress,
+                  ),
+                )
+              : null,
+          onTap: busy || _saved >= mushafPageCount ? null : _download,
+        );
+      },
     );
   }
 }

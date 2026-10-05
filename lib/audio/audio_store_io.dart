@@ -52,3 +52,19 @@ Future<String?> readText(String path) async {
   final file = File(path);
   return await file.exists() ? file.readAsString() : null;
 }
+
+Future<Uint8List?> readBytes(String path) async {
+  final file = File(path);
+  return await file.exists() ? file.readAsBytes() : null;
+}
+
+/// How many files are saved directly under [path].
+Future<int> fileCount(String path) async {
+  final dir = Directory(path);
+  if (!await dir.exists()) return 0;
+  var n = 0;
+  await for (final entity in dir.list()) {
+    if (entity is File && !entity.path.endsWith('.part')) n++;
+  }
+  return n;
+}
