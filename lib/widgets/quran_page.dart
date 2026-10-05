@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../audio/recitation.dart';
 import '../core/index.dart';
 import '../quran/ayah_regions.dart';
-import '../quran/quran.dart';
+import '../quran/page_images.dart';
 import 'ayah_actions.dart';
 import 'invert_color.dart';
 
@@ -136,9 +136,8 @@ class _QuranPageState extends State<QuranPage> {
                     ),
                   InvertColor(
                     isInvert: Theme.of(context).brightness == Brightness.dark,
-                    child: Image.asset(
-                      pageDir(_page),
-                      fit: BoxFit.fill,
+                    child: MushafPageImage(
+                      page: _page,
                       semanticLabel: tr(
                         'صفحة $_page من المصحف',
                         'Mushaf page $_page',

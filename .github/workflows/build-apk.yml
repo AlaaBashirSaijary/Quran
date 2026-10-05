@@ -82,20 +82,37 @@ jobs:
         env:
           VERSION: 1.0.${{ github.run_number }}
         run: |
-          # One APK that installs on any phone
-          flutter build apk --release --build-name=$VERSION --build-number=${{ github.run_number }}
+          # One APK that installs on any phone with an ARM processor (nearly
+          # all of them). x86_64, used by emulators, has its own file below.
+          flutter build apk --release --target-platform android-arm,android-arm64 --build-name=$VERSION --build-number=${{ github.run_number }}
+          mkdir -p dist
+          cp build/app/outputs/flutter-apk/app-release.apk dist/manhaj-hayah.apk
           # Smaller APKs, one per processor type
           flutter build apk --release --split-per-abi --build-name=$VERSION --build-number=${{ github.run_number }}
-
-      - name: Collect APKs
-        run: |
-          mkdir -p dist
           cd build/app/outputs/flutter-apk
-          cp app-release.apk ../../../../dist/manhaj-hayah.apk
           cp app-arm64-v8a-release.apk ../../../../dist/manhaj-hayah-arm64-v8a.apk
           cp app-armeabi-v7a-release.apk ../../../../dist/manhaj-hayah-armeabi-v7a.apk
           cp app-x86_64-release.apk ../../../../dist/manhaj-hayah-x86_64.apk
-          ls -lh ../../../../dist
+
+      # The "light" build leaves the 604 mushaf page images (about 41 MB) out
+      # of the APK; the app downloads each page the first time it is opened.
+      # Same code, same signing key, built with --dart-define=LITE=true.
+      - name: Build light APKs
+        env:
+          VERSION: 1.0.${{ github.run_number }}
+        run: |
+          rm -rf assets/quran-images
+          sed -i '/assets\/quran-images\//d' pubspec.yaml
+          flutter build apk --release --target-platform android-arm,android-arm64 --dart-define=LITE=true --build-name=$VERSION --build-number=${{ github.run_number }}
+          cp build/app/outputs/flutter-apk/app-release.apk dist/manhaj-hayah-lite.apk
+          flutter build apk --release --split-per-abi --dart-define=LITE=true --build-name=$VERSION --build-number=${{ github.run_number }}
+          cd build/app/outputs/flutter-apk
+          cp app-arm64-v8a-release.apk ../../../../dist/manhaj-hayah-lite-arm64-v8a.apk
+          cp app-armeabi-v7a-release.apk ../../../../dist/manhaj-hayah-lite-armeabi-v7a.apk
+          cd ../../../..
+          # Put the images back so the app bundle below still contains them.
+          git checkout -- pubspec.yaml assets/quran-images
+          ls -lh dist
 
       - uses: actions/upload-artifact@v7
         with:
@@ -164,6 +181,9 @@ jobs:
             dist/manhaj-hayah.apk
             dist/manhaj-hayah-arm64-v8a.apk
             dist/manhaj-hayah-armeabi-v7a.apk
+            dist/manhaj-hayah-lite.apk
+            dist/manhaj-hayah-lite-arm64-v8a.apk
+            dist/manhaj-hayah-lite-armeabi-v7a.apk
             dist/manhaj-hayah.aab
           body: |
             ## التثبيت على الهاتف

@@ -17,3 +17,7 @@ Future<void> deleteFolder(String path) async {}
 Future<String?> dataFolder(String name) async => null;
 
 Future<String?> readText(String path) async => null;
+
+Future<Uint8List?> readBytes(String path) async => null;
+
+Future<int> fileCount(String path) async => 0;
