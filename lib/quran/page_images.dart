@@ -157,9 +157,9 @@ class _MushafPageImageState extends State<MushafPageImage> {
                   const SizedBox(height: 12),
                   Text(
                     tr(
-                      'تعذّر تنزيل الصفحة. تحتاج هذه النسخة الخفيفة إلى الإنترنت '
-                          'لتنزيل كل صفحة مرة واحدة. يمكنك القراءة نصاً دون إنترنت '
-                          'من زر «نص» في الأعلى.',
+                      'تعذّر تنزيل صورة الصفحة. تحتاج الصور في هذه النسخة الخفيفة إلى الإنترنت '
+                          'مرة واحدة لكل صفحة. القراءة النصية تعمل دون إنترنت: '
+                          'اضغط زر «نص» في الأعلى.',
                       'Could not download this page. The light version needs the internet to fetch each page once. You can read as text without internet.',
                     ),
                     textAlign: TextAlign.center,

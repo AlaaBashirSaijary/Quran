@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/language.dart';
+import '../quran/page_images.dart';
 
 /// Reading preferences that apply across the app's text content
 /// (hadith, azkar, du'a, search results and tafsir).
@@ -46,7 +47,9 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   /// Read the mushaf as text instead of page images.
-  bool get textMode => prefs.getBool(_textModeKey) ?? false;
+  // The light build ships without the mushaf images, so it opens in text
+  // mode, which works offline from the first launch.
+  bool get textMode => prefs.getBool(_textModeKey) ?? kLite;
 
   void setTextMode(bool value) {
     prefs.setBool(_textModeKey, value);
