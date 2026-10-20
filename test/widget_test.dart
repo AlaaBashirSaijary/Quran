@@ -46,6 +46,8 @@ import 'package:quranapplication/khatma/group_khatma.dart';
 import 'package:quranapplication/screens/group_khatma_screen.dart';
 import 'package:quranapplication/prayer/prayer.dart';
 import 'package:quranapplication/harvest/harvest.dart';
+import 'package:quranapplication/kids/kids_progress.dart';
+import 'package:quranapplication/kids/kids_screen.dart';
 import 'package:quranapplication/harvest/harvest_screen.dart';
 import 'package:quranapplication/providers/ahadith_details_provider.dart';
 import 'package:quranapplication/providers/bookmark.dart';
@@ -1259,6 +1261,82 @@ void main() {
       expect(find.textContaining('آخر 30 يوماً'), findsOneWidget);
       expect(find.text('منهج حياة'), findsOneWidget);
       expect(find.text('مشاركة الصورة'), findsOneWidget);
+    });
+  });
+
+  group('Kids corner', () {
+    final now = DateTime(2026, 10, 20, 9);
+
+    test('a surah gives one star a day', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      var clock = now;
+      final kids = KidsProgress(prefs, clock: () => clock);
+      expect(kids.totalStars, 0);
+      expect(kids.earnToday(112), isTrue);
+      expect(kids.earnToday(112), isFalse, reason: 'one star a day');
+      expect(kids.earnedToday(112), isTrue);
+      clock = now.add(const Duration(days: 1));
+      expect(kids.earnedToday(112), isFalse);
+      expect(kids.earnToday(112), isTrue);
+      kids.addDhikrRound();
+      expect(kids.starsFor(112), 2);
+      expect(kids.totalStars, 3);
+      final again = KidsProgress(prefs, clock: () => clock);
+      expect(again.starsFor(112), 2);
+      expect(again.dhikrRounds, 1);
+    });
+
+    test('every surah in the corner exists', () {
+      expect(kidsSurahs.toSet().length, kidsSurahs.length);
+      expect(kidsSurahs.every((s) => s >= 1 && s <= 114), isTrue);
+    });
+
+    testWidgets('the corner lists the surahs and the star count', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(900, 3600);
+      tester.view.devicePixelRatio = 1.5;
+      addTearDown(tester.view.reset);
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final kids = KidsProgress(prefs)..earnToday(kidsSurahs.first);
+      await tester.pumpWidget(
+        ChangeNotifierProvider.value(
+          value: kids,
+          child: const MaterialApp(home: KidsCornerScreen()),
+        ),
+      );
+      expect(find.text('ركن الصغار'), findsOneWidget);
+      expect(find.text('1'), findsWidgets);
+      expect(find.text(surahNameOf(kidsSurahs.first)), findsOneWidget);
+    });
+
+    testWidgets('a surah screen shows its ayahs and gives the star', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(900, 3600);
+      tester.view.devicePixelRatio = 1.5;
+      addTearDown(tester.view.reset);
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final quran = await tester.runAsync(QuranSearch.load);
+      final first = quran!.ayahsOfSurah(112).first.text;
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => KidsProgress(prefs)),
+            ChangeNotifierProvider(create: (_) => RecitationProvider(prefs)),
+          ],
+          child: const MaterialApp(home: KidsSurahScreen(surah: 112)),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(find.text(first), findsOneWidget);
+      await tester.tap(find.text('قرأتُها، أعطني نجمة'));
+      await tester.pump();
+      expect(find.text('أخذتَ نجمة اليوم'), findsOneWidget);
     });
   });
 
