@@ -185,6 +185,7 @@ class _KidsSurahScreenState extends State<KidsSurahScreen> {
         appBar: AppBar(title: Text(surahNameOf(widget.surah))),
         body: FutureBuilder<QuranSearch>(
           future: _quran,
+          initialData: QuranSearch.loaded,
           builder: (context, snap) {
             if (!snap.hasData) {
               return const Center(child: CircularProgressIndicator());
