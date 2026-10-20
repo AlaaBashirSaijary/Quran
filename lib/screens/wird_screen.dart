@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../core/index.dart';
 import '../providers/reading_provider.dart';
+import '../harvest/harvest_screen.dart';
 import 'group_khatma_screen.dart';
 
 /// Compact daily-goal and khatma progress, shown on the Quran tab.
@@ -239,6 +240,32 @@ class WirdScreen extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            clipBehavior: Clip.antiAlias,
+            child: ListTile(
+              contentPadding: const EdgeInsets.all(16),
+              leading: Icon(
+                Icons.auto_awesome_rounded,
+                color: colorScheme.gold,
+                size: 36,
+              ),
+              title: Text(
+                tr('حصادي الشهري', 'My month'),
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Text(
+                tr(
+                  'صفحاتك وأذكارك وتسبيحك في آخر 30 يوماً، كبطاقة تشاركها',
+                  'Your pages, azkar and tasbeeh over the last 30 days, as a card to share',
+                ),
+              ),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const HarvestScreen()),
+              ),
             ),
           ),
           const SizedBox(height: 16),
