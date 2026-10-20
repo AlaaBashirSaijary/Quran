@@ -1331,8 +1331,7 @@ void main() {
           child: const MaterialApp(home: KidsSurahScreen(surah: 112)),
         ),
       );
-      await tester.pump();
-      await tester.pump();
+      await tester.pumpAndSettle();
       expect(find.text(first), findsOneWidget);
       await tester.tap(find.text('قرأتُها، أعطني نجمة'));
       await tester.pump();
