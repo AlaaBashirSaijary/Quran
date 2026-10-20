@@ -45,6 +45,8 @@ import 'package:quranapplication/core/language.dart';
 import 'package:quranapplication/khatma/group_khatma.dart';
 import 'package:quranapplication/screens/group_khatma_screen.dart';
 import 'package:quranapplication/prayer/prayer.dart';
+import 'package:quranapplication/harvest/harvest.dart';
+import 'package:quranapplication/harvest/harvest_screen.dart';
 import 'package:quranapplication/providers/ahadith_details_provider.dart';
 import 'package:quranapplication/providers/bookmark.dart';
 import 'package:quranapplication/providers/quran.dart';
@@ -1179,6 +1181,84 @@ void main() {
       await tester.pump();
       expect(log.entries, isEmpty);
       expect(find.text('لا أخطاء مسجّلة'), findsOneWidget);
+    });
+  });
+
+  group('Monthly harvest', () {
+    final now = DateTime(2026, 10, 20, 20);
+
+    test('adds up pages, azkar days and tasbeeh over the last 30 days', () async {
+      SharedPreferences.setMockInitialValues({
+        // Reading: 3 pages today, 5 yesterday and 4 the day before, a gap,
+        // then 1 page eight days ago, and 9 pages 40 days ago (outside).
+        'wird.goal': 5,
+        'wird.daily':
+            '{"2026-10-20":3,"2026-10-19":5,"2026-10-18":4,"2026-10-12":1,"2026-09-10":9}',
+        // Azkar: one category done on two days, another not finished.
+        'azkar.morning.2026-10-20': ['0', '0'],
+        'azkar.morning.2026-10-19': ['0', '0'],
+        'azkar.evening.2026-10-19': ['0', '2'],
+        'azkar.morning.2026-8-1': ['0', '0'],
+        // Tasbeeh taps per day.
+        'sebha.dayLog': '{"2026-10-20":40,"2026-10-01":60,"2026-08-01":999}',
+      });
+      final prefs = await SharedPreferences.getInstance();
+      final reading = ReadingProvider(prefs, clock: () => now);
+      final sebha = SebhaProvider(prefs, clock: () => now);
+      final h = Harvest.compute(reading, sebha, now: now);
+      expect(h.days, 30);
+      expect(h.pages, 13);
+      expect(h.activeDays, 4);
+      expect(h.goalDays, 1);
+      expect(h.bestStreak, 3);
+      expect(h.azkarDays, 2);
+      expect(h.tasbeeh, 100);
+      expect(h.khatmaPercent, 0);
+      expect(h.isEmpty, isFalse);
+    });
+
+    test('an empty month is reported as empty', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final h = Harvest.compute(
+        ReadingProvider(prefs, clock: () => now),
+        SebhaProvider(prefs, clock: () => now),
+        now: now,
+      );
+      expect(h.isEmpty, isTrue);
+      expect(h.pages, 0);
+    });
+
+    test('the tasbeeh counts each day as it is tapped', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final sebha = SebhaProvider(prefs, clock: () => now)
+        ..tap()
+        ..tap();
+      expect(sebha.dayLog['2026-10-20'], 2);
+      final again = SebhaProvider(prefs, clock: () => now);
+      expect(again.dayLog['2026-10-20'], 2);
+    });
+
+    testWidgets('the screen shows the card with the numbers', (tester) async {
+      tester.view.physicalSize = const Size(900, 2400);
+      tester.view.devicePixelRatio = 1.5;
+      addTearDown(tester.view.reset);
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => ReadingProvider(prefs)),
+            ChangeNotifierProvider(create: (_) => SebhaProvider(prefs)),
+          ],
+          child: const MaterialApp(home: HarvestScreen()),
+        ),
+      );
+      expect(find.text('حصادي الشهري'), findsOneWidget);
+      expect(find.textContaining('آخر 30 يوماً'), findsOneWidget);
+      expect(find.text('منهج حياة'), findsOneWidget);
+      expect(find.text('مشاركة الصورة'), findsOneWidget);
     });
   });
 

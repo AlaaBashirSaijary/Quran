@@ -99,6 +99,12 @@ class SebhaProvider extends ChangeNotifier {
   String? _lastDay;
   Map<String, int> _todayByZikr = {};
 
+  /// Taps on each day (keyed like `2026-10-20`), kept for four months so the
+  /// monthly summary can add them up.
+  Map<String, int> _dayLog = {};
+
+  Map<String, int> get dayLog => Map.unmodifiable(_dayLog);
+
   bool vibration = true;
 
   /// Count with the volume buttons while the tasbeeh tab is open.
@@ -133,6 +139,7 @@ class SebhaProvider extends ChangeNotifier {
     _rollDay();
     total++;
     today++;
+    _dayLog[_day(_clock())] = today;
     var reached = false;
 
     if (mode == SebhaMode.free) {
@@ -297,6 +304,16 @@ class SebhaProvider extends ChangeNotifier {
     afterPrayerDone =
         stepIndex == afterPrayerSteps.length - 1 &&
         stepCount >= afterPrayerSteps.last.target;
+    final log = prefs.getString('sebha.dayLog');
+    if (log != null) {
+      try {
+        _dayLog = (jsonDecode(log) as Map<String, dynamic>).map(
+          (k, v) => MapEntry(k, v as int),
+        );
+      } catch (_) {
+        _dayLog = {};
+      }
+    }
     total = prefs.getInt('sebha.total') ?? prefs.getInt('sebhaTotal') ?? 0;
     today = prefs.getInt('sebha.today') ?? 0;
     streak = prefs.getInt('sebha.streak') ?? 0;
@@ -321,6 +338,8 @@ class SebhaProvider extends ChangeNotifier {
   }
 
   void _save() {
+    final cutoff = _day(_clock().subtract(const Duration(days: 120)));
+    _dayLog.removeWhere((key, _) => key.compareTo(cutoff) < 0);
     prefs
       ..setString(
         'sebha.azkar',
@@ -335,7 +354,8 @@ class SebhaProvider extends ChangeNotifier {
       ..setInt('sebha.total', total)
       ..setInt('sebha.today', today)
       ..setInt('sebha.streak', streak)
-      ..setString('sebha.todayByZikr', jsonEncode(_todayByZikr));
+      ..setString('sebha.todayByZikr', jsonEncode(_todayByZikr))
+      ..setString('sebha.dayLog', jsonEncode(_dayLog));
     if (_lastDay != null) prefs.setString('sebha.day', _lastDay!);
   }
 }
