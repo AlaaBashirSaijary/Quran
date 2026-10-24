@@ -47,6 +47,8 @@ import 'package:quranapplication/screens/group_khatma_screen.dart';
 import 'package:quranapplication/prayer/prayer.dart';
 import 'package:quranapplication/harvest/harvest.dart';
 import 'package:quranapplication/screens/home_header.dart';
+import 'package:quranapplication/books/book_library.dart';
+import 'package:quranapplication/books/books_screen.dart';
 import 'package:quranapplication/kids/garden.dart';
 import 'package:quranapplication/kids/garden_screen.dart';
 import 'package:quranapplication/kids/kids_progress.dart';
@@ -1518,6 +1520,142 @@ void main() {
       await tester.tap(find.text('حسناً'));
       await tester.pumpAndSettle();
       expect(GardenProvider(prefs).stageOf(112), GrowthStage.sprout);
+    });
+  });
+
+  group('Book library', () {
+    const pack =
+        '{"sections":[{"title":"باب أول","texts":["نص أول","نص ثان"]}]}';
+    final catalog = jsonEncode({
+      'books': [
+        {
+          'id': 't1',
+          'title': 'كتاب تجريبي',
+          'author': 'مؤلف تجريبي',
+          'edition': 'طبعة تجريبية',
+          'license': 'ترخيص تجريبي',
+          'reviewer': 'مراجع تجريبي',
+          'reviewedOn': '2026-01-01',
+          'url': 'https://example.test/t1.json',
+          'size': 2048,
+        },
+        {
+          // No reviewer: never listed.
+          'id': 't2',
+          'title': 'كتاب بلا مراجعة',
+          'author': 'مؤلف',
+          'edition': 'طبعة',
+          'license': 'ترخيص',
+          'reviewer': '',
+          'reviewedOn': '',
+          'url': 'https://example.test/t2.json',
+        },
+        {
+          'id': 't3',
+          'title': 'كتاب مضمَّن',
+          'author': 'مؤلف',
+          'edition': 'طبعة',
+          'license': 'ترخيص',
+          'reviewer': 'مراجع',
+          'reviewedOn': '2026-01-02',
+          'asset': 'assets/library/t3.json',
+        },
+      ],
+    });
+
+    BookLibrary fresh(Directory dir, {http.Client? client}) => BookLibrary(
+      client: client,
+      catalog: () async => catalog,
+      folder: () async => dir.path,
+      assets: (_) async => pack,
+    );
+
+    test('only complete books are listed, bundled ones are installed', () async {
+      final dir = Directory.systemTemp.createTempSync('books');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      final library = fresh(dir);
+      await library.load();
+      expect(library.books.map((b) => b.id), ['t1', 't3']);
+      expect(library.isInstalled('t1'), isFalse);
+      expect(library.isInstalled('t3'), isTrue);
+      final sections = await library.sections('t3');
+      expect(sections.single.title, 'باب أول');
+      expect(sections.single.texts, ['نص أول', 'نص ثان']);
+    });
+
+    test('a book is downloaded once and then read from the phone', () async {
+      final dir = Directory.systemTemp.createTempSync('books');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      var requests = 0;
+      final library = fresh(
+        dir,
+        client: MockClient((request) async {
+          requests++;
+          return http.Response.bytes(utf8.encode(pack), 200);
+        }),
+      );
+      await library.load();
+      expect(await library.install('t1'), isTrue);
+      expect(await library.install('t1'), isTrue);
+      expect(requests, 1);
+      expect(library.isInstalled('t1'), isTrue);
+      final again = fresh(dir);
+      await again.load();
+      expect(again.isInstalled('t1'), isTrue);
+      expect((await again.sections('t1')).single.texts.length, 2);
+      await again.remove('t1');
+      expect(again.isInstalled('t1'), isFalse);
+      final last = fresh(dir);
+      await last.load();
+      expect(last.isInstalled('t1'), isFalse);
+    });
+
+    test('a response that is not a book is not kept', () async {
+      final dir = Directory.systemTemp.createTempSync('books');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      final library = fresh(
+        dir,
+        client: MockClient((request) async => http.Response('not a book', 200)),
+      );
+      await library.load();
+      expect(await library.install('t1'), isFalse);
+      expect(library.isInstalled('t1'), isFalse);
+      expect(library.error, isNotNull);
+      final again = fresh(dir);
+      await again.load();
+      expect(again.isInstalled('t1'), isFalse);
+    });
+
+    Widget screen(BookLibrary library) => ChangeNotifierProvider.value(
+      value: library,
+      child: const MaterialApp(home: BooksScreen()),
+    );
+
+    testWidgets('an empty library says why', (tester) async {
+      final library = BookLibrary(
+        catalog: () async => '{"books": []}',
+        folder: () async => null,
+      );
+      await tester.runAsync(library.load);
+      await tester.pumpWidget(screen(library));
+      expect(find.text('المكتبة'), findsOneWidget);
+      expect(find.textContaining('لا توجد كتب بعد'), findsOneWidget);
+    });
+
+    testWidgets('a listed book opens in the reader', (tester) async {
+      final library = BookLibrary(
+        catalog: () async => catalog,
+        folder: () async => null,
+        assets: (_) async => pack,
+      );
+      await tester.runAsync(library.load);
+      await tester.pumpWidget(screen(library));
+      expect(find.text('كتاب مضمَّن'), findsOneWidget);
+      expect(find.text('كتاب تجريبي'), findsOneWidget);
+      expect(find.text('كتاب بلا مراجعة'), findsNothing);
+      await tester.tap(find.text('كتاب مضمَّن'));
+      await tester.pumpAndSettle();
+      expect(find.text('باب أول'), findsOneWidget);
     });
   });
 

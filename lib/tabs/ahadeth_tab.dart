@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../books/books_screen.dart';
 import '../content/library.dart';
 import '../content/text_screens.dart';
 import '../core/index.dart';
@@ -124,6 +125,15 @@ class AhadithTab extends StatelessWidget {
               ),
               searchTexts: true,
             ),
+          ),
+          _BookCard(
+            title: tr('المكتبة', 'Library'),
+            subtitle: tr(
+              'كتب شرعية تُنزَّل عند الطلب، بمصدر ومراجعة معلنين',
+              'Islamic books downloaded on request, with their source and review shown',
+            ),
+            icon: Icons.local_library_rounded,
+            builder: (context) => const BooksScreen(),
           ),
           const SizedBox(height: 8),
           Text(
