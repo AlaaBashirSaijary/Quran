@@ -47,7 +47,10 @@ import 'package:quranapplication/screens/group_khatma_screen.dart';
 import 'package:quranapplication/prayer/prayer.dart';
 import 'package:quranapplication/harvest/harvest.dart';
 import 'package:quranapplication/screens/home_header.dart';
+import 'package:quranapplication/kids/garden.dart';
+import 'package:quranapplication/kids/garden_screen.dart';
 import 'package:quranapplication/kids/kids_progress.dart';
+import 'package:quranapplication/kids/word_games.dart';
 import 'package:quranapplication/kids/kids_screen.dart';
 import 'package:quranapplication/harvest/harvest_screen.dart';
 import 'package:quranapplication/providers/ahadith_details_provider.dart';
@@ -1377,6 +1380,144 @@ void main() {
       await tester.tap(find.text('الصغار'));
       await tester.pumpAndSettle();
       expect(find.text('ركن الصغار'), findsWidgets);
+    });
+  });
+
+  group('My garden', () {
+    final now = DateTime(2026, 10, 20, 9);
+
+    test('the path starts with Al-Fatiha, then juz Amma by length', () {
+      final counts = {for (var s = 78; s <= 114; s++) s: 100 - s};
+      final path = gardenPath((s) => s == 1 ? 7 : counts[s]!);
+      expect(path.first, 1);
+      expect(path.length, 38);
+      expect(path.skip(1).first, 114, reason: 'the shortest comes first');
+      expect(path.last, 78);
+      expect(path.toSet().length, path.length);
+    });
+
+    test('a surah grows one stage a day, up to a tree', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      var clock = now;
+      final garden = GardenProvider(prefs, clock: () => clock);
+      expect(garden.stageOf(112), GrowthStage.seed);
+      expect(garden.grow(112), GrowthStage.sprout);
+      expect(garden.grow(112), isNull, reason: 'once a day');
+      expect(garden.grewToday(112), isTrue);
+      clock = now.add(const Duration(days: 1));
+      expect(garden.grewToday(112), isFalse);
+      expect(garden.grow(112), GrowthStage.plant);
+      clock = now.add(const Duration(days: 2));
+      expect(garden.grow(112), GrowthStage.tree);
+      expect(garden.trees, 1);
+      clock = now.add(const Duration(days: 3));
+      expect(garden.grow(112), isNull, reason: 'a tree is fully grown');
+      garden.addReview(112);
+      final again = GardenProvider(prefs, clock: () => clock);
+      expect(again.stageOf(112), GrowthStage.tree);
+      expect(again.reviewsOf(112), 1);
+      expect(again.trees, 1);
+      again.setEasy(true);
+      expect(GardenProvider(prefs).easy, isTrue);
+    });
+
+    test('words, hidden words and samples', () {
+      expect(wordsOf('  أ ب   ج '), ['أ', 'ب', 'ج']);
+      expect(hiddenIndexes(7), {2, 5});
+      expect(hiddenIndexes(8, easy: true), {3, 7});
+      expect(hiddenIndexes(2), {1}, reason: 'at least one word');
+      expect(sampleEvenly([1, 2, 3], 5), [1, 2, 3]);
+      expect(sampleEvenly(List.generate(10, (i) => i), 5), [0, 2, 4, 6, 8]);
+      expect(seededShuffle([1, 2, 3, 4, 5], 7), seededShuffle([1, 2, 3, 4, 5], 7));
+    });
+
+    test('a fill-in round accepts the blanks in order', () {
+      final round = FillRound('أ ب ج د هـ و ز', seed: 1);
+      expect(round.hidden, {2, 5});
+      expect(round.options.toSet(), {'ج', 'و'});
+      expect(round.tryPlace('و'), isFalse, reason: 'the first blank is ج');
+      expect(round.done, isFalse);
+      expect(round.tryPlace('ج'), isTrue);
+      expect(round.isFilled(2), isTrue);
+      expect(round.isFilled(5), isFalse);
+      expect(round.tryPlace('و'), isTrue);
+      expect(round.done, isTrue);
+    });
+
+    test('an order round accepts the words one after another', () {
+      final round = OrderRound('أ ب ج', seed: 3);
+      expect(round.options.toSet(), {'أ', 'ب', 'ج'});
+      expect(round.tryPlace('ب'), isFalse);
+      expect(round.tryPlace('أ'), isTrue);
+      expect(round.tryPlace('ب'), isTrue);
+      expect(round.placed, ['أ', 'ب']);
+      expect(round.done, isFalse);
+      expect(round.tryPlace('ج'), isTrue);
+      expect(round.done, isTrue);
+    });
+
+    Widget app(SharedPreferences prefs, Widget home) => MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => KidsProgress(prefs)),
+        ChangeNotifierProvider(create: (_) => GardenProvider(prefs)),
+        ChangeNotifierProvider(create: (_) => HifzProvider(prefs)),
+        ChangeNotifierProvider(create: (_) => RecitationProvider(prefs)),
+      ],
+      child: MaterialApp(home: home),
+    );
+
+    testWidgets('the garden lists the plots', (tester) async {
+      tester.view.physicalSize = const Size(900, 3600);
+      tester.view.devicePixelRatio = 1.5;
+      addTearDown(tester.view.reset);
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      await tester.runAsync(QuranSearch.load);
+      await tester.pumpWidget(app(prefs, const GardenScreen()));
+      await tester.pump();
+      expect(find.text('حديقتي'), findsOneWidget);
+      expect(find.textContaining('من 38'), findsOneWidget);
+      expect(find.text(surahNameOf(1)), findsOneWidget);
+    });
+
+    testWidgets('finishing the first lesson grows the plant', (tester) async {
+      tester.view.physicalSize = const Size(900, 3600);
+      tester.view.devicePixelRatio = 1.5;
+      addTearDown(tester.view.reset);
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      await tester.runAsync(QuranSearch.load);
+      await tester.pumpWidget(
+        app(
+          prefs,
+          Builder(
+            builder: (context) => Scaffold(
+              body: Center(
+                child: ElevatedButton(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const LessonScreen(surah: 112),
+                    ),
+                  ),
+                  child: const Text('open'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      expect(find.text('استمع'), findsOneWidget);
+      await tester.tap(find.text('سمعتُها كاملة'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.textContaining('نمت نبتتك'), findsOneWidget);
+      await tester.tap(find.text('حسناً'));
+      await tester.pumpAndSettle();
+      expect(GardenProvider(prefs).stageOf(112), GrowthStage.sprout);
     });
   });
 
