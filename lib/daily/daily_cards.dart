@@ -10,9 +10,17 @@ import '../share/share_card.dart';
 import '../widgets/translation_text.dart';
 import 'daily.dart';
 
-/// The ayah of the day, on the Quran tab.
-class AyahOfDayCard extends StatelessWidget {
+/// The ayah of the day, on the Quran tab. Folded to two lines at first, to
+/// keep the top of the tab short; the arrow opens the whole ayah.
+class AyahOfDayCard extends StatefulWidget {
   const AyahOfDayCard({super.key});
+
+  @override
+  State<AyahOfDayCard> createState() => _AyahOfDayCardState();
+}
+
+class _AyahOfDayCardState extends State<AyahOfDayCard> {
+  bool _open = false;
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +43,12 @@ class AyahOfDayCard extends StatelessWidget {
           text: ayah.text,
           quran: true,
           caption: '${surahTitle(ayah.surah)} · ${ayahLabel(ayah.number)}',
-          extra: TranslationText(ayahs: [(ayah.surah, ayah.number)]),
+          extra: _open
+              ? TranslationText(ayahs: [(ayah.surah, ayah.number)])
+              : null,
+          maxLines: _open ? null : 2,
+          expanded: _open,
+          onToggle: () => setState(() => _open = !_open),
           onTap: () => openQuranPage(context, ayah.page, isTab: true),
           onShare: () => shareAsImage(
             context,
@@ -90,6 +103,9 @@ class _DailyCard extends StatelessWidget {
     this.quran = false,
     this.extra,
     this.onTap,
+    this.maxLines,
+    this.expanded,
+    this.onToggle,
   });
 
   final String title;
@@ -100,6 +116,13 @@ class _DailyCard extends StatelessWidget {
   final Widget? extra;
   final VoidCallback onShare;
   final VoidCallback? onTap;
+
+  /// Lines of text to show, or all of it when null.
+  final int? maxLines;
+
+  /// When set, the header shows a fold/unfold arrow.
+  final bool? expanded;
+  final VoidCallback? onToggle;
 
   @override
   Widget build(BuildContext context) {
@@ -130,6 +153,19 @@ class _DailyCard extends StatelessWidget {
                       ),
                     ),
                   ),
+                  if (expanded != null)
+                    IconButton(
+                      tooltip: expanded!
+                          ? tr('طيّ', 'Fold')
+                          : tr('عرض الآية كاملة', 'Show the whole ayah'),
+                      icon: Icon(
+                        expanded!
+                            ? Icons.expand_less_rounded
+                            : Icons.expand_more_rounded,
+                        color: colorScheme.gold,
+                      ),
+                      onPressed: onToggle,
+                    ),
                   IconButton(
                     tooltip: tr('مشاركة كصورة', 'Share as image'),
                     icon: Icon(
@@ -145,6 +181,8 @@ class _DailyCard extends StatelessWidget {
                 padding: const EdgeInsetsDirectional.only(end: 8),
                 child: Text(
                   text,
+                  maxLines: maxLines,
+                  overflow: maxLines == null ? null : TextOverflow.ellipsis,
                   textDirection: TextDirection.rtl,
                   style: TextStyle(
                     fontFamily: quran ? AppTheme.secondaryFontFamily : null,

@@ -14,10 +14,8 @@ import '../widgets/surah_number.dart';
 import 'juz_index_screen.dart';
 import 'search_screen.dart';
 import 'settings_screen.dart';
-import 'hifz_screen.dart';
-import 'wird_screen.dart';
+import 'home_header.dart';
 import '../daily/daily_cards.dart';
-import '../kids/kids_screen.dart';
 import '../notes/notes_screen.dart';
 
 /// Opens the Quran reader at [page].
@@ -108,27 +106,21 @@ class IndexScreen extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                 child: Column(
                   children: [
-                    _ContinueReadingCard(
+                    QuranHomeHeader(
                       surahName: quran.surahName,
                       page: quran.currentPage,
-                      onTap: () => openQuranPage(
+                      onContinue: () => openQuranPage(
                         context,
                         quran.currentPage,
                         isTab: true,
                       ),
                     ),
                     if (DateTime.now().weekday == DateTime.friday) ...[
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 10),
                       const FridayCard(),
                     ],
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
                     const AyahOfDayCard(),
-                    const SizedBox(height: 12),
-                    const WirdCard(),
-                    const SizedBox(height: 12),
-                    const HifzCard(),
-                    const SizedBox(height: 12),
-                    const KidsCard(),
                   ],
                 ),
               ),
@@ -180,70 +172,6 @@ class IndexScreen extends StatelessWidget {
             },
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _ContinueReadingCard extends StatelessWidget {
-  const _ContinueReadingCard({
-    required this.surahName,
-    required this.page,
-    required this.onTap,
-  });
-
-  final String surahName;
-  final int page;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isLight = colorScheme.brightness == Brightness.light;
-    return Material(
-      color: isLight ? AppColor.green : AppColor.nightSurface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-        side: BorderSide(color: colorScheme.gold.withValues(alpha: 0.6)),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Row(
-            children: [
-              Icon(Icons.menu_book_rounded, color: colorScheme.gold, size: 40),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      tr('متابعة القراءة', 'Continue reading'),
-                      style: TextStyle(color: colorScheme.gold, fontSize: 14),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      tr('سورة $surahName', 'Surah $surahName'),
-                      style: const TextStyle(
-                        fontFamily: AppTheme.secondaryFontFamily,
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      '${AppConstant.page} $page',
-                      style: const TextStyle(color: Colors.white70),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(Icons.chevron_left_rounded, color: colorScheme.gold),
-            ],
-          ),
-        ),
       ),
     );
   }

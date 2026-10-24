@@ -46,6 +46,7 @@ import 'package:quranapplication/khatma/group_khatma.dart';
 import 'package:quranapplication/screens/group_khatma_screen.dart';
 import 'package:quranapplication/prayer/prayer.dart';
 import 'package:quranapplication/harvest/harvest.dart';
+import 'package:quranapplication/screens/home_header.dart';
 import 'package:quranapplication/kids/kids_progress.dart';
 import 'package:quranapplication/kids/kids_screen.dart';
 import 'package:quranapplication/harvest/harvest_screen.dart';
@@ -253,7 +254,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Surah Index'), findsOneWidget);
-    expect(find.text('Surah Al Fatiha'), findsOneWidget);
+    expect(find.textContaining('Surah Al Fatiha'), findsOneWidget);
     expect(
       Directionality.of(tester.element(find.text('Surah Index'))),
       TextDirection.ltr,
@@ -1336,6 +1337,46 @@ void main() {
       await tester.tap(find.text('قرأتُها، أعطني نجمة'));
       await tester.pump();
       expect(find.text('أخذتَ نجمة اليوم'), findsOneWidget);
+    });
+  });
+
+  group('Quran tab header', () {
+    testWidgets('shows where you left off and four shortcuts', (tester) async {
+      tester.view.physicalSize = const Size(900, 1800);
+      tester.view.devicePixelRatio = 1.5;
+      addTearDown(tester.view.reset);
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      var continued = false;
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => ReadingProvider(prefs)),
+            ChangeNotifierProvider(create: (_) => HifzProvider(prefs)),
+            ChangeNotifierProvider(create: (_) => KidsProgress(prefs)),
+            ChangeNotifierProvider(create: (_) => SebhaProvider(prefs)),
+          ],
+          child: MaterialApp(
+            home: Scaffold(
+              body: QuranHomeHeader(
+                surahName: 'البقرة',
+                page: 12,
+                onContinue: () => continued = true,
+              ),
+            ),
+          ),
+        ),
+      );
+      expect(find.text('متابعة القراءة'), findsOneWidget);
+      expect(find.textContaining('سورة البقرة'), findsOneWidget);
+      for (final label in ['الورد', 'الحفظ', 'الصغار', 'حصادي']) {
+        expect(find.text(label), findsOneWidget);
+      }
+      await tester.tap(find.text('متابعة القراءة'));
+      expect(continued, isTrue);
+      await tester.tap(find.text('الصغار'));
+      await tester.pumpAndSettle();
+      expect(find.text('ركن الصغار'), findsWidgets);
     });
   });
 
