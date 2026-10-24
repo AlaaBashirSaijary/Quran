@@ -1566,7 +1566,7 @@ void main() {
     BookLibrary fresh(Directory dir, {http.Client? client}) => BookLibrary(
       client: client,
       catalog: () async => catalog,
-      folder: Future.value(dir.path),
+      folder: () async => dir.path,
       assets: (_) async => pack,
     );
 
@@ -1634,7 +1634,7 @@ void main() {
     testWidgets('an empty library says why', (tester) async {
       final library = BookLibrary(
         catalog: () async => '{"books": []}',
-        folder: Future.value(null),
+        folder: () async => null,
       );
       await tester.runAsync(library.load);
       await tester.pumpWidget(screen(library));
@@ -1645,7 +1645,7 @@ void main() {
     testWidgets('a listed book opens in the reader', (tester) async {
       final library = BookLibrary(
         catalog: () async => catalog,
-        folder: Future.value(null),
+        folder: () async => null,
         assets: (_) async => pack,
       );
       await tester.runAsync(library.load);

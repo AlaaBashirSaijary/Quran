@@ -90,17 +90,17 @@ class BookLibrary extends ChangeNotifier {
   BookLibrary({
     http.Client? client,
     Future<String> Function()? catalog,
-    Future<String?>? folder,
+    Future<String?> Function()? folder,
     Future<String> Function(String asset)? assets,
   }) : _client = client ?? http.Client(),
        _catalog =
            catalog ?? (() => rootBundle.loadString('assets/library/catalog.json')),
-       _folder = folder ?? dataFolder('books'),
+       _folder = folder ?? (() => dataFolder('books')),
        _assets = assets ?? rootBundle.loadString;
 
   final http.Client _client;
   final Future<String> Function() _catalog;
-  final Future<String?> _folder;
+  final Future<String?> Function() _folder;
   final Future<String> Function(String asset) _assets;
 
   List<BookInfo> books = const [];
@@ -125,7 +125,7 @@ class BookLibrary extends ChangeNotifier {
       books = const [];
     }
     _installed.clear();
-    final folder = await _folder;
+    final folder = await _folder();
     for (final b in books) {
       if (b.asset != null ||
           (folder != null && await fileExists('$folder/${b.id}/book.json'))) {
@@ -149,7 +149,7 @@ class BookLibrary extends ChangeNotifier {
     final book = byId(id);
     if (book == null || isInstalled(id) || isBusy(id)) return isInstalled(id);
     final url = book.url;
-    final folder = await _folder;
+    final folder = await _folder();
     if (url == null || folder == null) return false;
     _busy.add(id);
     error = null;
@@ -177,7 +177,7 @@ class BookLibrary extends ChangeNotifier {
   }
 
   Future<void> remove(String id) async {
-    final folder = await _folder;
+    final folder = await _folder();
     final book = byId(id);
     if (folder == null || book == null || book.asset != null) return;
     await deleteFolder('$folder/$id');
@@ -191,7 +191,7 @@ class BookLibrary extends ChangeNotifier {
     if (book == null) throw StateError('unknown book');
     final asset = book.asset;
     if (asset != null) return parseBookPack(await _assets(asset));
-    final folder = await _folder;
+    final folder = await _folder();
     final body = folder == null ? null : await readText('$folder/$id/book.json');
     if (body == null) throw StateError('book not installed');
     return parseBookPack(body);
