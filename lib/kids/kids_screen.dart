@@ -6,6 +6,7 @@ import '../core/index.dart';
 import '../providers/sebha_provider.dart';
 import '../quran/quran.dart';
 import '../quran/search.dart';
+import 'garden_screen.dart';
 import 'kids_progress.dart';
 
 /// A card on the Quran tab that opens the kids' corner.
@@ -73,6 +74,15 @@ class KidsCornerScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           _BigButton(
+            icon: Icons.park_rounded,
+            title: tr('حديقتي: رحلة الحفظ', 'My garden: the memorising path'),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const GardenScreen()),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _BigButton(
             icon: Icons.touch_app_rounded,
             title: tr('سبّح وخذ نجمة', 'Count and get a star'),
             onTap: () => Navigator.push(
@@ -82,7 +92,7 @@ class KidsCornerScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            tr('اختر سورة', 'Pick a surah'),
+            tr('استمع لسورة قصيرة', 'Listen to a short surah'),
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 8),

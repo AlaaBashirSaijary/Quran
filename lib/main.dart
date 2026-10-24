@@ -11,6 +11,7 @@ import 'hifz/hifz.dart';
 import 'khatma/group_khatma.dart';
 import 'notifications/notification_settings.dart';
 import 'prayer/prayer.dart';
+import 'kids/garden.dart';
 import 'kids/kids_progress.dart';
 import 'providers/ahadith_details_provider.dart';
 import 'providers/bookmark.dart';
@@ -124,6 +125,9 @@ class _AppRootState extends State<AppRoot> {
           ),
           ChangeNotifierProvider<KidsProgress>(
             create: (context) => KidsProgress(prefs),
+          ),
+          ChangeNotifierProvider<GardenProvider>(
+            create: (context) => GardenProvider(prefs),
           ),
           ChangeNotifierProvider<AhadithDetailsProvider>(
             create: (context) => AhadithDetailsProvider()..loadHadithFile(),
