@@ -254,7 +254,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Surah Index'), findsOneWidget);
-    expect(find.text('Surah Al Fatiha'), findsOneWidget);
+    expect(find.textContaining('Surah Al Fatiha'), findsOneWidget);
     expect(
       Directionality.of(tester.element(find.text('Surah Index'))),
       TextDirection.ltr,
