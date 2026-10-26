@@ -22,6 +22,7 @@ class BookInfo {
     required this.reviewedOn,
     this.asset,
     this.url,
+    this.link,
     this.size = 0,
   });
 
@@ -37,6 +38,7 @@ class BookInfo {
       reviewedOn: text('reviewedOn'),
       asset: text('asset').isEmpty ? null : text('asset'),
       url: text('url').isEmpty ? null : text('url'),
+      link: text('link').isEmpty ? null : text('link'),
       size: json['size'] is int ? json['size'] as int : 0,
     );
   }
@@ -59,6 +61,12 @@ class BookInfo {
   final String? asset;
   final String? url;
 
+  /// A web page to read the book on, for books whose text is not copied
+  /// into the app. The app shows the address; it never fetches the page.
+  final String? link;
+
+  bool get isLink => link != null && asset == null && url == null;
+
   /// Download size in bytes, when known.
   final int size;
 
@@ -66,7 +74,7 @@ class BookInfo {
       [id, title, author, edition, license, reviewer, reviewedOn].every(
         (s) => s.isNotEmpty,
       ) &&
-      (asset != null || url != null);
+      (asset != null || url != null || link != null);
 }
 
 /// Reads a book pack: `{"sections": [{"title": "...", "texts": ["..."]}]}`.
@@ -127,6 +135,7 @@ class BookLibrary extends ChangeNotifier {
     _installed.clear();
     final folder = await _folder();
     for (final b in books) {
+      if (b.isLink) continue;
       if (b.asset != null ||
           (folder != null && await fileExists('$folder/${b.id}/book.json'))) {
         _installed.add(b.id);
@@ -147,7 +156,9 @@ class BookLibrary extends ChangeNotifier {
   /// that does not parse is not kept.
   Future<bool> install(String id) async {
     final book = byId(id);
-    if (book == null || isInstalled(id) || isBusy(id)) return isInstalled(id);
+    if (book == null || book.isLink || isInstalled(id) || isBusy(id)) {
+      return isInstalled(id);
+    }
     final url = book.url;
     final folder = await _folder();
     if (url == null || folder == null) return false;
@@ -188,7 +199,7 @@ class BookLibrary extends ChangeNotifier {
   /// The sections of an installed book.
   Future<List<TextSection>> sections(String id) async {
     final book = byId(id);
-    if (book == null) throw StateError('unknown book');
+    if (book == null || book.isLink) throw StateError('unknown book');
     final asset = book.asset;
     if (asset != null) return parseBookPack(await _assets(asset));
     final folder = await _folder();
