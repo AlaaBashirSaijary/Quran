@@ -1639,6 +1639,15 @@ void main() {
       expect(again.isInstalled('t1'), isFalse);
     });
 
+    test('the draft of Tuhfat al-Atfal parses and has its 61 verses', () {
+      final sections = parseBookPack(
+        File('docs/library-drafts/tuhfat-al-atfal/pack.json').readAsStringSync(),
+      );
+      expect(sections, hasLength(10));
+      expect(sections.fold<int>(0, (sum, s) => sum + s.texts.length), 61);
+      expect(sections.every((s) => s.texts.every((t) => t.split('\n').length == 2)), isTrue);
+    });
+
     Widget screen(BookLibrary library) => ChangeNotifierProvider.value(
       value: library,
       child: const MaterialApp(home: BooksScreen()),
