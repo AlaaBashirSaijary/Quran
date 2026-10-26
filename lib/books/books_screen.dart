@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import '../content/library.dart';
 import '../content/text_screens.dart';
+import '../kids/garden_screen.dart' show WordGame;
 import '../core/index.dart';
 import 'book_library.dart';
 
@@ -148,6 +150,16 @@ class _BookTile extends StatelessWidget {
     ),
   );
 
+  void _practice(BuildContext context, BookLibrary library) => Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => BookPracticeScreen(
+        title: book.title,
+        sections: library.sections(book.id),
+      ),
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
     final library = Provider.of<BookLibrary>(context);
@@ -195,15 +207,20 @@ class _BookTile extends StatelessWidget {
                       icon: const Icon(Icons.open_in_new_rounded),
                       onPressed: () => _showLink(context),
                     )
-                  else if (installed)
+                  else if (installed) ...[
+                    IconButton(
+                      tooltip: tr('تدرّب على الحفظ', 'Practise memorising'),
+                      icon: const Icon(Icons.school_rounded),
+                      onPressed: () => _practice(context, library),
+                    ),
                     IconButton(
                       tooltip: tr('حذف من الهاتف', 'Remove from phone'),
                       icon: const Icon(Icons.delete_outline_rounded),
                       onPressed: book.asset != null
                           ? null
                           : () => library.remove(book.id),
-                    )
-                  else
+                    ),
+                  ] else
                     IconButton(
                       tooltip: tr('تنزيل', 'Download'),
                       icon: const Icon(Icons.download_rounded),
@@ -211,6 +228,138 @@ class _BookTile extends StatelessWidget {
                     ),
                 ],
               ),
+      ),
+    );
+  }
+}
+
+
+/// Practice for a book of verses or short texts: pick a section, then fill
+/// in missing words or put the words back in order. The rounds are made from
+/// the book's own text, so nothing new is written.
+class BookPracticeScreen extends StatelessWidget {
+  const BookPracticeScreen({
+    super.key,
+    required this.title,
+    required this.sections,
+  });
+
+  final String title;
+  final Future<List<TextSection>> sections;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Scaffold(
+      appBar: AppBar(title: Text(tr('تدرّب: $title', 'Practise: $title'))),
+      body: FutureBuilder<List<TextSection>>(
+        future: sections,
+        builder: (context, snapshot) {
+          final list = snapshot.data;
+          if (list == null) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          return ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              for (final s in list)
+                Card(
+                  clipBehavior: Clip.antiAlias,
+                  child: ListTile(
+                    title: Text(
+                      s.title,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      tr('${s.texts.length} نصاً', '${s.texts.length} texts'),
+                    ),
+                    trailing: Icon(
+                      Icons.chevron_left_rounded,
+                      color: colorScheme.gold,
+                    ),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => _PracticeSection(section: s),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _PracticeSection extends StatefulWidget {
+  const _PracticeSection({required this.section});
+
+  final TextSection section;
+
+  @override
+  State<_PracticeSection> createState() => _PracticeSectionState();
+}
+
+class _PracticeSectionState extends State<_PracticeSection> {
+  bool _fill = true;
+
+  Future<void> _finished() async {
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        icon: Icon(
+          Icons.star_rounded,
+          size: 56,
+          color: Theme.of(context).colorScheme.gold,
+        ),
+        content: Text(
+          tr('أحسنت! أنهيتَ هذا الباب', 'Well done! You finished this section'),
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 20),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(tr('حسناً', 'OK')),
+          ),
+        ],
+      ),
+    );
+    if (mounted) Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final texts = [
+      for (final t in widget.section.texts) t.replaceAll('\n', ' '),
+    ];
+    return Scaffold(
+      appBar: AppBar(title: Text(widget.section.title)),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: SegmentedButton<bool>(
+              showSelectedIcon: false,
+              segments: [
+                ButtonSegment(value: true, label: Text(tr('أكمل', 'Fill in'))),
+                ButtonSegment(value: false, label: Text(tr('رتّب', 'Order'))),
+              ],
+              selected: {_fill},
+              onSelectionChanged: (v) => setState(() => _fill = v.first),
+            ),
+          ),
+          Expanded(
+            child: WordGame(
+              key: ValueKey(_fill),
+              texts: texts,
+              fill: _fill,
+              onDone: _finished,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -1639,13 +1639,50 @@ void main() {
       expect(again.isInstalled('t1'), isFalse);
     });
 
-    test('the draft of Tuhfat al-Atfal parses and has its 61 verses', () {
+    test('the bundled catalog lists Tuhfat al-Atfal with its source', () async {
+      final json = jsonDecode(
+        File('assets/library/catalog.json').readAsStringSync(),
+      ) as Map<String, dynamic>;
+      final books = [
+        for (final b in (json['books'] as List).cast<Map<String, dynamic>>())
+          BookInfo.fromJson(b),
+      ];
+      expect(books, hasLength(1));
+      expect(books.single.complete, isTrue);
+      expect(books.single.reviewer, contains('مقرئ مجاز'));
       final sections = parseBookPack(
-        File('docs/library-drafts/tuhfat-al-atfal/pack.json').readAsStringSync(),
+        File(books.single.asset!).readAsStringSync(),
       );
-      expect(sections, hasLength(10));
       expect(sections.fold<int>(0, (sum, s) => sum + s.texts.length), 61);
-      expect(sections.every((s) => s.texts.every((t) => t.split('\n').length == 2)), isTrue);
+    });
+
+    testWidgets('a book can be practised: fill in, then finish', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(900, 2400);
+      tester.view.devicePixelRatio = 1.5;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: BookPracticeScreen(
+            title: 'كتاب تجريبي',
+            sections: Future.value(parseBookPack(pack)),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.tap(find.text('باب أول'));
+      await tester.pumpAndSettle();
+      expect(find.text('أكمل الكلمات الناقصة'), findsOneWidget);
+      await tester.tap(find.text('أول').last);
+      await tester.pump();
+      await tester.tap(find.text('أحسنت! التالية'));
+      await tester.pump();
+      await tester.tap(find.text('ثان').last);
+      await tester.pump();
+      await tester.tap(find.text('أحسنت! إنهاء'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('أنهيتَ هذا الباب'), findsOneWidget);
     });
 
     Widget screen(BookLibrary library) => ChangeNotifierProvider.value(
