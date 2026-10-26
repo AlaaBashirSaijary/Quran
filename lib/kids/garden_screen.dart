@@ -288,13 +288,19 @@ class _LessonScreenState extends State<LessonScreen> {
                       onDone: _complete,
                     ),
                     GrowthStage.plant => WordGame(
-                      ayahs: sampleEvenly(ayahs, garden.easy ? 3 : 5),
+                      texts: [
+                        for (final a in sampleEvenly(ayahs, garden.easy ? 3 : 5))
+                          a.text,
+                      ],
                       fill: true,
                       easy: garden.easy,
                       onDone: _complete,
                     ),
                     GrowthStage.tree => WordGame(
-                      ayahs: sampleEvenly(ayahs, garden.easy ? 2 : 4),
+                      texts: [
+                        for (final a in sampleEvenly(ayahs, garden.easy ? 2 : 4))
+                          a.text,
+                      ],
                       fill: false,
                       easy: garden.easy,
                       onDone: _complete,
@@ -541,13 +547,14 @@ class _RepeatStageState extends State<_RepeatStage> {
 class WordGame extends StatefulWidget {
   const WordGame({
     super.key,
-    required this.ayahs,
+    required this.texts,
     required this.fill,
     required this.onDone,
     this.easy = false,
   });
 
-  final List<Ayah> ayahs;
+  /// The texts to play with, one round each.
+  final List<String> texts;
   final bool fill;
   final bool easy;
   final VoidCallback onDone;
@@ -570,12 +577,12 @@ class _WordGameState extends State<WordGame> {
   }
 
   void _start() {
-    final ayah = widget.ayahs[_i];
-    final seed = ayah.surah * 1000 + ayah.number;
+    final text = widget.texts[_i];
+    final seed = text.codeUnits.fold<int>(0, (a, c) => (a * 31 + c) & 0x7fffffff);
     if (widget.fill) {
-      _fill = FillRound(ayah.text, easy: widget.easy, seed: seed);
+      _fill = FillRound(text, easy: widget.easy, seed: seed);
     } else {
-      _order = OrderRound(ayah.text, seed: seed);
+      _order = OrderRound(text, seed: seed);
     }
     _used.clear();
     _wrong = false;
@@ -595,7 +602,7 @@ class _WordGameState extends State<WordGame> {
   }
 
   void _next() {
-    if (_i == widget.ayahs.length - 1) {
+    if (_i == widget.texts.length - 1) {
       widget.onDone();
     } else {
       setState(() {
@@ -672,8 +679,8 @@ class _WordGameState extends State<WordGame> {
         children: [
           Text(
             tr(
-              '${_i + 1} من ${widget.ayahs.length}',
-              '${_i + 1} of ${widget.ayahs.length}',
+              '${_i + 1} من ${widget.texts.length}',
+              '${_i + 1} of ${widget.texts.length}',
             ),
             textAlign: TextAlign.center,
           ),
@@ -701,7 +708,7 @@ class _WordGameState extends State<WordGame> {
               style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(56)),
               onPressed: _next,
               child: Text(
-                _i == widget.ayahs.length - 1
+                _i == widget.texts.length - 1
                     ? tr('أحسنت! إنهاء', 'Well done! Finish')
                     : tr('أحسنت! التالية', 'Well done! Next'),
                 style: const TextStyle(fontSize: 20),
