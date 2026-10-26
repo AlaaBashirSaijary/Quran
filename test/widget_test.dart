@@ -1551,6 +1551,16 @@ void main() {
           'url': 'https://example.test/t2.json',
         },
         {
+          'id': 't4',
+          'title': 'كتاب على موقعه',
+          'author': 'مؤلف',
+          'edition': 'موقع المصدر',
+          'license': 'رابط فقط، لا يُنسخ نصه',
+          'reviewer': 'مراجع',
+          'reviewedOn': '2026-01-03',
+          'link': 'https://example.test/book',
+        },
+        {
           'id': 't3',
           'title': 'كتاب مضمَّن',
           'author': 'مؤلف',
@@ -1575,7 +1585,10 @@ void main() {
       addTearDown(() => dir.deleteSync(recursive: true));
       final library = fresh(dir);
       await library.load();
-      expect(library.books.map((b) => b.id), ['t1', 't3']);
+      expect(library.books.map((b) => b.id), ['t1', 't4', 't3']);
+      expect(library.byId('t4')!.isLink, isTrue);
+      expect(library.isInstalled('t4'), isFalse);
+      expect(await library.install('t4'), isFalse, reason: 'nothing to download');
       expect(library.isInstalled('t1'), isFalse);
       expect(library.isInstalled('t3'), isTrue);
       final sections = await library.sections('t3');
@@ -1656,6 +1669,40 @@ void main() {
       await tester.tap(find.text('كتاب مضمَّن'));
       await tester.pumpAndSettle();
       expect(find.text('باب أول'), findsOneWidget);
+    });
+
+    testWidgets('a linked book shows its address and copies it', (
+      tester,
+    ) async {
+      final copied = <String>[];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (call) async {
+          if (call.method == 'Clipboard.setData') {
+            copied.add((call.arguments as Map)['text'] as String);
+          }
+          return null;
+        },
+      );
+      addTearDown(
+        () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          null,
+        ),
+      );
+      final library = BookLibrary(
+        catalog: () async => catalog,
+        folder: () async => null,
+        assets: (_) async => pack,
+      );
+      await tester.runAsync(library.load);
+      await tester.pumpWidget(screen(library));
+      await tester.tap(find.text('كتاب على موقعه'));
+      await tester.pumpAndSettle();
+      expect(find.text('https://example.test/book'), findsOneWidget);
+      await tester.tap(find.text('نسخ الرابط'));
+      await tester.pumpAndSettle();
+      expect(copied, ['https://example.test/book']);
     });
   });
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../content/text_screens.dart';
@@ -90,6 +91,50 @@ class _BookTile extends StatelessWidget {
     );
   }
 
+  /// Shows where to read a book whose text is not in the app.
+  void _showLink(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(book.title),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              tr(
+                'هذا الكتاب يُقرأ على موقعه الأصلي. انسخ الرابط وافتحه في المتصفح.',
+                'This book is read on its original website. Copy the link and open it in your browser.',
+              ),
+            ),
+            const SizedBox(height: 12),
+            SelectableText(
+              book.link!,
+              textDirection: TextDirection.ltr,
+              style: const TextStyle(fontSize: 13),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: book.link!));
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(tr('نُسخ الرابط', 'Link copied'))),
+              );
+            },
+            child: Text(tr('نسخ الرابط', 'Copy link')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(tr('إغلاق', 'Close')),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _open(BuildContext context, BookLibrary library) => Navigator.push(
     context,
     MaterialPageRoute(
@@ -124,7 +169,9 @@ class _BookTile extends StatelessWidget {
                     '${tr('ميغابايت', 'MB')}'
               : book.author,
         ),
-        onTap: installed
+        onTap: book.isLink
+            ? () => _showLink(context)
+            : installed
             ? () => _open(context, library)
             : busy
             ? null
@@ -142,19 +189,26 @@ class _BookTile extends StatelessWidget {
                     icon: const Icon(Icons.info_outline_rounded),
                     onPressed: () => _about(context),
                   ),
-                  installed
-                      ? IconButton(
-                          tooltip: tr('حذف من الهاتف', 'Remove from phone'),
-                          icon: const Icon(Icons.delete_outline_rounded),
-                          onPressed: book.asset != null
-                              ? null
-                              : () => library.remove(book.id),
-                        )
-                      : IconButton(
-                          tooltip: tr('تنزيل', 'Download'),
-                          icon: const Icon(Icons.download_rounded),
-                          onPressed: () => library.install(book.id),
-                        ),
+                  if (book.isLink)
+                    IconButton(
+                      tooltip: tr('رابط الكتاب', 'Book link'),
+                      icon: const Icon(Icons.open_in_new_rounded),
+                      onPressed: () => _showLink(context),
+                    )
+                  else if (installed)
+                    IconButton(
+                      tooltip: tr('حذف من الهاتف', 'Remove from phone'),
+                      icon: const Icon(Icons.delete_outline_rounded),
+                      onPressed: book.asset != null
+                          ? null
+                          : () => library.remove(book.id),
+                    )
+                  else
+                    IconButton(
+                      tooltip: tr('تنزيل', 'Download'),
+                      icon: const Icon(Icons.download_rounded),
+                      onPressed: () => library.install(book.id),
+                    ),
                 ],
               ),
       ),
