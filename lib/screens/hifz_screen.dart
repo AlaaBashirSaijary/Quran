@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../core/index.dart';
 import '../hifz/hifz.dart';
+import '../hifz/plan_screens.dart';
 import '../providers/settings_provider.dart';
 import '../quran/quran.dart';
 import '../quran/search.dart';
@@ -76,7 +77,19 @@ class HifzScreen extends StatelessWidget {
     final later = hifz.all.where((e) => !due.contains(e)).toList();
 
     return Scaffold(
-      appBar: AppBar(title: Text(tr('الحفظ والمراجعة', 'Memorization'))),
+      appBar: AppBar(
+        title: Text(tr('الحفظ والمراجعة', 'Memorization')),
+        actions: [
+          IconButton(
+            tooltip: tr('خطة الحفظ', 'Memorisation plan'),
+            icon: const Icon(Icons.event_note_rounded),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const HifzPlanScreen()),
+            ),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _addSurah(context, hifz),
         icon: const Icon(Icons.add_rounded),
