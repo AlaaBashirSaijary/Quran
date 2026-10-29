@@ -30,6 +30,8 @@ import 'package:quranapplication/hifz/hifz.dart';
 import 'package:quranapplication/hifz/plan.dart';
 import 'package:quranapplication/hifz/plan_screens.dart';
 import 'package:quranapplication/hifz/quiz.dart';
+import 'package:quranapplication/tajweed/lessons.dart';
+import 'package:quranapplication/tajweed/tajweed_screens.dart';
 import 'package:quranapplication/hifz/quiz_screen.dart';
 import 'package:quranapplication/quran/tafsir.dart';
 import 'package:quranapplication/hijri/hijri.dart';
@@ -2020,6 +2022,122 @@ void main() {
       );
       await tester.pump();
       expect(find.textContaining('أضف سورة'), findsOneWidget);
+    });
+  });
+
+  group('Tajweed lessons', () {
+    setUpAll(TestWidgetsFlutterBinding.ensureInitialized);
+
+    test('every example is a real place in the mushaf and its rule exists', () async {
+      final pack = parseTajweedPack(await rootBundle.loadString(tajweedAsset));
+      final quran = await QuranSearch.load();
+      expect(pack.lessons.map((l) => l.id), ['noon', 'meem', 'lam', 'madd']);
+      expect(pack.reviewer, isNotEmpty);
+      expect(pack.license, contains('CC BY-SA'));
+      for (final lesson in pack.lessons) {
+        expect(lesson.rules.length, greaterThanOrEqualTo(2));
+        final all = [...lesson.examples, for (final n in lesson.notes) ...n.examples];
+        for (final e in all) {
+          final words = e.words(quran);
+          reason() => '${lesson.id} ${e.surah}:${e.ayah}';
+          expect(words, isNotNull, reason: reason());
+          expect(e.focus, inInclusiveRange(e.from, e.to), reason: reason());
+        }
+        for (final e in lesson.examples) {
+          expect(lesson.rule(e.rule), isNotNull, reason: '${lesson.id} ${e.rule}');
+        }
+        // Each rule can be asked about.
+        for (final r in lesson.rules) {
+          expect(lesson.examplesOf(r.id), isNotEmpty, reason: '${lesson.id} ${r.id}');
+        }
+      }
+    });
+
+    test('the letters of the rules are the ones the sources give', () async {
+      final pack = parseTajweedPack(await rootBundle.loadString(tajweedAsset));
+      List<String> letters(String lesson, String rule) =>
+          pack.lessons.firstWhere((l) => l.id == lesson).rule(rule)!.letterList;
+      expect(letters('noon', 'izhar'), hasLength(6));
+      expect(letters('noon', 'ikhfa'), hasLength(15));
+      expect(letters('noon', 'idgham-ghunna'), hasLength(4));
+      expect(letters('noon', 'idgham-bila'), hasLength(2));
+      expect(letters('noon', 'iqlab'), ['ب']);
+      // 6 + 6 + 1 + 15 = every letter once, with the alef standing for hamza.
+      final noon = {
+        for (final r in ['izhar', 'idgham-ghunna', 'idgham-bila', 'iqlab', 'ikhfa'])
+          ...letters('noon', r),
+      };
+      expect(noon, hasLength(6 + 4 + 2 + 1 + 15));
+      final lam = [...letters('lam', 'qamari'), ...letters('lam', 'shamsi')];
+      expect(lam, hasLength(28));
+      expect(lam.toSet(), hasLength(28));
+    });
+
+    test('the quiz asks every rule and counts the answers', () async {
+      final pack = parseTajweedPack(await rootBundle.loadString(tajweedAsset));
+      final lesson = pack.lessons.first;
+      final quiz = TajweedQuiz(lesson, seed: 3);
+      expect(quiz.total, 8);
+      expect(
+        quiz.examples.map((e) => e.rule).toSet(),
+        lesson.rules.map((r) => r.id).toSet(),
+      );
+      var right = 0;
+      for (var i = 0; i < quiz.total; i++) {
+        final wrongOne = lesson.rules.firstWhere((r) => r.id != quiz.current.rule).id;
+        final correct = i.isEven;
+        expect(quiz.answer(correct ? quiz.current.rule : wrongOne), correct);
+        expect(quiz.answer(quiz.current.rule), isFalse, reason: 'one answer a question');
+        if (correct) right++;
+        quiz.next();
+      }
+      expect(quiz.finished, isTrue);
+      expect(quiz.correct, right);
+    });
+
+    test('progress keeps the best result only', () async {
+      SharedPreferences.setMockInitialValues({});
+      final progress = TajweedProgress(await SharedPreferences.getInstance());
+      expect(progress.best('noon'), isNull);
+      progress.record('noon', 5, 8);
+      progress.record('noon', 3, 8);
+      expect(progress.best('noon'), 63);
+      progress.record('noon', 8, 8);
+      expect(progress.best('noon'), 100);
+    });
+
+    testWidgets('open a lesson, read it and take its quiz', (tester) async {
+      tester.view.physicalSize = const Size(900, 3000);
+      tester.view.devicePixelRatio = 1.5;
+      addTearDown(tester.view.reset);
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      await tester.runAsync(QuranSearch.load);
+      await tester.pumpWidget(
+        ChangeNotifierProvider(
+          create: (_) => TajweedProgress(prefs),
+          child: const MaterialApp(home: TajweedLessonsScreen()),
+        ),
+      );
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
+      await tester.pump();
+      expect(find.text('أحكام النون الساكنة والتنوين'), findsOneWidget);
+      expect(find.text('المصادر والمراجعة'), findsOneWidget);
+      await tester.tap(find.text('أحكام النون الساكنة والتنوين'));
+      await tester.pumpAndSettle();
+      expect(find.text('الإظهار'), findsOneWidget);
+      await tester.tap(find.text('اختبر نفسك'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('السؤال 1 من 8'), findsOneWidget);
+      for (var i = 0; i < 8; i++) {
+        await tester.tap(find.text('الإظهار').last);
+        await tester.pump();
+        await tester.tap(find.byType(FilledButton));
+        await tester.pump();
+      }
+      expect(find.textContaining('/ 8'), findsOneWidget);
+      expect(find.text('اختبار جديد'), findsOneWidget);
+      expect(prefs.getInt('tajweed.best.noon'), isNotNull);
     });
   });
 

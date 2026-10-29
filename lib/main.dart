@@ -13,6 +13,7 @@ import 'notifications/notification_settings.dart';
 import 'prayer/prayer.dart';
 import 'books/book_library.dart';
 import 'hifz/plan.dart';
+import 'tajweed/lessons.dart';
 import 'kids/garden.dart';
 import 'kids/kids_progress.dart';
 import 'providers/ahadith_details_provider.dart';
@@ -127,6 +128,9 @@ class _AppRootState extends State<AppRoot> {
           ),
           ChangeNotifierProvider<KidsProgress>(
             create: (context) => KidsProgress(prefs),
+          ),
+          ChangeNotifierProvider<TajweedProgress>(
+            create: (context) => TajweedProgress(prefs),
           ),
           ChangeNotifierProvider<HifzPlanProvider>(
             create: (context) => HifzPlanProvider(prefs)..load(),

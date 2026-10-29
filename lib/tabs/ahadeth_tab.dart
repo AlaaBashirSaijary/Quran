@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../books/books_screen.dart';
+import '../tajweed/tajweed_screens.dart';
 import '../content/library.dart';
 import '../content/text_screens.dart';
 import '../core/index.dart';
@@ -134,6 +135,15 @@ class AhadithTab extends StatelessWidget {
             ),
             icon: Icons.local_library_rounded,
             builder: (context) => const BooksScreen(),
+          ),
+          _BookCard(
+            title: tr('دروس التجويد', 'Tajweed lessons'),
+            subtitle: tr(
+              'النون والميم ولام أل والمد، بأمثلة من المصحف واختبار',
+              'Noon, meem, lam of al- and madd, with mushaf examples and a quiz',
+            ),
+            icon: Icons.record_voice_over_rounded,
+            builder: (context) => const TajweedLessonsScreen(),
           ),
           const SizedBox(height: 8),
           Text(
