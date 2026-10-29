@@ -27,6 +27,8 @@ import 'package:quranapplication/widgets/quran_text_page.dart';
 import 'package:quranapplication/content/library.dart';
 import 'package:quranapplication/audio/recitation.dart';
 import 'package:quranapplication/hifz/hifz.dart';
+import 'package:quranapplication/hifz/plan.dart';
+import 'package:quranapplication/hifz/plan_screens.dart';
 import 'package:quranapplication/quran/tafsir.dart';
 import 'package:quranapplication/hijri/hijri.dart';
 import 'package:quranapplication/qibla/compass.dart';
@@ -1749,6 +1751,136 @@ void main() {
       await tester.tap(find.text('نسخ الرابط'));
       await tester.pumpAndSettle();
       expect(copied, ['https://example.test/book']);
+    });
+  });
+
+  group('Memorisation plan', () {
+    // Three small surahs: 3, 4 and 7 ayahs, in the counts of surahs 1 to 3.
+    final counts = [for (var s = 1; s <= 114; s++) s == 1 ? 7 : s == 2 ? 3 : s == 3 ? 4 : 5];
+    final now = DateTime(2026, 10, 29, 9);
+
+    Future<HifzPlanProvider> fresh([DateTime Function()? clock]) async {
+      SharedPreferences.setMockInitialValues({});
+      return HifzPlanProvider(
+        await SharedPreferences.getInstance(),
+        clock: clock ?? () => now,
+        ayahCounts: counts,
+      );
+    }
+
+    test('scopes list the surahs in order', () {
+      expect(surahsOf(PlanScope.juzAmmaBackwards).first, 114);
+      expect(surahsOf(PlanScope.juzAmmaBackwards).last, 78);
+      expect(surahsOf(PlanScope.juzAmmaForwards).first, 78);
+      expect(surahsOf(PlanScope.wholeForwards), hasLength(114));
+      expect(surahsOf(PlanScope.wholeBackwards).first, 114);
+    });
+
+    test('a session never crosses the end of a surah', () async {
+      final plan = await fresh();
+      plan.create(surahs: [2, 3, 1], perDay: 3);
+      expect(plan.next, const PlanPortion(2, 1, 3));
+      expect(plan.completesSurah(plan.next!), isTrue);
+      expect(plan.completeToday(), const PlanPortion(2, 1, 3));
+      expect(plan.doneToday, isTrue);
+      expect(plan.completeToday(), isNull, reason: 'one session a day');
+      expect(plan.next, const PlanPortion(3, 1, 3));
+      expect(plan.completesSurah(plan.next!), isFalse);
+    });
+
+    test('the plan moves on a day at a time and counts the sessions', () async {
+      var clock = now;
+      final plan = await fresh(() => clock);
+      plan.create(surahs: [2, 3, 1], perDay: 3);
+      // 3 ayahs -> 1 session; 4 -> 2 (3 + 1); 7 -> 3 (3 + 3 + 1).
+      expect(plan.sessionsLeft, 6);
+      expect(sessionsFor([2, 3, 1], 3, counts), 6);
+      expect(plan.progress, 0);
+      plan.completeToday();
+      expect(plan.done, 3);
+      expect(plan.sessionsLeft, 5);
+      expect(plan.streak, 1);
+      clock = now.add(const Duration(days: 1));
+      expect(plan.doneToday, isFalse);
+      expect(plan.streak, 1, reason: 'yesterday still counts');
+      expect(plan.next, const PlanPortion(3, 1, 3));
+      plan.completeToday();
+      expect(plan.next, const PlanPortion(3, 4, 4));
+      expect(plan.streak, 2);
+      // A missed day carries on and the end moves.
+      clock = now.add(const Duration(days: 3));
+      expect(plan.streak, 0);
+      expect(plan.next, const PlanPortion(3, 4, 4));
+      expect(plan.estimatedEnd, DateTime(2026, 11, 1, 0, 0).add(const Duration(days: 3)));
+    });
+
+    test('finishing the path ends the plan', () async {
+      var clock = now;
+      final plan = await fresh(() => clock);
+      plan.create(surahs: [2], perDay: 10);
+      plan.completeToday();
+      expect(plan.finished, isTrue);
+      expect(plan.next, isNull);
+      expect(plan.progress, 1);
+    });
+
+    test('the plan and its history are saved', () async {
+      final plan = await fresh();
+      plan.create(surahs: [2, 3], perDay: 2);
+      plan.completeToday();
+      plan.markReviewed();
+      final again = HifzPlanProvider(plan.prefs, clock: () => now, ayahCounts: counts);
+      expect(again.surahs, [2, 3]);
+      expect(again.perDay, 2);
+      expect(again.done, 2);
+      expect(again.doneToday, isTrue);
+      expect(again.recent(), [const PlanPortion(2, 1, 2)]);
+      expect(again.reviewedToday, isTrue);
+      again.clear();
+      expect(again.hasPlan, isFalse);
+      expect(HifzPlanProvider(plan.prefs, ayahCounts: counts).hasPlan, isFalse);
+    });
+
+    Widget app(SharedPreferences prefs, HifzPlanProvider plan, Widget home) =>
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider.value(value: plan),
+            ChangeNotifierProvider(create: (_) => HifzProvider(prefs)),
+            ChangeNotifierProvider(create: (_) => RecitationProvider(prefs)),
+          ],
+          child: MaterialApp(home: home),
+        );
+
+    testWidgets('set up a plan, then do the first session', (tester) async {
+      tester.view.physicalSize = const Size(900, 3000);
+      tester.view.devicePixelRatio = 1.5;
+      addTearDown(tester.view.reset);
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      await tester.runAsync(QuranSearch.load);
+      final quran = QuranSearch.loaded!;
+      final real = HifzPlanProvider(
+        prefs,
+        ayahCounts: [for (var s = 1; s <= 114; s++) quran.ayahsOfSurah(s).length],
+      );
+      await tester.pumpWidget(app(prefs, real, const HifzPlanScreen()));
+      await tester.pump();
+      expect(find.text('ابدأ خطة'), findsOneWidget);
+      await tester.tap(find.text('ابدأ خطة'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('تنتهي الخطة بعد'), findsOneWidget);
+      await tester.tap(find.text('ابدأ الخطة'));
+      await tester.pumpAndSettle();
+      expect(real.hasPlan, isTrue);
+      expect(find.text('جلسة اليوم'), findsOneWidget);
+      // An-Nas has 6 ayahs, learnt 3 at a time.
+      expect(real.next, const PlanPortion(114, 1, 3));
+      await tester.tap(find.text('ابدأ الجلسة'));
+      await tester.pumpAndSettle();
+      expect(find.text('التالي: اختبر نفسك'), findsOneWidget);
+      await tester.tap(find.text('التالي: اختبر نفسك'));
+      await tester.pumpAndSettle();
+      expect(find.text('أكمل الكلمات الناقصة'), findsOneWidget);
     });
   });
 
