@@ -29,6 +29,8 @@ import 'package:quranapplication/audio/recitation.dart';
 import 'package:quranapplication/hifz/hifz.dart';
 import 'package:quranapplication/hifz/plan.dart';
 import 'package:quranapplication/hifz/plan_screens.dart';
+import 'package:quranapplication/hifz/quiz.dart';
+import 'package:quranapplication/hifz/quiz_screen.dart';
 import 'package:quranapplication/quran/tafsir.dart';
 import 'package:quranapplication/hijri/hijri.dart';
 import 'package:quranapplication/qibla/compass.dart';
@@ -1881,6 +1883,143 @@ void main() {
       await tester.tap(find.text('التالي: اختبر نفسك'));
       await tester.pumpAndSettle();
       expect(find.text('أكمل الكلمات الناقصة'), findsOneWidget);
+    });
+  });
+
+  group('Memorisation quiz', () {
+    setUpAll(TestWidgetsFlutterBinding.ensureInitialized);
+
+    test('questions have one right choice and distinct options', () async {
+      final quran = await QuranSearch.load();
+      final quiz = buildQuiz([114, 112, 108], quran.ayahsOfSurah, seed: 7);
+      expect(quiz.length, inInclusiveRange(6, 10));
+      expect({for (final q in quiz) q.surah}, {114, 112, 108});
+      expect(
+        quiz.map((q) => q.kind).toSet(),
+        {QuizKind.nextAyah, QuizKind.missingWord},
+      );
+      for (final q in quiz) {
+        expect(q.options, hasLength(4));
+        expect(q.options.toSet(), hasLength(4));
+        final ayahs = quran.ayahsOfSurah(q.surah);
+        final ayah = ayahs.firstWhere((a) => a.number == q.number);
+        if (q.kind == QuizKind.nextAyah) {
+          expect(q.prompt, ayah.text);
+          expect(
+            q.options[q.answer],
+            ayahs.firstWhere((a) => a.number == q.number + 1).text,
+          );
+        } else {
+          expect(q.prompt, contains(blank));
+          expect(
+            q.prompt.replaceFirst(blank, q.options[q.answer]),
+            ayah.text,
+          );
+        }
+      }
+    });
+
+    test('a quiz asks each ayah at most once per kind', () async {
+      final quran = await QuranSearch.load();
+      final quiz = buildQuiz([108], quran.ayahsOfSurah, seed: 1);
+      // Al-Kawthar has 3 ayahs: 2 "next" questions and 3 "missing word".
+      final keys = [for (final q in quiz) '${q.kind}${q.number}'];
+      expect(keys.toSet(), hasLength(keys.length));
+      expect(quiz.length, lessThanOrEqualTo(5));
+    });
+
+    test('the result moves the review schedule', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      var now = DateTime(2026, 10, 29);
+      final hifz = HifzProvider(prefs, clock: () => now)
+        ..add(112)
+        ..add(114);
+      now = DateTime(2026, 10, 31);
+      expect(hifz.due.map((e) => e.surah), [112, 114]);
+      QuizQuestion q(int surah) => QuizQuestion(
+        kind: QuizKind.missingWord,
+        surah: surah,
+        number: 1,
+        prompt: '',
+        options: const ['a', 'b', 'c', 'd'],
+        answer: 0,
+      );
+      final session = QuizSession([q(112), q(112), q(114), q(114)]);
+      for (final pick in [0, 0, 0, 1]) {
+        expect(session.answered, isFalse);
+        session.answer(pick);
+        expect(session.answer(0), isFalse, reason: 'one answer a question');
+        session.next();
+      }
+      expect(session.finished, isTrue);
+      expect(session.correct, 3);
+      expect(session.held(112), isTrue);
+      expect(session.held(114), isFalse);
+      session.applyTo(hifz);
+      expect(hifz.entry(112)!.level, 1);
+      expect(hifz.entry(114)!.level, 0);
+      expect(hifz.entry(114)!.due, DateTime(2026, 11, 1));
+      // A held surah that is not due is left alone.
+      final again = QuizSession([q(112)])..answer(0);
+      again.next();
+      final before = hifz.entry(112)!.due;
+      again.applyTo(hifz);
+      expect(hifz.entry(112)!.due, before);
+    });
+
+    testWidgets('answer a question and see the result', (tester) async {
+      tester.view.physicalSize = const Size(900, 3000);
+      tester.view.devicePixelRatio = 1.5;
+      addTearDown(tester.view.reset);
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      await tester.runAsync(QuranSearch.load);
+      final hifz = HifzProvider(prefs)..add(112);
+      await tester.pumpWidget(
+        ChangeNotifierProvider.value(
+          value: hifz,
+          child: const MaterialApp(home: QuizScreen()),
+        ),
+      );
+      await tester.pump();
+      await tester.tap(find.text('ابدأ الاختبار'));
+      await tester.pump();
+      expect(find.textContaining('السؤال 1 من'), findsOneWidget);
+      // Next is disabled until a choice is made.
+      expect(
+        tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+        isNull,
+      );
+      final total = int.parse(
+        RegExp(r'من (\d+)')
+            .firstMatch(
+              tester.widget<Text>(find.textContaining('السؤال 1 من')).data!,
+            )!
+            .group(1)!,
+      );
+      for (var i = 0; i < total; i++) {
+        await tester.tap(find.byType(InkWell).first);
+        await tester.pump();
+        await tester.tap(find.byType(FilledButton));
+        await tester.pump();
+      }
+      expect(find.textContaining('/ $total'), findsWidgets);
+      expect(find.text('اختبار جديد'), findsOneWidget);
+    });
+
+    testWidgets('says so when nothing is memorised', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      await tester.runAsync(QuranSearch.load);
+      await tester.pumpWidget(
+        ChangeNotifierProvider(
+          create: (_) => HifzProvider(prefs),
+          child: const MaterialApp(home: QuizScreen()),
+        ),
+      );
+      await tester.pump();
+      expect(find.textContaining('أضف سورة'), findsOneWidget);
     });
   });
 

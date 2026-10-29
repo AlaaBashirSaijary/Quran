@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../core/index.dart';
 import '../hifz/hifz.dart';
 import '../hifz/plan_screens.dart';
+import '../hifz/quiz_screen.dart';
 import '../providers/settings_provider.dart';
 import '../quran/quran.dart';
 import '../quran/search.dart';
@@ -80,6 +81,14 @@ class HifzScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(tr('الحفظ والمراجعة', 'Memorization')),
         actions: [
+          IconButton(
+            tooltip: tr('اختبر محفوظي', 'Test my memorisation'),
+            icon: const Icon(Icons.quiz_rounded),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const QuizScreen()),
+            ),
+          ),
           IconButton(
             tooltip: tr('خطة الحفظ', 'Memorisation plan'),
             icon: const Icon(Icons.event_note_rounded),
