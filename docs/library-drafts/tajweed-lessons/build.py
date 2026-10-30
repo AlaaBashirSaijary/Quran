@@ -7,6 +7,7 @@ bundled mushaf text by analyze.py / analyze2.py, never typed."""
 import json, re, random
 from analyze import *
 import analyze2 as an2
+import analyze3 as an3
 
 TUHFAT = json.load(open('/home/user/Quran/assets/library/tuhfat-al-atfal.json', encoding='utf8'))
 
@@ -146,6 +147,64 @@ lessons.append(dict(
     notes=[],
 ))
 
+qal = list(an3.qalqala_cases()); ra = list(an3.ra_cases()); jal = list(an3.jalala_cases())
+one = lambda c: (c['i'], c['i'])
+
+lessons.append(dict(
+    id='qalqala', question='ما مرتبة القلقلة في الحرف المقلقل من الكلمة المظللة؟ (إن كانت آخر الآية فاعتبر الوقف عليها)',
+    title='القلقلة',
+    intro='القلقلة اضطراب المخرج عند النطق بالحرف الساكن حتى يُسمع له نبرة قوية. وحروفها خمسة تجمعها عبارة «قطب جد». خُصّت بها لأن فيها صفتي الشدة والجهر: الجهر يمنع جريان النفَس، والشدة تمنع جريان الصوت. وهي تكون في الحرف الساكن، في وسط الكلمة أو في آخرها.',
+    tuhfat=[],
+    rules=[
+        dict(id='aala', name='القلقلة العليا (موقوف عليه مشدد)', definition='أقوى القلقلة: أن يكون حرف القلقلة في آخر الكلمة مشدداً ويُوقف عليه.', letters='ق ط ب ج د', mnemonic='قطب جد', tip='ينطق الحرف المشدد ثم يُقلقل عند الوقف.'),
+        dict(id='awsat', name='القلقلة الوسطى (موقوف عليه)', definition='أن يكون حرف القلقلة آخر الكلمة غير مشدد ويُوقف عليه، فيسكن للوقف فيُقلقل.', letters='', mnemonic='', tip='لا قلقلة عند الوصل إلا إن كان الحرف ساكناً أصلاً.'),
+        dict(id='aqal', name='القلقلة الصغرى (في وسط الكلمة)', definition='أن يقع حرف القلقلة ساكناً في وسط الكلمة وتتواصل القراءة. وهي أخف المراتب.', letters='', mnemonic='', tip='في المصحف: علامة السكون فوق الحرف.'),
+    ],
+    examples=(pick(qal, 'aala', 3, span=one) + pick(qal, 'awsat', 6, span=one) + pick(qal, 'aqal', 6, span=one)),
+    notes=[dict(title='متى لا تكون قلقلة',
+                text='القلقلة صفة للحرف الساكن، فالحرف المتحرك منها لا يُقلقل. وإذا أُدغم حرف القلقلة فيما بعده لم يُقلقل، لأنه دخل في الحرف الذي يليه.',
+                examples=[])],
+))
+
+lessons.append(dict(
+    id='ra', question='ما حكم الراء في الكلمة المظللة؟ (في كل كلمة راء واحدة؛ وإن كانت آخر الآية فاعتبر الوقف عليها)',
+    title='تفخيم الراء وترقيقها',
+    intro='التفخيم تسمين صوت الحرف حتى يمتلئ الفم بصداه، والترقيق تنحيف صوته فلا يمتلئ الفم به. وحروف الاستعلاء «خص ضغط قظ» تُفخَّم دائماً. أما الراء فالأصل فيها الترقيق، وتُفخَّم في بعض الحالات بحسب حركتها وما قبلها وما بعدها.',
+    tuhfat=[],
+    rules=[
+        dict(id='tafkhim-harakah', name='تفخيم: الراء المفتوحة أو المضمومة', definition='تُفخَّم الراء إذا كانت مفتوحة أو مضمومة.', letters='', mnemonic='', tip=''),
+        dict(id='tafkhim-sakina', name='تفخيم: الساكنة بعد فتح أو ضم', definition='تُفخَّم الراء الساكنة إذا سبقها حرف مفتوح أو مضموم.', letters='', mnemonic='', tip=''),
+        dict(id='tafkhim-kasra-istila', name='تفخيم: الساكنة بعد كسر وبعدها حرف استعلاء', definition='تُفخَّم الراء الساكنة إذا سبقها كسر أصلي وجاء بعدها في الكلمة نفسها حرف استعلاء مفتوح أو مضموم.', letters='خ ص ض غ ط ق ظ', mnemonic='خص ضغط قظ', tip='ورد ذلك في كلمات قليلة مثل «مرصاد» و«قرطاس» و«فرقة».'),
+        dict(id='tarqiq-maksura', name='ترقيق: الراء المكسورة', definition='تُرقَّق الراء إذا كانت مكسورة.', letters='', mnemonic='', tip=''),
+        dict(id='tarqiq-sakina', name='ترقيق: الساكنة بعد كسر وليس بعدها استعلاء', definition='تُرقَّق الراء الساكنة إذا سبقها كسر أصلي ولم يأت بعدها حرف استعلاء.', letters='', mnemonic='', tip=''),
+        dict(id='tarqiq-waqf', name='ترقيق: الراء الموقوف عليها بعد ياء ساكنة أو بعد ساكن قبله كسر', definition='إذا وُقف على الراء فسكنت، رُقِّقت إن كان قبلها ياء ساكنة، أو حرف ساكن (ليس حرف استعلاء) قبله كسر.', letters='', mnemonic='', tip='الأمثلة هنا في آخر الآية، فالوقف عليها هو الحالة المقصودة.'),
+    ],
+    examples=(pick(ra, 'tafkhim-harakah', 6, span=one) + pick(ra, 'tafkhim-sakina', 6, span=one)
+              + pick(ra, 'tafkhim-kasra-istila', 5, span=one) + pick(ra, 'tarqiq-maksura', 6, span=one)
+              + pick(ra, 'tarqiq-sakina', 5, span=one) + pick(ra, 'tarqiq-waqf', 6, span=one)),
+    notes=[
+        dict(title='تفخيم الراء بعد كسر عارض',
+             text='إذا سبقت الراء الساكنة كسرة عارضة، كهمزة الوصل في الابتداء، فُخِّمت.',
+             examples=[word_example('ارجعوا', 'tafkhim-sakina')]),
+        dict(title='كلمات يجوز فيها الوجهان',
+             text='ورد في كلمات يجوز فيها ترقيق الراء وتفخيمها: «مصر» في سورتي يوسف والزخرف، و«القطر» في سبأ، و«يسر» في الفجر، و«فأسر» في هود والحجر والدخان، و«أن أسر» في طه والشعراء، و«نذر» في القمر، و«فرق» في الشعراء. واعتمد ما يعلّمك معلمك المجاز.',
+             examples=[]),
+    ],
+))
+
+lessons.append(dict(
+    id='jalala', question='ما حكم اللام في لفظ الجلالة المظلل؟',
+    title='لام لفظ الجلالة',
+    intro='حكم اللام في كلمة «الله» يتغير بحسب ما قبلها. وتسمّى اللام المفخَّمة هنا مغلَّظة؛ تمييزاً لها عن حروف الاستعلاء التي تفخَّم في ذاتها، والحكم واحد. أما اللام في غير لفظ الجلالة فالأصل فيها الترقيق.',
+    tuhfat=[],
+    rules=[
+        dict(id='tafkhim', name='التفخيم (بعد فتح أو ضم)', definition='تُفخَّم اللام في لفظ الجلالة إذا سبقها فتح أو ضم.', letters='', mnemonic='', tip='وإذا بدأت القراءة بلفظ الجلالة فاللام مفخمة، مع ترقيق الهمزة في الابتداء.'),
+        dict(id='tarqiq', name='الترقيق (بعد كسر)', definition='تُرقَّق اللام في لفظ الجلالة إذا سبقها كسر، حتى لو كان الكسر عارضاً أو منفصلاً عنها.', letters='', mnemonic='', tip=''),
+    ],
+    examples=(pick(jal, 'tafkhim', 7, span=lambda c: c['span']) + pick(jal, 'tarqiq', 7, span=lambda c: c['span'])),
+    notes=[],
+))
+
 pack = dict(
     title='دروس التجويد',
     reviewer='ألاء بشير سيجري (مطوّرة التطبيق). لم يراجعها مقرئ مجاز بعد',
@@ -156,6 +215,10 @@ pack = dict(
         dict(name='ويكيبيديا العربية: أحكام النون الساكنة والتنوين', url='https://ar.wikipedia.org/wiki/أحكام_النون_الساكنة_والتنوين'),
         dict(name='ويكيبيديا العربية: أحكام الميم الساكنة', url='https://ar.wikipedia.org/wiki/أحكام_الميم_الساكنة'),
         dict(name='ويكيبيديا العربية: أحكام المد', url='https://ar.wikipedia.org/wiki/أحكام_المد'),
+        dict(name='ويكيبيديا العربية: قلقلة', url='https://ar.wikipedia.org/wiki/قلقلة'),
+        dict(name='ويكيبيديا العربية: تفخيم وترقيق', url='https://ar.wikipedia.org/wiki/تفخيم_وترقيق'),
+        dict(name='ويكيبيديا العربية: أحكام الراء', url='https://ar.wikipedia.org/wiki/أحكام_الراء'),
+        dict(name='ويكيبيديا العربية: أحكام لفظ الجلالة', url='https://ar.wikipedia.org/wiki/أحكام_لفظ_الجلالة'),
     ],
     lessons=lessons,
 )

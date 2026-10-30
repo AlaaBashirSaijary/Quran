@@ -2031,7 +2031,15 @@ void main() {
     test('every example is a real place in the mushaf and its rule exists', () async {
       final pack = parseTajweedPack(await rootBundle.loadString(tajweedAsset));
       final quran = await QuranSearch.load();
-      expect(pack.lessons.map((l) => l.id), ['noon', 'meem', 'lam', 'madd']);
+      expect(pack.lessons.map((l) => l.id), [
+        'noon',
+        'meem',
+        'lam',
+        'madd',
+        'qalqala',
+        'ra',
+        'jalala',
+      ]);
       expect(pack.reviewer, isNotEmpty);
       expect(pack.license, contains('CC BY-SA'));
       for (final lesson in pack.lessons) {
@@ -2071,6 +2079,17 @@ void main() {
       final lam = [...letters('lam', 'qamari'), ...letters('lam', 'shamsi')];
       expect(lam, hasLength(28));
       expect(lam.toSet(), hasLength(28));
+    });
+
+    test('qalqalah has five letters and the ra and Allah lessons cover their cases', () async {
+      final pack = parseTajweedPack(await rootBundle.loadString(tajweedAsset));
+      TajweedLesson lesson(String id) => pack.lessons.firstWhere((l) => l.id == id);
+      expect(lesson('qalqala').rule('aala')!.letterList, hasLength(5));
+      expect(lesson('ra').rules, hasLength(6));
+      expect(lesson('jalala').rules.map((r) => r.id), ['tafkhim', 'tarqiq']);
+      // The Allah examples show the word before it, which gives the vowel.
+      final prefixed = lesson('jalala').examples.where((e) => e.from < e.focus);
+      expect(prefixed, isNotEmpty);
     });
 
     test('the quiz asks every rule and counts the answers', () async {

@@ -18,6 +18,22 @@
   {
    "name": "ويكيبيديا العربية: أحكام المد",
    "url": "https://ar.wikipedia.org/wiki/أحكام_المد"
+  },
+  {
+   "name": "ويكيبيديا العربية: قلقلة",
+   "url": "https://ar.wikipedia.org/wiki/قلقلة"
+  },
+  {
+   "name": "ويكيبيديا العربية: تفخيم وترقيق",
+   "url": "https://ar.wikipedia.org/wiki/تفخيم_وترقيق"
+  },
+  {
+   "name": "ويكيبيديا العربية: أحكام الراء",
+   "url": "https://ar.wikipedia.org/wiki/أحكام_الراء"
+  },
+  {
+   "name": "ويكيبيديا العربية: أحكام لفظ الجلالة",
+   "url": "https://ar.wikipedia.org/wiki/أحكام_لفظ_الجلالة"
   }
  ],
  "lessons": [
@@ -906,6 +922,636 @@
      "from": 4,
      "to": 4,
      "focus": 4
+    }
+   ],
+   "notes": []
+  },
+  {
+   "id": "qalqala",
+   "question": "ما مرتبة القلقلة في الحرف المقلقل من الكلمة المظللة؟ (إن كانت آخر الآية فاعتبر الوقف عليها)",
+   "title": "القلقلة",
+   "intro": "القلقلة اضطراب المخرج عند النطق بالحرف الساكن حتى يُسمع له نبرة قوية. وحروفها خمسة تجمعها عبارة «قطب جد». خُصّت بها لأن فيها صفتي الشدة والجهر: الجهر يمنع جريان النفَس، والشدة تمنع جريان الصوت. وهي تكون في الحرف الساكن، في وسط الكلمة أو في آخرها.",
+   "tuhfat": [],
+   "rules": [
+    {
+     "id": "aala",
+     "name": "القلقلة العليا (موقوف عليه مشدد)",
+     "definition": "أقوى القلقلة: أن يكون حرف القلقلة في آخر الكلمة مشدداً ويُوقف عليه.",
+     "letters": "ق ط ب ج د",
+     "mnemonic": "قطب جد",
+     "tip": "ينطق الحرف المشدد ثم يُقلقل عند الوقف."
+    },
+    {
+     "id": "awsat",
+     "name": "القلقلة الوسطى (موقوف عليه)",
+     "definition": "أن يكون حرف القلقلة آخر الكلمة غير مشدد ويُوقف عليه، فيسكن للوقف فيُقلقل.",
+     "letters": "",
+     "mnemonic": "",
+     "tip": "لا قلقلة عند الوصل إلا إن كان الحرف ساكناً أصلاً."
+    },
+    {
+     "id": "aqal",
+     "name": "القلقلة الصغرى (في وسط الكلمة)",
+     "definition": "أن يقع حرف القلقلة ساكناً في وسط الكلمة وتتواصل القراءة. وهي أخف المراتب.",
+     "letters": "",
+     "mnemonic": "",
+     "tip": "في المصحف: علامة السكون فوق الحرف."
+    }
+   ],
+   "examples": [
+    {
+     "rule": "aala",
+     "surah": 111,
+     "ayah": 1,
+     "from": 5,
+     "to": 5,
+     "focus": 5
+    },
+    {
+     "rule": "awsat",
+     "surah": 42,
+     "ayah": 2,
+     "from": 1,
+     "to": 1,
+     "focus": 1
+    },
+    {
+     "rule": "awsat",
+     "surah": 56,
+     "ayah": 29,
+     "from": 2,
+     "to": 2,
+     "focus": 2
+    },
+    {
+     "rule": "awsat",
+     "surah": 85,
+     "ayah": 2,
+     "from": 2,
+     "to": 2,
+     "focus": 2
+    },
+    {
+     "rule": "awsat",
+     "surah": 112,
+     "ayah": 2,
+     "from": 2,
+     "to": 2,
+     "focus": 2
+    },
+    {
+     "rule": "awsat",
+     "surah": 37,
+     "ayah": 4,
+     "from": 3,
+     "to": 3,
+     "focus": 3
+    },
+    {
+     "rule": "awsat",
+     "surah": 75,
+     "ayah": 27,
+     "from": 3,
+     "to": 3,
+     "focus": 3
+    },
+    {
+     "rule": "aqal",
+     "surah": 52,
+     "ayah": 5,
+     "from": 1,
+     "to": 1,
+     "focus": 1
+    },
+    {
+     "rule": "aqal",
+     "surah": 68,
+     "ayah": 5,
+     "from": 1,
+     "to": 1,
+     "focus": 1
+    },
+    {
+     "rule": "aqal",
+     "surah": 74,
+     "ayah": 5,
+     "from": 1,
+     "to": 1,
+     "focus": 1
+    },
+    {
+     "rule": "aqal",
+     "surah": 78,
+     "ayah": 8,
+     "from": 1,
+     "to": 1,
+     "focus": 1
+    },
+    {
+     "rule": "aqal",
+     "surah": 79,
+     "ayah": 9,
+     "from": 1,
+     "to": 1,
+     "focus": 1
+    },
+    {
+     "rule": "aqal",
+     "surah": 86,
+     "ayah": 3,
+     "from": 1,
+     "to": 1,
+     "focus": 1
+    }
+   ],
+   "notes": [
+    {
+     "title": "متى لا تكون قلقلة",
+     "text": "القلقلة صفة للحرف الساكن، فالحرف المتحرك منها لا يُقلقل. وإذا أُدغم حرف القلقلة فيما بعده لم يُقلقل، لأنه دخل في الحرف الذي يليه.",
+     "examples": []
+    }
+   ]
+  },
+  {
+   "id": "ra",
+   "question": "ما حكم الراء في الكلمة المظللة؟ (في كل كلمة راء واحدة؛ وإن كانت آخر الآية فاعتبر الوقف عليها)",
+   "title": "تفخيم الراء وترقيقها",
+   "intro": "التفخيم تسمين صوت الحرف حتى يمتلئ الفم بصداه، والترقيق تنحيف صوته فلا يمتلئ الفم به. وحروف الاستعلاء «خص ضغط قظ» تُفخَّم دائماً. أما الراء فالأصل فيها الترقيق، وتُفخَّم في بعض الحالات بحسب حركتها وما قبلها وما بعدها.",
+   "tuhfat": [],
+   "rules": [
+    {
+     "id": "tafkhim-harakah",
+     "name": "تفخيم: الراء المفتوحة أو المضمومة",
+     "definition": "تُفخَّم الراء إذا كانت مفتوحة أو مضمومة.",
+     "letters": "",
+     "mnemonic": "",
+     "tip": ""
+    },
+    {
+     "id": "tafkhim-sakina",
+     "name": "تفخيم: الساكنة بعد فتح أو ضم",
+     "definition": "تُفخَّم الراء الساكنة إذا سبقها حرف مفتوح أو مضموم.",
+     "letters": "",
+     "mnemonic": "",
+     "tip": ""
+    },
+    {
+     "id": "tafkhim-kasra-istila",
+     "name": "تفخيم: الساكنة بعد كسر وبعدها حرف استعلاء",
+     "definition": "تُفخَّم الراء الساكنة إذا سبقها كسر أصلي وجاء بعدها في الكلمة نفسها حرف استعلاء مفتوح أو مضموم.",
+     "letters": "خ ص ض غ ط ق ظ",
+     "mnemonic": "خص ضغط قظ",
+     "tip": "ورد ذلك في كلمات قليلة مثل «مرصاد» و«قرطاس» و«فرقة»."
+    },
+    {
+     "id": "tarqiq-maksura",
+     "name": "ترقيق: الراء المكسورة",
+     "definition": "تُرقَّق الراء إذا كانت مكسورة.",
+     "letters": "",
+     "mnemonic": "",
+     "tip": ""
+    },
+    {
+     "id": "tarqiq-sakina",
+     "name": "ترقيق: الساكنة بعد كسر وليس بعدها استعلاء",
+     "definition": "تُرقَّق الراء الساكنة إذا سبقها كسر أصلي ولم يأت بعدها حرف استعلاء.",
+     "letters": "",
+     "mnemonic": "",
+     "tip": ""
+    },
+    {
+     "id": "tarqiq-waqf",
+     "name": "ترقيق: الراء الموقوف عليها بعد ياء ساكنة أو بعد ساكن قبله كسر",
+     "definition": "إذا وُقف على الراء فسكنت، رُقِّقت إن كان قبلها ياء ساكنة، أو حرف ساكن (ليس حرف استعلاء) قبله كسر.",
+     "letters": "",
+     "mnemonic": "",
+     "tip": "الأمثلة هنا في آخر الآية، فالوقف عليها هو الحالة المقصودة."
+    }
+   ],
+   "examples": [
+    {
+     "rule": "tafkhim-harakah",
+     "surah": 55,
+     "ayah": 1,
+     "from": 1,
+     "to": 1,
+     "focus": 1
+    },
+    {
+     "rule": "tafkhim-harakah",
+     "surah": 1,
+     "ayah": 3,
+     "from": 1,
+     "to": 1,
+     "focus": 1
+    },
+    {
+     "rule": "tafkhim-harakah",
+     "surah": 20,
+     "ayah": 30,
+     "from": 1,
+     "to": 1,
+     "focus": 1
+    },
+    {
+     "rule": "tafkhim-harakah",
+     "surah": 30,
+     "ayah": 2,
+     "from": 2,
+     "to": 2,
+     "focus": 2
+    },
+    {
+     "rule": "tafkhim-harakah",
+     "surah": 37,
+     "ayah": 2,
+     "from": 1,
+     "to": 1,
+     "focus": 1
+    },
+    {
+     "rule": "tafkhim-harakah",
+     "surah": 51,
+     "ayah": 10,
+     "from": 2,
+     "to": 2,
+     "focus": 2
+    },
+    {
+     "rule": "tafkhim-sakina",
+     "surah": 36,
+     "ayah": 2,
+     "from": 1,
+     "to": 1,
+     "focus": 1
+    },
+    {
+     "rule": "tafkhim-sakina",
+     "surah": 51,
+     "ayah": 1,
+     "from": 2,
+     "to": 2,
+     "focus": 2
+    },
+    {
+     "rule": "tafkhim-sakina",
+     "surah": 52,
+     "ayah": 5,
+     "from": 2,
+     "to": 2,
+     "focus": 2
+    },
+    {
+     "rule": "tafkhim-sakina",
+     "surah": 55,
+     "ayah": 2,
+     "from": 2,
+     "to": 2,
+     "focus": 2
+    },
+    {
+     "rule": "tafkhim-sakina",
+     "surah": 56,
+     "ayah": 34,
+     "from": 2,
+     "to": 2,
+     "focus": 2
+    },
+    {
+     "rule": "tafkhim-sakina",
+     "surah": 74,
+     "ayah": 17,
+     "from": 1,
+     "to": 1,
+     "focus": 1
+    },
+    {
+     "rule": "tafkhim-kasra-istila",
+     "surah": 89,
+     "ayah": 14,
+     "from": 3,
+     "to": 3,
+     "focus": 3
+    },
+    {
+     "rule": "tafkhim-kasra-istila",
+     "surah": 78,
+     "ayah": 21,
+     "from": 4,
+     "to": 4,
+     "focus": 4
+    },
+    {
+     "rule": "tafkhim-kasra-istila",
+     "surah": 6,
+     "ayah": 7,
+     "from": 6,
+     "to": 6,
+     "focus": 6
+    },
+    {
+     "rule": "tafkhim-kasra-istila",
+     "surah": 9,
+     "ayah": 122,
+     "from": 10,
+     "to": 10,
+     "focus": 10
+    },
+    {
+     "rule": "tarqiq-maksura",
+     "surah": 101,
+     "ayah": 1,
+     "from": 1,
+     "to": 1,
+     "focus": 1
+    },
+    {
+     "rule": "tarqiq-maksura",
+     "surah": 26,
+     "ayah": 60,
+     "from": 2,
+     "to": 2,
+     "focus": 2
+    },
+    {
+     "rule": "tarqiq-maksura",
+     "surah": 51,
+     "ayah": 1,
+     "from": 1,
+     "to": 1,
+     "focus": 1
+    },
+    {
+     "rule": "tarqiq-maksura",
+     "surah": 52,
+     "ayah": 6,
+     "from": 1,
+     "to": 1,
+     "focus": 1
+    },
+    {
+     "rule": "tarqiq-maksura",
+     "surah": 68,
+     "ayah": 20,
+     "from": 2,
+     "to": 2,
+     "focus": 2
+    },
+    {
+     "rule": "tarqiq-maksura",
+     "surah": 70,
+     "ayah": 7,
+     "from": 2,
+     "to": 2,
+     "focus": 2
+    },
+    {
+     "rule": "tarqiq-sakina",
+     "surah": 85,
+     "ayah": 18,
+     "from": 1,
+     "to": 1,
+     "focus": 1
+    },
+    {
+     "rule": "tarqiq-sakina",
+     "surah": 37,
+     "ayah": 175,
+     "from": 1,
+     "to": 1,
+     "focus": 1
+    },
+    {
+     "rule": "tarqiq-sakina",
+     "surah": 84,
+     "ayah": 24,
+     "from": 1,
+     "to": 1,
+     "focus": 1
+    },
+    {
+     "rule": "tarqiq-sakina",
+     "surah": 89,
+     "ayah": 10,
+     "from": 1,
+     "to": 1,
+     "focus": 1
+    },
+    {
+     "rule": "tarqiq-sakina",
+     "surah": 26,
+     "ayah": 11,
+     "from": 2,
+     "to": 2,
+     "focus": 2
+    },
+    {
+     "rule": "tarqiq-waqf",
+     "surah": 35,
+     "ayah": 19,
+     "from": 4,
+     "to": 4,
+     "focus": 4
+    },
+    {
+     "rule": "tarqiq-waqf",
+     "surah": 38,
+     "ayah": 1,
+     "from": 4,
+     "to": 4,
+     "focus": 4
+    },
+    {
+     "rule": "tarqiq-waqf",
+     "surah": 74,
+     "ayah": 9,
+     "from": 4,
+     "to": 4,
+     "focus": 4
+    },
+    {
+     "rule": "tarqiq-waqf",
+     "surah": 67,
+     "ayah": 11,
+     "from": 5,
+     "to": 5,
+     "focus": 5
+    },
+    {
+     "rule": "tarqiq-waqf",
+     "surah": 100,
+     "ayah": 11,
+     "from": 5,
+     "to": 5,
+     "focus": 5
+    },
+    {
+     "rule": "tarqiq-waqf",
+     "surah": 50,
+     "ayah": 43,
+     "from": 6,
+     "to": 6,
+     "focus": 6
+    }
+   ],
+   "notes": [
+    {
+     "title": "تفخيم الراء بعد كسر عارض",
+     "text": "إذا سبقت الراء الساكنة كسرة عارضة، كهمزة الوصل في الابتداء، فُخِّمت.",
+     "examples": [
+      {
+       "rule": "tafkhim-sakina",
+       "surah": 12,
+       "ayah": 81,
+       "from": 1,
+       "to": 1,
+       "focus": 1
+      }
+     ]
+    },
+    {
+     "title": "كلمات يجوز فيها الوجهان",
+     "text": "ورد في كلمات يجوز فيها ترقيق الراء وتفخيمها: «مصر» في سورتي يوسف والزخرف، و«القطر» في سبأ، و«يسر» في الفجر، و«فأسر» في هود والحجر والدخان، و«أن أسر» في طه والشعراء، و«نذر» في القمر، و«فرق» في الشعراء. واعتمد ما يعلّمك معلمك المجاز.",
+     "examples": []
+    }
+   ]
+  },
+  {
+   "id": "jalala",
+   "question": "ما حكم اللام في لفظ الجلالة المظلل؟",
+   "title": "لام لفظ الجلالة",
+   "intro": "حكم اللام في كلمة «الله» يتغير بحسب ما قبلها. وتسمّى اللام المفخَّمة هنا مغلَّظة؛ تمييزاً لها عن حروف الاستعلاء التي تفخَّم في ذاتها، والحكم واحد. أما اللام في غير لفظ الجلالة فالأصل فيها الترقيق.",
+   "tuhfat": [],
+   "rules": [
+    {
+     "id": "tafkhim",
+     "name": "التفخيم (بعد فتح أو ضم)",
+     "definition": "تُفخَّم اللام في لفظ الجلالة إذا سبقها فتح أو ضم.",
+     "letters": "",
+     "mnemonic": "",
+     "tip": "وإذا بدأت القراءة بلفظ الجلالة فاللام مفخمة، مع ترقيق الهمزة في الابتداء."
+    },
+    {
+     "id": "tarqiq",
+     "name": "الترقيق (بعد كسر)",
+     "definition": "تُرقَّق اللام في لفظ الجلالة إذا سبقها كسر، حتى لو كان الكسر عارضاً أو منفصلاً عنها.",
+     "letters": "",
+     "mnemonic": "",
+     "tip": ""
+    }
+   ],
+   "examples": [
+    {
+     "rule": "tafkhim",
+     "surah": 104,
+     "ayah": 6,
+     "from": 1,
+     "to": 2,
+     "focus": 2
+    },
+    {
+     "rule": "tafkhim",
+     "surah": 37,
+     "ayah": 40,
+     "from": 2,
+     "to": 3,
+     "focus": 3
+    },
+    {
+     "rule": "tafkhim",
+     "surah": 48,
+     "ayah": 3,
+     "from": 1,
+     "to": 2,
+     "focus": 2
+    },
+    {
+     "rule": "tafkhim",
+     "surah": 70,
+     "ayah": 3,
+     "from": 1,
+     "to": 2,
+     "focus": 2
+    },
+    {
+     "rule": "tafkhim",
+     "surah": 84,
+     "ayah": 23,
+     "from": 1,
+     "to": 1,
+     "focus": 1
+    },
+    {
+     "rule": "tafkhim",
+     "surah": 85,
+     "ayah": 20,
+     "from": 1,
+     "to": 1,
+     "focus": 1
+    },
+    {
+     "rule": "tafkhim",
+     "surah": 88,
+     "ayah": 24,
+     "from": 1,
+     "to": 2,
+     "focus": 2
+    },
+    {
+     "rule": "tarqiq",
+     "surah": 1,
+     "ayah": 1,
+     "from": 1,
+     "to": 2,
+     "focus": 2
+    },
+    {
+     "rule": "tarqiq",
+     "surah": 3,
+     "ayah": 150,
+     "from": 1,
+     "to": 2,
+     "focus": 2
+    },
+    {
+     "rule": "tarqiq",
+     "surah": 33,
+     "ayah": 3,
+     "from": 5,
+     "to": 5,
+     "focus": 5
+    },
+    {
+     "rule": "tarqiq",
+     "surah": 39,
+     "ayah": 14,
+     "from": 1,
+     "to": 2,
+     "focus": 2
+    },
+    {
+     "rule": "tarqiq",
+     "surah": 40,
+     "ayah": 81,
+     "from": 4,
+     "to": 5,
+     "focus": 5
+    },
+    {
+     "rule": "tarqiq",
+     "surah": 53,
+     "ayah": 58,
+     "from": 4,
+     "to": 5,
+     "focus": 5
+    },
+    {
+     "rule": "tarqiq",
+     "surah": 69,
+     "ayah": 33,
+     "from": 5,
+     "to": 5,
+     "focus": 5
     }
    ],
    "notes": []
