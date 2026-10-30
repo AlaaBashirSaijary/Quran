@@ -2039,6 +2039,9 @@ void main() {
         'qalqala',
         'ra',
         'jalala',
+        'makharij',
+        'sifat',
+        'waqf',
       ]);
       expect(pack.reviewer, isNotEmpty);
       expect(pack.license, contains('CC BY-SA'));
@@ -2049,13 +2052,21 @@ void main() {
           final words = e.words(quran);
           reason() => '${lesson.id} ${e.surah}:${e.ayah}';
           expect(words, isNotNull, reason: reason());
+          if (e.letter != null) continue;
           expect(e.focus, inInclusiveRange(e.from, e.to), reason: reason());
         }
         for (final e in lesson.examples) {
           expect(lesson.rule(e.rule), isNotNull, reason: '${lesson.id} ${e.rule}');
         }
-        // Each rule can be asked about.
+        // Each rule can be asked about, except the ones that only describe
+        // (the places and qualities with no letter to ask about).
+        const describing = {
+          'makharij': {'jawf', 'khayshum'},
+          'sifat': {'shidda', 'tawassut', 'istila', 'itbaq', 'idhlaq', 'safir',
+            'qalqala-s', 'lin', 'inhiraf', 'takrir', 'tafashi', 'istitala'},
+        };
         for (final r in lesson.rules) {
+          if (describing[lesson.id]?.contains(r.id) ?? false) continue;
           expect(lesson.examplesOf(r.id), isNotEmpty, reason: '${lesson.id} ${r.id}');
         }
       }
@@ -2090,6 +2101,42 @@ void main() {
       // The Allah examples show the word before it, which gives the vowel.
       final prefixed = lesson('jalala').examples.where((e) => e.from < e.focus);
       expect(prefixed, isNotEmpty);
+    });
+
+    test('the letters of makharij and sifat add up', () async {
+      final pack = parseTajweedPack(await rootBundle.loadString(tajweedAsset));
+      TajweedLesson lesson(String id) => pack.lessons.firstWhere((l) => l.id == id);
+      final sifat = lesson('sifat');
+      final hams = sifat.rule('hams')!.letterList;
+      final jahr = sifat.rule('jahr')!.letterList;
+      expect(hams, hasLength(10));
+      expect(jahr, hasLength(18));
+      expect({...hams, ...jahr}, hasLength(28));
+      expect(sifat.rule('shidda')!.letterList, hasLength(8));
+      expect(sifat.rule('istila')!.letterList, hasLength(7));
+      expect(sifat.rule('qalqala-s')!.letterList, hasLength(5));
+      expect(sifat.rule('idhlaq')!.letterList, hasLength(6));
+      // The letters asked about are exactly those listed.
+      expect({for (final e in sifat.examplesOf('hams')) e.letter}, hams.toSet());
+      expect({for (final e in sifat.examplesOf('jahr')) e.letter}, jahr.toSet());
+      final makharij = lesson('makharij');
+      expect(makharij.rule('halq')!.letterList, hasLength(6));
+      expect(makharij.rule('lisan')!.letterList, hasLength(18));
+      // 6 + 18 + 4: every letter of the alphabet has one general place.
+      expect(
+        {
+          ...makharij.rule('halq')!.letterList,
+          ...makharij.rule('lisan')!.letterList,
+          ...makharij.rule('shafatan')!.letterList,
+        },
+        hasLength(28),
+      );
+      expect(makharij.rules, hasLength(5));
+      // The quiz offers only the answers it asks about.
+      expect(TajweedQuiz(sifat).options.map((r) => r.id), ['hams', 'jahr']);
+      // Waqf: every example word really carries a stop sign.
+      final waqf = lesson('waqf');
+      expect(waqf.rules, hasLength(5));
     });
 
     test('the quiz asks every rule and counts the answers', () async {

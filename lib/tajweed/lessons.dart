@@ -46,6 +46,7 @@ class TajweedExample {
     required this.from,
     required this.to,
     required this.focus,
+    this.letter,
   });
 
   final String rule;
@@ -55,9 +56,14 @@ class TajweedExample {
   final int to;
   final int focus;
 
+  /// For lessons on letters (places of articulation, qualities): the letter
+  /// itself, with no ayah.
+  final String? letter;
+
   /// The words of the example, from the Quran text, or null if the ayah or
-  /// the words are not there.
+  /// the words are not there. A letter example gives the letter.
   List<String>? words(QuranSearch quran) {
+    if (letter != null) return [letter!];
     for (final a in quran.ayahsOfSurah(surah)) {
       if (a.number != ayah) continue;
       final all = wordsOf(a.text);
@@ -158,6 +164,7 @@ TajweedExample _example(Map<String, dynamic> m) => TajweedExample(
   from: m['from'] as int,
   to: m['to'] as int,
   focus: m['focus'] as int,
+  letter: m['letter'] as String?,
 );
 
 TajweedPack parseTajweedPack(String source) {
@@ -221,6 +228,12 @@ class TajweedQuiz {
 
   final TajweedLesson lesson;
   final List<TajweedExample> examples;
+
+  /// The rules the quiz offers as answers: those it asks about.
+  List<TajweedRule> get options => [
+    for (final r in lesson.rules)
+      if (lesson.examplesOf(r.id).isNotEmpty) r,
+  ];
   int _index = 0;
   int _correct = 0;
   String? _chosen;
@@ -229,7 +242,9 @@ class TajweedQuiz {
     final random = Random(seed);
     // Take them rule by rule in turn so every rule is asked about.
     final byRule = [
-      for (final r in lesson.rules) lesson.examplesOf(r.id)..shuffle(random),
+      for (final r in lesson.rules)
+        if (lesson.examplesOf(r.id).isNotEmpty)
+          lesson.examplesOf(r.id)..shuffle(random),
     ];
     final out = <TajweedExample>[];
     for (var round = 0; out.length < count; round++) {

@@ -31,6 +31,14 @@ class ExamplePhrase extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final words = example.words(quran);
     if (words == null) return const SizedBox.shrink();
+    if (example.letter != null) {
+      return Text(
+        example.letter!,
+        textAlign: TextAlign.center,
+        textDirection: TextDirection.rtl,
+        style: const TextStyle(fontFamily: AppTheme.secondaryFontFamily, fontSize: 56, height: 1.5),
+      );
+    }
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -331,7 +339,7 @@ class _RuleCard extends StatelessWidget {
                 style: TextStyle(fontSize: 13.5, height: 1.6, color: colorScheme.pageNumber),
               ),
             ],
-            if (examples.isNotEmpty) ...[
+            if (examples.isNotEmpty && examples.first.letter == null) ...[
               const Divider(height: 24),
               Text(
                 tr('أمثلة من المصحف', 'Examples from the mushaf'),
@@ -448,7 +456,7 @@ class _TajweedQuizScreenState extends State<TajweedQuizScreen> {
                       child: ExamplePhrase(example: example, quran: q),
                     ),
                     const SizedBox(height: 16),
-                    for (final rule in lesson.rules)
+                    for (final rule in _quiz.options)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 10),
                         child: _choice(rule, example),
