@@ -1,6 +1,5 @@
 package io.github.alaabashirsaijary.tareeqaljannah
 
-import android.content.ComponentName
 import android.content.ContentValues
 import android.content.Intent
 import android.media.RingtoneManager
@@ -40,17 +39,22 @@ class MainActivity : FlutterActivity() {
               val active = PrayerLock.current(this)
               result.success(
                   mapOf(
-                      "serviceOn" to isLockServiceOn(),
+                      "usageOn" to PrayerLock.usageGranted(this),
+                      "overlayOn" to PrayerLock.overlayGranted(this),
                       "active" to (active != null),
                       "prayer" to active?.prayer))
             }
-            "openSettings" -> {
-              startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+            "openUsage" -> {
+              startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
               result.success(null)
             }
-            "openAppInfo" -> {
+            "openOverlay" -> {
               startActivity(
-                  Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName")))
+                  Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName")))
+              result.success(null)
+            }
+            "apply" -> {
+              PrayerLockWatcher.apply(this)
               result.success(null)
             }
             "installed" -> {
@@ -63,6 +67,7 @@ class MainActivity : FlutterActivity() {
             }
             "test" -> {
               PrayerLock.startTest(this)
+              PrayerLockWatcher.apply(this)
               result.success(null)
             }
             else -> result.notImplemented()
@@ -97,15 +102,6 @@ class MainActivity : FlutterActivity() {
       return true
     }
     return super.onKeyUp(keyCode, event)
-  }
-
-  /** Whether the user has turned the prayer lock's accessibility service on. */
-  private fun isLockServiceOn(): Boolean {
-    val enabled =
-        Settings.Secure.getString(contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
-            ?: return false
-    val me = ComponentName(this, PrayerLockService::class.java).flattenToString()
-    return enabled.split(':').any { it.equals(me, ignoreCase = true) }
   }
 
   private fun isInstalled(pkg: String): Boolean =
