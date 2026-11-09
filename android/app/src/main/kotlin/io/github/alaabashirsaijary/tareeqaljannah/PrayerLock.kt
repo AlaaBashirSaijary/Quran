@@ -1,6 +1,10 @@
 package io.github.alaabashirsaijary.tareeqaljannah
 
+import android.app.AppOpsManager
 import android.content.Context
+import android.os.Build
+import android.os.Process
+import android.provider.Settings
 import org.json.JSONObject
 
 /**
@@ -12,6 +16,7 @@ import org.json.JSONObject
  * Active means: the last prayer time passed less than `maxMinutes` ago and
  * the user has not said they finished since then.
  */
+@Suppress("DEPRECATION")
 object PrayerLock {
   /** The prayer behind the lock and the apps it covers. */
   data class Active(val prayer: String, val apps: Set<String>, val english: Boolean)
@@ -23,6 +28,34 @@ object PrayerLock {
   // The Flutter shared_preferences plugin's file and key prefix.
   private const val FLUTTER = "FlutterSharedPreferences"
   private const val CONFIG = "flutter.prayerlock.config"
+
+  /** The user turned the lock on in the app (or is testing it). */
+  fun wanted(context: Context, now: Long = System.currentTimeMillis()): Boolean {
+    if (now < context.getSharedPreferences(NATIVE, Context.MODE_PRIVATE).getLong(TEST_UNTIL, 0L)) return true
+    val raw = context.getSharedPreferences(FLUTTER, Context.MODE_PRIVATE).getString(CONFIG, null)
+        ?: return false
+    return try {
+      JSONObject(raw).optBoolean("enabled", false)
+    } catch (e: Exception) {
+      false
+    }
+  }
+
+  /** Usage access: lets the app see which app is in front. */
+  fun usageGranted(context: Context): Boolean {
+    val ops = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
+    val mode =
+        if (Build.VERSION.SDK_INT >= 29)
+            ops.unsafeCheckOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), context.packageName)
+        else
+            ops.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), context.packageName)
+    return mode == AppOpsManager.MODE_ALLOWED
+  }
+
+  /** Display over other apps: lets the lock screen come up over them. */
+  fun overlayGranted(context: Context): Boolean = Settings.canDrawOverlays(context)
+
+  fun ready(context: Context): Boolean = usageGranted(context) && overlayGranted(context)
 
   fun current(context: Context, now: Long = System.currentTimeMillis()): Active? {
     val raw = context.getSharedPreferences(FLUTTER, Context.MODE_PRIVATE).getString(CONFIG, null)

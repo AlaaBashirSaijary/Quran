@@ -161,24 +161,37 @@ String? activeLock(
   return name;
 }
 
-/// Gives the native side the choices and times. Does nothing useful off
-/// Android, where the lock does not exist.
+/// Gives the native side the choices and times, and has it start or stop
+/// watching. Does nothing useful off Android, where the lock does not exist.
 Future<void> syncPrayerLock(
   PrayerLockSettings settings,
   PrayerProvider prayer,
   DateTime now,
-) => settings.prefs.setString(
-  'prayerlock.config',
-  jsonEncode(lockConfig(settings, prayer, now)),
-);
+) async {
+  await settings.prefs.setString(
+    'prayerlock.config',
+    jsonEncode(lockConfig(settings, prayer, now)),
+  );
+  await PrayerLockBridge.apply();
+}
 
 class LockStatus {
-  const LockStatus({this.serviceOn = false, this.active = false, this.prayer});
+  const LockStatus({
+    this.usageOn = false,
+    this.overlayOn = false,
+    this.active = false,
+    this.prayer,
+  });
 
-  /// The accessibility service is turned on in the phone's settings.
-  final bool serviceOn;
+  /// "Usage access" is given: the app can see which app is in front.
+  final bool usageOn;
+
+  /// "Display over other apps" is given: the lock screen can come up.
+  final bool overlayOn;
   final bool active;
   final String? prayer;
+
+  bool get ready => usageOn && overlayOn;
 }
 
 /// The Android side of the lock (MainActivity.kt). Off Android, and in
@@ -194,7 +207,8 @@ class PrayerLockBridge {
       final m = await _channel.invokeMapMethod<String, Object?>('status');
       if (m == null) return const LockStatus();
       return LockStatus(
-        serviceOn: m['serviceOn'] == true,
+        usageOn: m['usageOn'] == true,
+        overlayOn: m['overlayOn'] == true,
         active: m['active'] == true,
         prayer: m['prayer'] as String?,
       );
@@ -219,8 +233,11 @@ class PrayerLockBridge {
     } catch (_) {}
   }
 
-  static Future<void> openAccessibilitySettings() => _call('openSettings');
-  static Future<void> openAppInfo() => _call('openAppInfo');
+  static Future<void> openUsageSettings() => _call('openUsage');
+  static Future<void> openOverlaySettings() => _call('openOverlay');
+
+  /// Starts or stops the watcher to match the settings and the permissions.
+  static Future<void> apply() => _call('apply');
 
   /// "I prayed and read the azkar": ends the lock until the next prayer.
   static Future<void> done() => _call('done');

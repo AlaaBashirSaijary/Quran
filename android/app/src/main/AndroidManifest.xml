@@ -1,4 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <!-- Streaming recitations (everything else works offline). -->
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Approximate location is enough to calculate prayer times. -->
@@ -7,6 +8,13 @@
          delivered on time when the user allows exact alarms. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- Prayer lock (opt-in): which app is in front (usage access), the lock
+         screen over it, and a quiet foreground service that checks. No
+         accessibility service, no screen content. -->
+    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <application
         android:label="منهج حياة"
         android:name="${applicationName}"
@@ -42,21 +50,21 @@
                 <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
             </intent-filter>
         </receiver>
-        <!-- Prayer lock: only sees which app comes to the front (no screen
-             content), and only when the user turns it on in the system
-             accessibility settings. -->
+        <!-- Prayer lock: checks which app is in front while a lock is on. -->
         <service
-            android:name=".PrayerLockService"
-            android:exported="true"
-            android:label="قفل وقت الصلاة"
-            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
-            <intent-filter>
-                <action android:name="android.accessibilityservice.AccessibilityService" />
-            </intent-filter>
-            <meta-data
-                android:name="android.accessibilityservice"
-                android:resource="@xml/prayer_lock_service" />
+            android:name=".PrayerLockWatcher"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Opt-in focus mode that closes social apps at prayer time" />
         </service>
+        <receiver android:name=".PrayerLockBoot" android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
         <activity
             android:name=".PrayerLockActivity"
             android:exported="false"

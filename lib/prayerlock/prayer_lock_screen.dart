@@ -42,7 +42,10 @@ class _PrayerLockScreenState extends State<PrayerLockScreen>
   /// Back from the phone's settings: see whether the service was turned on.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) _refresh();
+    if (state == AppLifecycleState.resumed) {
+      // Back from the phone's settings: start watching if both are given.
+      PrayerLockBridge.apply().then((_) => _refresh());
+    }
   }
 
   Future<void> _refresh() async {
@@ -52,50 +55,7 @@ class _PrayerLockScreenState extends State<PrayerLockScreen>
 
   Future<void> _turnOn(PrayerLockSettings settings) async {
     settings.setEnabled(true);
-    if (!_status.serviceOn) await _explain();
-  }
-
-  Future<void> _explain() async {
-    final open = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(tr('تفعيل الخدمة في إعدادات الهاتف', 'Turn the service on')),
-        content: SingleChildScrollView(
-          child: Text(
-            tr(
-              'لكي يُغلق التطبيق تطبيقات التواصل وقت الصلاة يحتاج إلى «خدمة إتاحة» '
-                  'تفعّلها بنفسك.\n\n'
-                  '١. اضغط «فتح الإعدادات».\n'
-                  '٢. اختر «قفل وقت الصلاة» (قد تكون تحت «التطبيقات المثبّتة»).\n'
-                  '٣. فعّل المفتاح ووافق.\n\n'
-                  'الخدمة ترى اسم التطبيق الذي يُفتح فقط. لا تقرأ ما على الشاشة ولا تكتب شيئاً ولا ترسل شيئاً.\n\n'
-                  'إن قال الهاتف إن الإعداد «مقيّد» لأنك ثبّتّ التطبيق من خارج المتجر، فافتح «معلومات التطبيق» ثم القائمة (⋮) ثم «السماح بالإعدادات المقيّدة»، وارجع للخطوة الأولى.',
-              'To close social apps at prayer time the app needs an accessibility service that you turn on yourself.\n\n'
-                  '1. Tap "Open settings".\n'
-                  '2. Choose "Prayer lock" (it may be under Installed apps).\n'
-                  '3. Turn it on and allow.\n\n'
-                  'The service only sees the name of the app that opens. It does not read the screen, type or send anything.\n\n'
-                  'If the phone says the setting is restricted because the app was installed outside a store, open App info, then the menu (⋮), then "Allow restricted settings", and go back to step 1.',
-            ),
-            style: const TextStyle(height: 1.7),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context, false);
-              PrayerLockBridge.openAppInfo();
-            },
-            child: Text(tr('معلومات التطبيق', 'App info')),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(tr('فتح الإعدادات', 'Open settings')),
-          ),
-        ],
-      ),
-    );
-    if (open == true) PrayerLockBridge.openAccessibilitySettings();
+    PrayerLockBridge.apply();
   }
 
   @override
@@ -142,14 +102,14 @@ class _PrayerLockScreenState extends State<PrayerLockScreen>
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             subtitle: Text(
-              settings.enabled && !_status.serviceOn
+              settings.enabled && !_status.ready
                   ? tr(
-                      'ما زالت الخدمة غير مفعّلة في إعدادات الهاتف',
-                      'The service is not turned on in the phone settings yet',
+                      'يلزم منح إذنين من إعدادات الهاتف (أدناه)',
+                      'Two permissions are needed in the phone settings (below)',
                     )
                   : tr('يمكنك إيقافه في أي وقت', 'You can turn it off at any time'),
               style: TextStyle(
-                color: settings.enabled && !_status.serviceOn
+                color: settings.enabled && !_status.ready
                     ? Colors.orange
                     : colorScheme.pageNumber,
               ),
@@ -158,14 +118,11 @@ class _PrayerLockScreenState extends State<PrayerLockScreen>
             onChanged: (on) =>
                 on ? _turnOn(settings) : settings.setEnabled(false),
           ),
-          if (settings.enabled && !_status.serviceOn)
-            Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: TextButton.icon(
-                onPressed: _explain,
-                icon: const Icon(Icons.settings_rounded),
-                label: Text(tr('تفعيل الخدمة', 'Turn the service on')),
-              ),
+          if (settings.enabled && !_status.ready)
+            _Permissions(
+              status: _status,
+              onUsage: PrayerLockBridge.openUsageSettings,
+              onOverlay: PrayerLockBridge.openOverlaySettings,
             ),
           if (_status.active)
             Card(
@@ -241,7 +198,7 @@ class _PrayerLockScreenState extends State<PrayerLockScreen>
             ),
           const Divider(height: 32),
           OutlinedButton.icon(
-            onPressed: !settings.enabled || !_status.serviceOn
+            onPressed: !settings.enabled || !_status.ready
                 ? null
                 : () async {
                     await PrayerLockBridge.test();
@@ -309,4 +266,82 @@ class _Note extends StatelessWidget {
       ),
     ),
   );
+}
+
+/// The two permissions the lock needs, each with a button to its page in
+/// the phone's settings.
+class _Permissions extends StatelessWidget {
+  const _Permissions({
+    required this.status,
+    required this.onUsage,
+    required this.onOverlay,
+  });
+
+  final LockStatus status;
+  final VoidCallback onUsage;
+  final VoidCallback onOverlay;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget row(bool on, String title, String why, VoidCallback open) =>
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: Icon(
+            on ? Icons.check_circle_rounded : Icons.radio_button_unchecked,
+            color: on ? Colors.green : Colors.orange,
+          ),
+          title: Text(title),
+          subtitle: Text(why),
+          trailing: on
+              ? null
+              : FilledButton.tonal(
+                  onPressed: open,
+                  child: Text(tr('منح', 'Allow')),
+                ),
+        );
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              tr('الإذنان المطلوبان', 'The two permissions'),
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 4),
+            row(
+              status.usageOn,
+              tr('الوصول إلى بيانات الاستخدام', 'Usage access'),
+              tr(
+                'ليعرف التطبيق أي تطبيق فُتح. اختر «منهج حياة» ثم فعّل المفتاح.',
+                'So the app knows which app was opened. Choose the app, then turn it on.',
+              ),
+              onUsage,
+            ),
+            row(
+              status.overlayOn,
+              tr('العرض فوق التطبيقات الأخرى', 'Display over other apps'),
+              tr(
+                'ليظهر شاشة القفل فوق تطبيق التواصل.',
+                'So the lock screen can come up over a social app.',
+              ),
+              onOverlay,
+            ),
+            Text(
+              tr(
+                'لا يقرأ التطبيق ما على الشاشة ولا يرسل شيئاً. يعمل بإشعار صغير دائم طالما القفل مفعّل.',
+                'The app does not read the screen or send anything. It runs with a small ongoing notification while the lock is on.',
+              ),
+              style: TextStyle(
+                fontSize: 12.5,
+                color: Theme.of(context).colorScheme.pageNumber,
+                height: 1.6,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

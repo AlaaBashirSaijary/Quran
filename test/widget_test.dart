@@ -2303,10 +2303,11 @@ void main() {
       await tester.tap(find.byType(Switch));
       await tester.pumpAndSettle();
       expect(settings.enabled, isTrue);
-      // The service is not on in the phone's settings, so it says what to do.
-      expect(find.text('تفعيل الخدمة في إعدادات الهاتف'), findsOneWidget);
-      await tester.tap(find.text('فتح الإعدادات'));
-      await tester.pumpAndSettle();
+      // The permissions are not given in the phone's settings, so it says
+      // what to do.
+      expect(find.text('الإذنان المطلوبان'), findsOneWidget);
+      expect(find.text('الوصول إلى بيانات الاستخدام'), findsOneWidget);
+      expect(find.text('العرض فوق التطبيقات الأخرى'), findsOneWidget);
       await tester.tap(find.widgetWithText(CheckboxListTile, 'Instagram'));
       await tester.pump();
       expect(settings.appOn('com.instagram.android'), isFalse);
