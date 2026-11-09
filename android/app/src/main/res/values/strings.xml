@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="prayer_widget_description">الصلاة القادمة ومواقيت اليوم</string>
+    <string name="prayer_lock_description">يراقب اسم التطبيق الذي يُفتح فقط، ولا يقرأ محتوى الشاشة ولا يرسل شيئاً. يُغلق تطبيقات التواصل التي تختارها وقت الصلاة حتى تنتهي من الصلاة والأذكار.</string>
 </resources>

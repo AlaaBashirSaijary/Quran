@@ -5,6 +5,7 @@ import '../core/index.dart';
 import '../prayer/prayer.dart';
 import '../providers/reading_provider.dart';
 import '../providers/settings_provider.dart';
+import '../prayerlock/prayer_lock.dart';
 import '../widget/prayer_widget.dart';
 import 'adhan_sound.dart';
 import 'notification_service.dart';
@@ -62,6 +63,7 @@ class _NotificationSyncState extends State<NotificationSync> {
     final prayer = Provider.of<PrayerProvider>(context);
     final settings = Provider.of<NotificationSettings>(context);
     final reading = Provider.of<ReadingProvider>(context);
+    final lock = Provider.of<PrayerLockSettings>(context);
     final hijriOffset = Provider.of<SettingsProvider>(context).hijriOffset;
     final now = DateTime.now();
     final signature = [
@@ -70,6 +72,7 @@ class _NotificationSyncState extends State<NotificationSync> {
       prayer.methodId,
       prayer.hanafiAsr,
       settings.signature,
+      lock.signature,
       reading.goalMet,
       ReadingProvider.dayKey(now),
       hijriOffset,
@@ -77,6 +80,7 @@ class _NotificationSyncState extends State<NotificationSync> {
     if (signature == _last) return;
     _last = signature;
     updatePrayerWidget(prayer, now);
+    syncPrayerLock(lock, prayer, now);
     if (!NotificationService.supported) return;
     _schedule(prayer, settings, now, reading.goalMet, hijriOffset);
   }

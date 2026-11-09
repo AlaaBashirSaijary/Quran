@@ -31,6 +31,8 @@ import 'package:quranapplication/hifz/plan.dart';
 import 'package:quranapplication/hifz/plan_screens.dart';
 import 'package:quranapplication/hifz/quiz.dart';
 import 'package:quranapplication/tajweed/lessons.dart';
+import 'package:quranapplication/prayerlock/prayer_lock.dart';
+import 'package:quranapplication/prayerlock/prayer_lock_screen.dart';
 import 'package:quranapplication/tajweed/tajweed_screens.dart';
 import 'package:quranapplication/hifz/quiz_screen.dart';
 import 'package:quranapplication/quran/tafsir.dart';
@@ -2204,6 +2206,113 @@ void main() {
       expect(find.textContaining('/ 8'), findsOneWidget);
       expect(find.text('اختبار جديد'), findsOneWidget);
       expect(prefs.getInt('tajweed.best.noon'), isNotNull);
+    });
+  });
+
+  group('Prayer lock', () {
+    // Mecca, in the prefs the prayer provider reads.
+    Future<(SharedPreferences, PrayerProvider)> fresh() async {
+      SharedPreferences.setMockInitialValues({
+        'prayer.lat': 21.4225,
+        'prayer.lng': 39.8262,
+        'prayer.place': 'مكة المكرمة',
+      });
+      final prefs = await SharedPreferences.getInstance();
+      return (prefs, PrayerProvider(prefs));
+    }
+
+    final now = DateTime(2026, 11, 9, 9);
+
+    test('the lock is off until the user turns it on', () async {
+      final (prefs, prayer) = await fresh();
+      final settings = PrayerLockSettings(prefs);
+      expect(settings.enabled, isFalse);
+      expect(lockConfig(settings, prayer, now)['enabled'], isFalse);
+      settings.setEnabled(true);
+      expect(lockConfig(settings, prayer, now)['enabled'], isTrue);
+      // Without a place there are no prayer times to lock at.
+      SharedPreferences.setMockInitialValues({});
+      final bare = await SharedPreferences.getInstance();
+      final none = lockConfig(PrayerLockSettings(bare)..setEnabled(true), PrayerProvider(bare), now);
+      expect(none['enabled'], isFalse);
+      expect(none['times'], isEmpty);
+    });
+
+    test('the config holds the chosen prayers and apps for ten days', () async {
+      final (prefs, prayer) = await fresh();
+      final settings = PrayerLockSettings(prefs)
+        ..setEnabled(true)
+        ..setMinutes(45)
+        ..setPrayer(Prayer.dhuhr, false)
+        ..setApp('com.instagram.android', false);
+      final config = lockConfig(settings, prayer, now);
+      expect(config['maxMinutes'], 45);
+      // Four prayers a day (Dhuhr is off, sunrise is not a prayer).
+      expect((config['times'] as List), hasLength(4 * lockDays));
+      final apps = config['apps'] as List;
+      expect(apps, contains('com.facebook.katana'));
+      expect(apps, isNot(contains('com.instagram.android')));
+      // YouTube is not chosen before the user does so.
+      expect(apps, isNot(contains('com.google.android.youtube')));
+      // Saved where the native side reads it.
+      await syncPrayerLock(settings, prayer, now);
+      expect(prefs.getString('prayerlock.config'), contains('"maxMinutes":45'));
+      // The choices survive a restart.
+      final again = PrayerLockSettings(prefs);
+      expect(again.minutes, 45);
+      expect(again.prayerOn(Prayer.dhuhr), isFalse);
+      expect(again.appOn('com.instagram.android'), isFalse);
+    });
+
+    test('the lock is on from the prayer time until it is done or runs out', () {
+      int ms(int h, int m) => DateTime(2026, 11, 9, h, m).millisecondsSinceEpoch;
+      final times = <List<Object>>[
+        ['الفجر', ms(5, 0)],
+        ['الظهر', ms(12, 0)],
+      ];
+      String? at(int h, int m, {int doneAt = 0}) =>
+          activeLock(times, DateTime(2026, 11, 9, h, m), 30, doneAt: doneAt);
+      expect(at(4, 59), isNull, reason: 'before any prayer');
+      expect(at(5, 0), 'الفجر');
+      expect(at(5, 29), 'الفجر');
+      expect(at(5, 30), isNull, reason: 'it ends by itself');
+      expect(at(12, 10), 'الظهر');
+      expect(at(12, 10, doneAt: ms(12, 5)), isNull, reason: 'finished');
+      // Finishing the Fajr lock does not end the Dhuhr one.
+      expect(at(12, 10, doneAt: ms(5, 20)), 'الظهر');
+    });
+
+    testWidgets('the screen explains, turns on and lets apps be chosen', (tester) async {
+      tester.view.physicalSize = const Size(900, 3600);
+      tester.view.devicePixelRatio = 1.5;
+      addTearDown(tester.view.reset);
+      final (prefs, prayer) = await fresh();
+      final settings = PrayerLockSettings(prefs);
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider.value(value: settings),
+            ChangeNotifierProvider.value(value: prayer),
+          ],
+          child: const MaterialApp(home: PrayerLockScreen()),
+        ),
+      );
+      await tester.pump();
+      expect(find.text('قفل وقت الصلاة'), findsOneWidget);
+      expect(find.text('Instagram'), findsOneWidget);
+      await tester.tap(find.byType(Switch));
+      await tester.pumpAndSettle();
+      expect(settings.enabled, isTrue);
+      // The service is not on in the phone's settings, so it says what to do.
+      expect(find.text('تفعيل الخدمة في إعدادات الهاتف'), findsOneWidget);
+      await tester.tap(find.text('فتح الإعدادات'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(CheckboxListTile, 'Instagram'));
+      await tester.pump();
+      expect(settings.appOn('com.instagram.android'), isFalse);
+      await tester.tap(find.byType(Switch));
+      await tester.pump();
+      expect(settings.enabled, isFalse);
     });
   });
 

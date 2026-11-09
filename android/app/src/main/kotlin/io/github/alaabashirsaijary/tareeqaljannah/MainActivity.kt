@@ -1,11 +1,13 @@
 package io.github.alaabashirsaijary.tareeqaljannah
 
+import android.content.ComponentName
 import android.content.ContentValues
 import android.content.Intent
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import android.provider.Settings
 import android.view.KeyEvent
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -28,6 +30,41 @@ class MainActivity : FlutterActivity() {
             "import" ->
                 importSound(call.argument<String>("path")!!, call.argument<String>("name")!!, result)
             "title" -> result.success(title(call.argument<String>("uri")!!))
+            else -> result.notImplemented()
+          }
+        }
+    MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "tareeq/prayerlock")
+        .setMethodCallHandler { call, result ->
+          when (call.method) {
+            "status" -> {
+              val active = PrayerLock.current(this)
+              result.success(
+                  mapOf(
+                      "serviceOn" to isLockServiceOn(),
+                      "active" to (active != null),
+                      "prayer" to active?.prayer))
+            }
+            "openSettings" -> {
+              startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+              result.success(null)
+            }
+            "openAppInfo" -> {
+              startActivity(
+                  Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName")))
+              result.success(null)
+            }
+            "installed" -> {
+              val wanted = call.arguments as? List<*> ?: emptyList<Any>()
+              result.success(wanted.filterIsInstance<String>().filter { isInstalled(it) })
+            }
+            "done" -> {
+              PrayerLock.markDone(this)
+              result.success(null)
+            }
+            "test" -> {
+              PrayerLock.startTest(this)
+              result.success(null)
+            }
             else -> result.notImplemented()
           }
         }
@@ -61,6 +98,23 @@ class MainActivity : FlutterActivity() {
     }
     return super.onKeyUp(keyCode, event)
   }
+
+  /** Whether the user has turned the prayer lock's accessibility service on. */
+  private fun isLockServiceOn(): Boolean {
+    val enabled =
+        Settings.Secure.getString(contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
+            ?: return false
+    val me = ComponentName(this, PrayerLockService::class.java).flattenToString()
+    return enabled.split(':').any { it.equals(me, ignoreCase = true) }
+  }
+
+  private fun isInstalled(pkg: String): Boolean =
+      try {
+        packageManager.getPackageInfo(pkg, 0)
+        true
+      } catch (e: Exception) {
+        false
+      }
 
   /** Opens the system picker of notification and alarm sounds. */
   private fun pick(current: String?, result: MethodChannel.Result) {

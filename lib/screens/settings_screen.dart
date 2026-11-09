@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../core/index.dart';
 import '../hijri/hijri.dart';
 import '../main.dart';
+import '../prayerlock/prayer_lock_screen.dart';
 import '../providers/settings_provider.dart';
 import '../providers/theme_provider.dart';
 import '../settings/backup.dart';
@@ -192,6 +193,29 @@ class SettingsScreen extends StatelessWidget {
                       title: Text(tr('داكن', 'Dark')),
                     ),
                   ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _Section(
+            title: tr('التركيز على الصلاة', 'Focus on prayer'),
+            children: [
+              ListTile(
+                leading: const Icon(Icons.lock_clock_rounded),
+                title: Text(tr('قفل وقت الصلاة', 'Prayer lock')),
+                subtitle: Text(
+                  tr(
+                    'أغلق تطبيقات التواصل وقت الصلاة حتى تنتهي منها ومن الأذكار',
+                    'Keep social apps closed at prayer time until you have prayed and read the azkar',
+                  ),
+                ),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PrayerLockScreen(),
+                  ),
                 ),
               ),
             ],
