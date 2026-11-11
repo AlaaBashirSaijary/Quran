@@ -14,6 +14,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:quranapplication/hifz/hifz.dart';
+import 'package:quranapplication/hifz/plan.dart';
+import 'package:quranapplication/hifz/plan_screens.dart';
+import 'package:quranapplication/hifz/quiz_screen.dart';
+import 'package:quranapplication/kids/garden_screen.dart';
+import 'package:quranapplication/kids/kids_screen.dart';
+import 'package:quranapplication/prayerlock/prayer_lock_screen.dart';
+import 'package:quranapplication/tajweed/lessons.dart';
+import 'package:quranapplication/tajweed/tajweed_screens.dart';
+import 'package:adhan_dart/adhan_dart.dart' show Prayer;
 import 'package:quranapplication/hijri/calendar_screen.dart';
 import 'package:quranapplication/khatma/group_khatma.dart';
 import 'package:quranapplication/main.dart';
@@ -353,6 +362,78 @@ void main() {
     await _step('settings', () async {
       await rig.push(const SettingsScreen());
       await rig.shot('v21-settings');
+      await rig.back();
+    });
+  });
+
+  testWidgets('New features', skip: !enabled, (tester) async {
+    await prepare(tester);
+    final rig = _Rig(tester);
+    await rig.start({'prayerlock.enabled': true});
+
+    await _step('home', () async => rig.shot('f00-home'));
+
+    await _step('plan', () async {
+      final hifz = rig.context.read<HifzProvider>();
+      for (final s in [112, 113, 114, 108]) {
+        hifz.add(s);
+      }
+      final plan = rig.context.read<HifzPlanProvider>();
+      plan.create(surahs: surahsOf(PlanScope.juzAmmaBackwards), perDay: 3);
+      await rig.push(const HifzPlanScreen());
+      await rig.shot('f01-plan');
+      await rig.back();
+    });
+
+    await _step('plan session', () async {
+      await rig.push(const PlanSessionScreen(portion: PlanPortion(112, 1, 4)));
+      await rig.shot('f02-session');
+      await rig.back();
+    });
+
+    await _step('quiz', () async {
+      await rig.push(const QuizScreen());
+      await rig.shot('f03-quiz-start');
+      await tester.tap(find.text('ابدأ الاختبار'));
+      await rig.settle();
+      await rig.shot('f04-quiz-question');
+      await tester.tap(find.byType(InkWell).first);
+      await rig.settle();
+      await rig.shot('f05-quiz-answered');
+      await rig.back();
+    });
+
+    await _step('tajweed', () async {
+      await rig.push(const TajweedLessonsScreen());
+      await rig.shot('f06-tajweed-list');
+      final pack = parseTajweedPack(
+        await rootBundle.loadString(tajweedAsset),
+      );
+      final quran = QuranSearch.load();
+      await rig.push(TajweedLessonScreen(lesson: pack.lessons.first, quran: quran));
+      await rig.shot('f07-tajweed-lesson');
+      await rig.push(TajweedQuizScreen(lesson: pack.lessons.first, quran: quran));
+      await rig.shot('f08-tajweed-quiz');
+      await tester.tap(find.text('الإظهار').last);
+      await rig.settle();
+      await rig.shot('f09-tajweed-answered');
+      await rig.back();
+      await rig.back();
+      await rig.back();
+    });
+
+    await _step('prayer lock', () async {
+      await rig.push(const PrayerLockScreen());
+      await rig.shot('f10-prayerlock');
+      await rig.back();
+    });
+
+    await _step('kids', () async {
+      await rig.push(const KidsCornerScreen());
+      await rig.shot('f11-kids');
+      await rig.push(const GardenScreen());
+      await rig.shot('f12-garden');
+      await rig.back();
       await rig.back();
     });
   });
