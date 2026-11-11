@@ -22,7 +22,6 @@ import 'package:quranapplication/kids/kids_screen.dart';
 import 'package:quranapplication/prayerlock/prayer_lock_screen.dart';
 import 'package:quranapplication/tajweed/lessons.dart';
 import 'package:quranapplication/tajweed/tajweed_screens.dart';
-import 'package:adhan_dart/adhan_dart.dart' show Prayer;
 import 'package:quranapplication/hijri/calendar_screen.dart';
 import 'package:quranapplication/khatma/group_khatma.dart';
 import 'package:quranapplication/main.dart';
