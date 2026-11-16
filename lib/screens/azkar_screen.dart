@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../azkar/azkar.dart';
+import '../azkar/azkar_audio_card.dart';
 import '../content/library.dart';
 import '../content/text_screens.dart';
 import '../core/index.dart';
@@ -320,16 +321,24 @@ class _AzkarCategoryScreenState extends State<AzkarCategoryScreen> {
       ),
       body: progress == null
           ? const Center(child: CircularProgressIndicator())
-          : ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: items.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) => _DhikrCard(
-                source: 'حصن المسلم · ${widget.category.title}',
-                dhikr: items[index],
-                remaining: progress.remaining(index),
-                onTap: () => _tap(index),
-              ),
+          : Column(
+              children: [
+                AzkarAudioCard(category: widget.category.id),
+                Expanded(
+                  child: ListView.separated(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: items.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
+                    itemBuilder: (context, index) => _DhikrCard(
+                      source: 'حصن المسلم · ${widget.category.title}',
+                      dhikr: items[index],
+                      remaining: progress.remaining(index),
+                      onTap: () => _tap(index),
+                    ),
+                  ),
+                ),
+              ],
             ),
     );
   }
