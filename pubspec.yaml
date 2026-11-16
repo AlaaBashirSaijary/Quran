@@ -101,6 +101,7 @@ flutter:
     - assets/icons/
     - assets/content/
     - assets/library/
+    - assets/azkar_audio/
     - assets/splash.png
     - assets/
 

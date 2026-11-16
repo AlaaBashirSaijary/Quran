@@ -15,6 +15,7 @@ import 'books/book_library.dart';
 import 'hifz/plan.dart';
 import 'tajweed/lessons.dart';
 import 'prayerlock/prayer_lock.dart';
+import 'azkar/azkar_audio.dart';
 import 'kids/garden.dart';
 import 'kids/kids_progress.dart';
 import 'providers/ahadith_details_provider.dart';
@@ -129,6 +130,9 @@ class _AppRootState extends State<AppRoot> {
           ),
           ChangeNotifierProvider<KidsProgress>(
             create: (context) => KidsProgress(prefs),
+          ),
+          ChangeNotifierProvider<AzkarAudio>(
+            create: (context) => AzkarAudio(prefs)..load(),
           ),
           ChangeNotifierProvider<PrayerLockSettings>(
             create: (context) => PrayerLockSettings(prefs),

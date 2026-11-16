@@ -32,6 +32,8 @@ import 'package:quranapplication/hifz/plan_screens.dart';
 import 'package:quranapplication/hifz/quiz.dart';
 import 'package:quranapplication/tajweed/lessons.dart';
 import 'package:quranapplication/prayerlock/prayer_lock.dart';
+import 'package:quranapplication/azkar/azkar_audio.dart';
+import 'package:quranapplication/azkar/azkar_audio_card.dart';
 import 'package:quranapplication/prayerlock/prayer_lock_screen.dart';
 import 'package:quranapplication/tajweed/tajweed_screens.dart';
 import 'package:quranapplication/hifz/quiz_screen.dart';
@@ -2314,6 +2316,132 @@ void main() {
       await tester.tap(find.byType(Switch));
       await tester.pump();
       expect(settings.enabled, isFalse);
+    });
+  });
+
+  group('Spoken azkar', () {
+    const catalog = '''
+{"packs":[
+ {"id":"a","category":"waking","title":"Waking","reciter":"R","source":"S","sourceUrl":"https://s.test/a","license":"L","url":"https://f.test/a.mp3","size":20000,"approved":true},
+ {"id":"b","category":"sleep","title":"Sleep","reciter":"R","source":"S","sourceUrl":"https://s.test/b","license":"L","url":"https://f.test/b.mp3","size":20000,"approved":false},
+ {"id":"c","category":"morning","title":"Morning","reciter":"R","source":"S","sourceUrl":"https://s.test/c","license":"L","url":"http://f.test/c.mp3","size":20000,"approved":true}
+]}''';
+    const empty = '{"packs":[]}';
+    late Directory temp;
+    setUp(() => temp = Directory.systemTemp.createTempSync('azkar_audio'));
+    tearDown(() => temp.deleteSync(recursive: true));
+
+    MockClient client({String? published, int audio = 200, int bytes = 20000}) =>
+        MockClient((request) async {
+          final url = request.url.toString();
+          if (url == azkarAudioCatalogUrl) {
+            return published == null
+                ? http.Response('', 404)
+                : http.Response(published, 200);
+          }
+          if (url.startsWith('https://f.test/')) {
+            return http.Response.bytes(List.filled(bytes, 7), audio);
+          }
+          return http.Response('', 404);
+        });
+
+    Future<AzkarAudio> audio({
+      MockClient? http,
+      String bundled = empty,
+      Map<String, Object> prefs = const {},
+    }) async {
+      SharedPreferences.setMockInitialValues(prefs);
+      final a = AzkarAudio(
+        await SharedPreferences.getInstance(),
+        client: http ?? client(),
+        folder: Future.value(temp.path),
+        bundled: () async => bundled,
+      );
+      await a.load();
+      return a;
+    }
+
+    test('only approved packs with an https link are listed', () {
+      final packs = parseAzkarAudio(catalog);
+      expect(packs.map((p) => p.id), ['a']);
+    });
+
+    test('the bundled catalog lists nothing until permission is given', () async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      final text = await rootBundle.loadString(azkarAudioAsset);
+      expect(parseAzkarAudio(text), isEmpty);
+      // The pack that waits for permission is there, marked not approved.
+      expect(text, contains('"approved": false'));
+    });
+
+    test('the published catalog wins, is kept for offline, and can withdraw a pack', () async {
+      final online = await audio(http: client(published: catalog));
+      expect(online.packFor('waking')!.reciter, 'R');
+      expect(online.packFor('sleep'), isNull);
+      // Offline next time: the kept one is used.
+      final prefs = online.prefs;
+      final offline = AzkarAudio(
+        prefs,
+        client: MockClient((_) async => throw Exception('offline')),
+        folder: Future.value(temp.path),
+        bundled: () async => empty,
+      );
+      await offline.load();
+      expect(offline.packFor('waking'), isNotNull);
+      // The owner asks to withdraw it: the new catalog has no pack.
+      final withdrawn = AzkarAudio(
+        prefs,
+        client: client(published: empty),
+        folder: Future.value(temp.path),
+        bundled: () async => catalog,
+      );
+      await withdrawn.load();
+      expect(withdrawn.packs, isEmpty);
+    });
+
+    test('a pack is saved, found again after a restart, and removed', () async {
+      final a = await audio(http: client(published: catalog));
+      final pack = a.packFor('waking')!;
+      expect(a.isDownloaded(pack), isFalse);
+      await a.download(pack);
+      expect(a.isDownloaded(pack), isTrue);
+      expect(a.error, isNull);
+      expect(File('${temp.path}/a.mp3').lengthSync(), 20000);
+      final again = await audio(http: client(published: catalog), prefs: const {});
+      expect(again.isDownloaded(again.packFor('waking')!), isTrue);
+      await a.delete(pack);
+      expect(a.isDownloaded(pack), isFalse);
+      expect(File('${temp.path}/a.mp3').existsSync(), isFalse);
+    });
+
+    test('a failed or empty answer saves nothing', () async {
+      final bad = await audio(http: client(published: catalog, audio: 500));
+      await bad.download(bad.packFor('waking')!);
+      expect(bad.isDownloaded(bad.packFor('waking')!), isFalse);
+      expect(bad.error, isNotNull);
+      final tiny = await audio(http: client(published: catalog, bytes: 100));
+      await tiny.download(tiny.packFor('waking')!);
+      expect(tiny.isDownloaded(tiny.packFor('waking')!), isFalse);
+      expect(File('${temp.path}/a.mp3').existsSync(), isFalse);
+    });
+
+    testWidgets('the card shows the source and licence, and downloads', (tester) async {
+      final a = await tester.runAsync(() => audio(http: client(published: catalog)));
+      Widget app(String category) => ChangeNotifierProvider.value(
+        value: a!,
+        child: MaterialApp(home: Scaffold(body: AzkarAudioCard(category: category))),
+      );
+      await tester.pumpWidget(app('sleep'));
+      expect(find.byType(Card), findsNothing, reason: 'no pack for this category');
+      await tester.pumpWidget(app('waking'));
+      expect(find.text('Waking'), findsOneWidget);
+      expect(find.textContaining('R'), findsWidgets);
+      expect(find.textContaining('https://s.test/a'), findsOneWidget);
+      expect(find.byIcon(Icons.download_rounded), findsOneWidget);
+      await tester.runAsync(() => a!.download(a.packFor('waking')!));
+      await tester.pump();
+      expect(find.byIcon(Icons.delete_outline_rounded), findsOneWidget);
+      expect(find.textContaining('بلا إنترنت'), findsOneWidget);
     });
   });
 

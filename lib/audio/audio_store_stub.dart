@@ -11,6 +11,8 @@ Future<void> writeFile(String path, Uint8List bytes) async {}
 /// Total size in bytes of the files under [path].
 Future<int> folderSize(String path) async => 0;
 
+Future<void> deleteFile(String path) async {}
+
 Future<void> deleteFolder(String path) async {}
 
 /// A folder for the app's downloads named [name], or null on the web.

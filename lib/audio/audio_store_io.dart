@@ -34,6 +34,11 @@ Future<int> folderSize(String path) async {
   return total;
 }
 
+Future<void> deleteFile(String path) async {
+  final file = File(path);
+  if (await file.exists()) await file.delete();
+}
+
 Future<void> deleteFolder(String path) async {
   final dir = Directory(path);
   if (await dir.exists()) await dir.delete(recursive: true);
