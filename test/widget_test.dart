@@ -2366,6 +2366,32 @@ void main() {
       expect(packs.map((p) => p.id), ['a']);
     });
 
+    test('links open a page in the browser and need no approval', () async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      final text = await rootBundle.loadString(azkarAudioAsset);
+      final links = parseAzkarAudioLinks(text);
+      expect(links.map((l) => l.category), containsAll(['waking', 'morning', 'evening', 'sleep', 'afterPrayer']));
+      expect(links.every((l) => l.url.startsWith('https://islamhouse.com/')), isTrue);
+      SharedPreferences.setMockInitialValues({});
+      final opened = <Uri>[];
+      final a = AzkarAudio(
+        await SharedPreferences.getInstance(),
+        client: MockClient((_) async => http.Response('', 404)),
+        folder: Future.value(temp.path),
+        bundled: () async => text,
+        launcher: (url) async {
+          opened.add(url);
+          return true;
+        },
+      );
+      await a.load();
+      expect(a.packFor('waking'), isNull, reason: 'nothing is approved');
+      final link = a.linkFor('waking')!;
+      expect(await a.openLink(link), isTrue);
+      expect(opened.single.toString(), link.url);
+      expect(a.linkFor('tasabeeh'), isNull);
+    });
+
     test('the bundled catalog lists nothing until permission is given', () async {
       TestWidgetsFlutterBinding.ensureInitialized();
       final text = await rootBundle.loadString(azkarAudioAsset);
@@ -2423,6 +2449,45 @@ void main() {
       await tiny.download(tiny.packFor('waking')!);
       expect(tiny.isDownloaded(tiny.packFor('waking')!), isFalse);
       expect(File('${temp.path}/a.mp3').existsSync(), isFalse);
+    });
+
+    testWidgets('a category with only a link shows a button that opens it', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final opened = <Uri>[];
+      final a = await tester.runAsync(() async {
+        final text = await rootBundle.loadString(azkarAudioAsset);
+        final audio = AzkarAudio(
+          await SharedPreferences.getInstance(),
+          client: MockClient((_) async => http.Response('', 404)),
+          folder: Future.value(temp.path),
+          bundled: () async => text,
+          launcher: (url) async {
+            opened.add(url);
+            return true;
+          },
+        );
+        await audio.load();
+        return audio;
+      });
+      await tester.pumpWidget(
+        ChangeNotifierProvider.value(
+          value: a!,
+          child: const MaterialApp(home: Scaffold(body: AzkarAudioCard(category: 'morning'))),
+        ),
+      );
+      expect(find.textContaining('استمع: أذكار الصباح'), findsOneWidget);
+      expect(find.textContaining('IslamHouse'), findsOneWidget);
+      await tester.tap(find.byType(ListTile));
+      await tester.pump();
+      expect(opened.single.toString(), 'https://islamhouse.com/ar/audios/263352/');
+      // A category with nothing to listen to shows no card.
+      await tester.pumpWidget(
+        ChangeNotifierProvider.value(
+          value: a,
+          child: const MaterialApp(home: Scaffold(body: AzkarAudioCard(category: 'tasabeeh'))),
+        ),
+      );
+      expect(find.byType(Card), findsNothing);
     });
 
     testWidgets('the card shows the source and licence, and downloads', (tester) async {

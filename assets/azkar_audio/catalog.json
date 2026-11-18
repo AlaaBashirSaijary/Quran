@@ -1,5 +1,5 @@
 {
- "note": "Audio packs for the azkar. A pack is shown in the app only when approved is true, which is set only after the owner of the recording has given permission to distribute it. The same file can be published at https://alaabashirsaijary.github.io/manhaj-hayah/azkar-audio.json to add or withdraw packs without a new release.",
+ "note": "Audio packs for the azkar. A pack is shown in the app only when approved is true, which is set only after the owner of the recording has given permission to distribute it. The same file can be published at https://alaabashirsaijary.github.io/manhaj-hayah/azkar-audio.json to add or withdraw packs without a new release. The links list is for external pages that are only opened in the browser: no copy is made by the app, so they need no permission.",
  "packs": [
   {
    "id": "waking-duraihim",
@@ -12,6 +12,48 @@
    "url": "https://d1.islamhouse.com/data/ar/ih_sounds/chain_01/Hisn_Almuslim/Hisn_Almuslim_AlDuraihim/ar_002_Hisn_Almuslim_AlDuraihim.mp3",
    "size": 3145728,
    "approved": false
+  }
+ ],
+ "links": [
+  {
+   "category": "waking",
+   "title": "أذكار الاستيقاظ",
+   "reciter": "حمد الدريهم",
+   "source": "IslamHouse: حصن المسلم من أذكار الكتاب والسنة (كتاب صوتي)",
+   "url": "https://islamhouse.com/ar/audios/263352/",
+   "hint": "افتح الصفحة واختر الباب المناسب من القائمة"
+  },
+  {
+   "category": "morning",
+   "title": "أذكار الصباح",
+   "reciter": "حمد الدريهم",
+   "source": "IslamHouse: حصن المسلم من أذكار الكتاب والسنة (كتاب صوتي)",
+   "url": "https://islamhouse.com/ar/audios/263352/",
+   "hint": "افتح الصفحة واختر الباب المناسب من القائمة"
+  },
+  {
+   "category": "evening",
+   "title": "أذكار المساء",
+   "reciter": "حمد الدريهم",
+   "source": "IslamHouse: حصن المسلم من أذكار الكتاب والسنة (كتاب صوتي)",
+   "url": "https://islamhouse.com/ar/audios/263352/",
+   "hint": "افتح الصفحة واختر الباب المناسب من القائمة"
+  },
+  {
+   "category": "sleep",
+   "title": "أذكار النوم",
+   "reciter": "حمد الدريهم",
+   "source": "IslamHouse: حصن المسلم من أذكار الكتاب والسنة (كتاب صوتي)",
+   "url": "https://islamhouse.com/ar/audios/263352/",
+   "hint": "افتح الصفحة واختر الباب المناسب من القائمة"
+  },
+  {
+   "category": "afterPrayer",
+   "title": "أذكار بعد الصلاة",
+   "reciter": "حمد الدريهم",
+   "source": "IslamHouse: حصن المسلم من أذكار الكتاب والسنة (كتاب صوتي)",
+   "url": "https://islamhouse.com/ar/audios/263352/",
+   "hint": "افتح الصفحة واختر الباب المناسب من القائمة"
   }
  ]
 }

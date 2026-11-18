@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:just_audio/just_audio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../audio/audio_store.dart';
 import '../core/language.dart';
@@ -48,6 +49,44 @@ class AzkarAudioPack {
   final int size;
 }
 
+/// A recording on another website that the app only links to: the user
+/// opens its page in the browser, so the app copies nothing and needs no
+/// permission.
+class AzkarAudioLink {
+  const AzkarAudioLink({
+    required this.category,
+    required this.title,
+    required this.reciter,
+    required this.source,
+    required this.url,
+    required this.hint,
+  });
+
+  final String category;
+  final String title;
+  final String reciter;
+  final String source;
+  final String url;
+  final String hint;
+}
+
+/// The links of a catalog file (https only).
+List<AzkarAudioLink> parseAzkarAudioLinks(String source) {
+  final m = jsonDecode(source) as Map<String, dynamic>;
+  return [
+    for (final l in (m['links'] as List? ?? const []))
+      if ((l as Map<String, dynamic>)['url'].toString().startsWith('https://'))
+        AzkarAudioLink(
+          category: l['category'] as String,
+          title: l['title'] as String,
+          reciter: l['reciter'] as String,
+          source: l['source'] as String,
+          url: l['url'] as String,
+          hint: (l['hint'] as String?) ?? '',
+        ),
+  ];
+}
+
 /// The packs of a catalog file that may be shown: approved ones with an
 /// https link. A pack whose owner has not given permission stays out.
 List<AzkarAudioPack> parseAzkarAudio(String source) {
@@ -79,7 +118,11 @@ class AzkarAudio extends ChangeNotifier {
     Future<String?>? folder,
     Future<String> Function()? bundled,
     this.catalogUrl = azkarAudioCatalogUrl,
-  }) : _client = client ?? http.Client(),
+    Future<bool> Function(Uri url)? launcher,
+  }) : _launcher =
+           launcher ??
+           ((url) => launchUrl(url, mode: LaunchMode.externalApplication)),
+       _client = client ?? http.Client(),
        _folderFuture = folder ?? dataFolder('azkar_audio'),
        _bundled = bundled ?? (() => rootBundle.loadString(azkarAudioAsset));
 
@@ -90,9 +133,11 @@ class AzkarAudio extends ChangeNotifier {
   final Future<String?> _folderFuture;
   final Future<String> Function() _bundled;
   final String catalogUrl;
+  final Future<bool> Function(Uri url) _launcher;
 
   String? _folder;
   var _packs = <AzkarAudioPack>[];
+  var _links = <AzkarAudioLink>[];
   final _saved = <String>{};
 
   /// Share downloaded so far (0 to 1) of the packs being downloaded.
@@ -113,6 +158,24 @@ class AzkarAudio extends ChangeNotifier {
       if (p.category == category) return p;
     }
     return null;
+  }
+
+  /// The page to open for [category], when it has no pack of its own.
+  AzkarAudioLink? linkFor(String category) {
+    if (packFor(category) != null) return null;
+    for (final l in _links) {
+      if (l.category == category) return l;
+    }
+    return null;
+  }
+
+  /// Opens the link in the browser. Returns false if the phone could not.
+  Future<bool> openLink(AzkarAudioLink link) async {
+    try {
+      return await _launcher(Uri.parse(link.url));
+    } catch (_) {
+      return false;
+    }
   }
 
   /// Whether saving on the phone is possible here (not on the web).
@@ -136,11 +199,16 @@ class AzkarAudio extends ChangeNotifier {
     } catch (_) {
       // Offline or not published yet: what is kept is used.
     }
+    final bundled = await _bundled();
     try {
-      _packs = parseAzkarAudio(text ?? await _bundled());
+      _packs = parseAzkarAudio(text ?? bundled);
+      _links = parseAzkarAudioLinks(text ?? bundled);
     } catch (_) {
-      _packs = parseAzkarAudio(await _bundled());
+      _packs = parseAzkarAudio(bundled);
+      _links = parseAzkarAudioLinks(bundled);
     }
+    // A catalog without a links list keeps the bundled ones.
+    if (_links.isEmpty) _links = parseAzkarAudioLinks(bundled);
     for (final p in _packs) {
       if (_folder != null && await fileExists(_path(p))) _saved.add(p.id);
     }
