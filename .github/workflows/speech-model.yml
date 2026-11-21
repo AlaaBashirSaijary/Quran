@@ -40,9 +40,13 @@ jobs:
           pip install --quiet openai-whisper transformers onnx onnxruntime onnxscript sherpa-onnx soundfile numpy
 
       - name: Get sherpa-onnx's export script
+        # The script must be the one of the release that will run the model.
         run: |
-          git clone --depth 1 https://github.com/k2-fsa/sherpa-onnx.git sherpa-src
-          git -C sherpa-src log -1 --format='sherpa-onnx %H'
+          VER=$(pip show sherpa-onnx | awk '/^Version:/{print $2}')
+          echo "sherpa-onnx (python) $VER; onnxruntime $(pip show onnxruntime | awk '/^Version:/{print $2}'); torch $(pip show torch | awk '/^Version:/{print $2}'); whisper $(pip show openai-whisper | awk '/^Version:/{print $2}')"
+          git clone --depth 1 --branch "v${VER%%+*}" https://github.com/k2-fsa/sherpa-onnx.git sherpa-src \
+            || git clone --depth 1 https://github.com/k2-fsa/sherpa-onnx.git sherpa-src
+          git -C sherpa-src log -1 --format='script from sherpa-onnx %H %D'
           cp sherpa-src/scripts/whisper/export-onnx.py export-onnx.py
           cp sherpa-src/LICENSE SHERPA-LICENSE.txt
           # The script only takes the names of OpenAI's models: let it take a file.
