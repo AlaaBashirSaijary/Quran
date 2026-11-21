@@ -80,6 +80,7 @@ jobs:
         run: |
           ls -la quran-base.pt-*.onnx
           python tools/speech/verify.py ./quran-base.pt-tokens.txt \
+            s8=./quran-base.pt-encoder.q8.onnx,./quran-base.pt-decoder.s8.onnx \
             q8=./quran-base.pt-encoder.q8.onnx,./quran-base.pt-decoder.q8.onnx \
             int8=./quran-base.pt-encoder.int8.onnx,./quran-base.pt-decoder.int8.onnx \
             diag:float=./quran-base.pt-encoder.onnx,./quran-base.pt-decoder.onnx
