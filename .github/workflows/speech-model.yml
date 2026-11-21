@@ -90,7 +90,9 @@ jobs:
           mkdir out
           CHOSEN=$(cat chosen.txt)
           echo "publishing the $CHOSEN model"
-          cp ./quran-base.pt-encoder.$CHOSEN.onnx out/quran-base-encoder.int8.onnx
+          # The slimmed decoder (s8) goes with the encoder quantised by us (q8).
+          ENC=$CHOSEN; [ "$CHOSEN" = s8 ] && ENC=q8
+          cp ./quran-base.pt-encoder.$ENC.onnx out/quran-base-encoder.int8.onnx
           cp ./quran-base.pt-decoder.$CHOSEN.onnx out/quran-base-decoder.int8.onnx
           cp ./quran-base.pt-tokens.txt out/quran-base-tokens.txt
           curl -fsSL -o out/silero_vad.onnx https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/silero_vad.onnx
