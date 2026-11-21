@@ -70,7 +70,9 @@ jobs:
           ls -la
 
       - name: Quantise
-        run: python tools/speech/quantize.py ./quran-base.pt
+        run: |
+          python tools/speech/slim_decoder.py ./quran-base.pt-decoder.onnx ./quran-base.pt-decoder.slim.onnx
+          python tools/speech/quantize.py ./quran-base.pt
 
       - name: Check on real recitations
         # Smallest first; the float model is only there to tell a broken

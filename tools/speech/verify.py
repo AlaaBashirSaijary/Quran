@@ -65,6 +65,11 @@ def transcribe_all(encoder, decoder, tokens, wavs, ayahs):
     for (surah, ayah, _n), wav in zip(SAMPLES, wavs):
         samples, rate = sf.read(wav, dtype="float32")
         stream = recognizer.create_stream()
+        # Arabic takes many tokens a second; the default limit cuts a verse short.
+        try:
+            stream.set_option("max_tokens_per_second", "30")
+        except Exception as error:
+            print("  (cannot set max_tokens_per_second:", error, ")")
         stream.accept_waveform(rate, samples)
         recognizer.decode_stream(stream)
         heard = stream.result.text.strip()
