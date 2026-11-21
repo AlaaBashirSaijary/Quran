@@ -11,6 +11,7 @@ import '../core/index.dart';
 import '../hijri/hijri.dart';
 import '../main.dart';
 import '../prayerlock/prayer_lock_screen.dart';
+import '../recite/recite_screens.dart';
 import '../providers/settings_provider.dart';
 import '../providers/theme_provider.dart';
 import '../settings/backup.dart';
@@ -193,6 +194,29 @@ class SettingsScreen extends StatelessWidget {
                       title: Text(tr('داكن', 'Dark')),
                     ),
                   ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _Section(
+            title: tr('التسميع (تجريبي)', 'Recitation check (experimental)'),
+            children: [
+              ListTile(
+                leading: const Icon(Icons.mic_rounded),
+                title: Text(tr('تسميع سورة', 'Recite a surah')),
+                subtitle: Text(
+                  tr(
+                    'يتتبع كلماتك ويقف عند الخطأ ويجمع أخطاءك',
+                    'Follows your words, stops at a mistake and keeps them',
+                  ),
+                ),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ReciteSetupScreen(),
+                  ),
                 ),
               ),
             ],

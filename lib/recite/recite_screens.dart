@@ -1,0 +1,448 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../core/index.dart';
+import '../quran/quran.dart';
+import '../quran/search.dart';
+import '../widgets/surah_number.dart';
+import 'matcher.dart';
+import 'mistake_log.dart';
+import 'speech_source.dart';
+
+/// "Recitation": choose a surah to recite, and see the mistakes so far.
+class ReciteSetupScreen extends StatelessWidget {
+  const ReciteSetupScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final log = Provider.of<MistakeLog>(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    return Scaffold(
+      appBar: AppBar(title: Text(tr('التسميع', 'Recitation check'))),
+      body: ListView(
+        padding: const EdgeInsets.only(bottom: 24),
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              tr(
+                'اختر سورة وتلُها من حفظك. يتتبع التطبيق كلماتك ويقف عند أول خطأ ويخبرك به، '
+                    'وتُجمع أخطاؤك في سجل لتراجعها.\n\n'
+                    'ميزة تجريبية: الآن تكتب الكلمات التي «تتلوها» لتجرّب الشاشة، '
+                    'وسيُضاف التعرف على الصوت بلا إنترنت لاحقاً.',
+                'Choose a surah and recite it from memory. The app follows your words, stops at the first mistake and tells you, and your mistakes are kept in a log to review.\n\nExperimental: for now you type the words you "recite" to try the screen; offline voice recognition will be added later.',
+              ),
+              style: const TextStyle(height: 1.7),
+            ),
+          ),
+          Card(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            child: ListTile(
+              leading: Icon(Icons.fact_check_rounded, color: colorScheme.gold),
+              title: Text(tr('سجل أخطائي', 'My mistakes')),
+              subtitle: Text(
+                log.isEmpty
+                    ? tr('لا أخطاء مسجّلة بعد', 'No mistakes yet')
+                    : tr('${log.total} خطأ في ${log.surahs.length} سور', '${log.total} mistakes in ${log.surahs.length} surahs'),
+              ),
+              trailing: const Icon(Icons.chevron_left_rounded),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const MistakesScreen()),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          for (var surah = 1; surah <= 114; surah++)
+            ListTile(
+              leading: SurahNumber(number: surah),
+              title: Text(surahTitle(surah)),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ReciteScreen(surah: surah),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Reciting one surah: the words appear as they are recited, and it stops
+/// at a mistake.
+class ReciteScreen extends StatefulWidget {
+  const ReciteScreen({super.key, required this.surah, this.fromAyah = 1, this.source});
+
+  final int surah;
+  final int fromAyah;
+
+  /// What hears the voice. The typed stand-in when not given.
+  final SpeechSource? source;
+
+  @override
+  State<ReciteScreen> createState() => _ReciteScreenState();
+}
+
+class _ReciteScreenState extends State<ReciteScreen> {
+  late final Future<QuranSearch> _quran = QuranSearch.load();
+  late final SpeechSource _source = widget.source ?? TypedSpeechSource();
+  final _box = TextEditingController();
+  ReciteSession? _session;
+  List<Ayah> _ayahs = const [];
+  int _logged = 0;
+  bool _reveal = false;
+
+  @override
+  void dispose() {
+    _source.dispose();
+    _box.dispose();
+    super.dispose();
+  }
+
+  void _begin(QuranSearch quran) {
+    final all = quran.ayahsOfSurah(widget.surah);
+    _ayahs = [for (final a in all) if (a.number >= widget.fromAyah) a];
+    // The basmala may open a surah that is recited from its start.
+    final basmala = widget.surah == 1 || widget.surah == 9 || widget.fromAyah != 1
+        ? const <String>[]
+        : heardWords(quran.ayahsOfSurah(1).first.text);
+    _session = ReciteSession(reciteWords(_ayahs), basmala: basmala);
+    _logged = 0;
+  }
+
+  void _send() {
+    final session = _session;
+    if (session == null || _box.text.trim().isEmpty) return;
+    session.hear(heardWords(_box.text), isFinal: true);
+    _box.clear();
+    final log = Provider.of<MistakeLog>(context, listen: false);
+    for (; _logged < session.mistakes.length; _logged++) {
+      log.record(session.mistakes[_logged]);
+    }
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(tr('تسميع سورة ${getSurahNameArabic(widget.surah)}', 'Recite ${surahNameOf(widget.surah)}')),
+        actions: [
+          IconButton(
+            tooltip: _reveal ? tr('إخفاء النص', 'Hide the text') : tr('إظهار النص', 'Show the text'),
+            icon: Icon(_reveal ? Icons.visibility_rounded : Icons.visibility_off_rounded),
+            onPressed: () => setState(() => _reveal = !_reveal),
+          ),
+          IconButton(
+            tooltip: tr('سجل الأخطاء', 'Mistakes'),
+            icon: const Icon(Icons.fact_check_rounded),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const MistakesScreen()),
+            ),
+          ),
+        ],
+      ),
+      body: FutureBuilder<QuranSearch>(
+        future: _quran,
+        initialData: QuranSearch.loaded,
+        builder: (context, snap) {
+          final quran = snap.data;
+          if (quran == null) return const Center(child: CircularProgressIndicator());
+          if (_session == null) _begin(quran);
+          final session = _session!;
+          return Column(
+            children: [
+              LinearProgressIndicator(value: session.words.isEmpty ? 0 : session.recited / session.words.length),
+              if (_source.typed)
+                Container(
+                  width: double.infinity,
+                  color: colorScheme.primaryContainer.withValues(alpha: 0.5),
+                  padding: const EdgeInsets.all(10),
+                  child: Text(
+                    tr(
+                      'وضع تجريبي: اكتب ما «تتلوه» كلمات ثم أرسل.',
+                      'Test mode: type the words you "recite", then send.',
+                    ),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                ),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    for (final a in _ayahs) _ayah(a, session, colorScheme),
+                    if (session.pending != null) _MistakeCard(session: session, onResume: () => setState(session.resume)),
+                    if (session.finished) _Summary(session: session, onAgain: () => setState(() => _begin(quran))),
+                  ],
+                ),
+              ),
+              if (_source.typed && !session.finished)
+                SafeArea(
+                  top: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _box,
+                            textDirection: TextDirection.rtl,
+                            decoration: InputDecoration(
+                              hintText: tr('اكتب ما تتلوه', 'Type what you recite'),
+                              border: const OutlineInputBorder(),
+                            ),
+                            onSubmitted: (_) => _send(),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton.filled(
+                          tooltip: tr('أرسل', 'Send'),
+                          onPressed: _send,
+                          icon: const Icon(Icons.send_rounded),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  /// An ayah with the words recited so far, and the stopping word in red.
+  Widget _ayah(Ayah ayah, ReciteSession session, ColorScheme colorScheme) {
+    final start = session.words.indexWhere((w) => w.ayah == ayah.number);
+    final spans = <InlineSpan>[];
+    for (var i = start; i < session.words.length && session.words[i].ayah == ayah.number; i++) {
+      final word = session.words[i];
+      final TextStyle? style;
+      if (i < session.position) {
+        style = TextStyle(color: colorScheme.primary);
+      } else if (i == session.position && session.pending != null) {
+        style = const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, decoration: TextDecoration.underline);
+      } else if (_reveal) {
+        style = TextStyle(color: colorScheme.pageNumber);
+      } else {
+        continue;
+      }
+      spans.add(TextSpan(text: '${word.text} ', style: style));
+    }
+    if (spans.isEmpty) return const SizedBox.shrink();
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: colorScheme.div.withValues(alpha: 0.25),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Text.rich(
+        TextSpan(children: spans),
+        textAlign: TextAlign.center,
+        textDirection: TextDirection.rtl,
+        style: const TextStyle(fontFamily: AppTheme.secondaryFontFamily, fontSize: 28, height: 2),
+      ),
+    );
+  }
+}
+
+class _MistakeCard extends StatelessWidget {
+  const _MistakeCard({required this.session, required this.onResume});
+
+  final ReciteSession session;
+  final VoidCallback onResume;
+
+  @override
+  Widget build(BuildContext context) {
+    final m = session.pending!;
+    return Card(
+      color: Colors.red.withValues(alpha: 0.12),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              tr('توقفتُ هنا', 'Stopped here'),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: Colors.red),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              m.kind == MistakeKind.wrong
+                  ? tr(
+                      'الكلمة المطلوبة: «${m.word.text}» (الآية ${m.word.ayah}). سمعتُ: «${m.heard}».',
+                      'Expected: "${m.word.text}" (ayah ${m.word.ayah}). I heard: "${m.heard}".',
+                    )
+                  : tr(
+                      'فاتتك كلمة «${m.word.text}» (الآية ${m.word.ayah}).',
+                      'You left out "${m.word.text}" (ayah ${m.word.ayah}).',
+                    ),
+              style: const TextStyle(fontSize: 16, height: 1.7),
+            ),
+            const SizedBox(height: 10),
+            FilledButton(
+              onPressed: onResume,
+              child: Text(tr('تابع من هذه الكلمة', 'Go on from this word')),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Summary extends StatelessWidget {
+  const _Summary({required this.session, required this.onAgain});
+
+  final ReciteSession session;
+  final VoidCallback onAgain;
+
+  @override
+  Widget build(BuildContext context) {
+    final n = session.mistakes.length;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Icon(
+              n == 0 ? Icons.emoji_events_rounded : Icons.check_circle_rounded,
+              size: 56,
+              color: Theme.of(context).colorScheme.gold,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              n == 0
+                  ? tr('ما شاء الله! أتممتَها بلا خطأ', 'Mashallah! You finished it without a mistake')
+                  : tr('أتممتَها بـ $n من الأخطاء', 'You finished it with $n mistakes'),
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              children: [
+                FilledButton.icon(
+                  onPressed: onAgain,
+                  icon: const Icon(Icons.refresh_rounded),
+                  label: Text(tr('أعد التسميع', 'Again')),
+                ),
+                if (n > 0)
+                  OutlinedButton.icon(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const MistakesScreen()),
+                    ),
+                    icon: const Icon(Icons.fact_check_rounded),
+                    label: Text(tr('سجل الأخطاء', 'Mistakes')),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The words that went wrong, by surah, with a way back to recite from
+/// them.
+class MistakesScreen extends StatelessWidget {
+  const MistakesScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final log = Provider.of<MistakeLog>(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(tr('سجل أخطائي', 'My mistakes')),
+        actions: [
+          if (!log.isEmpty)
+            IconButton(
+              tooltip: tr('مسح السجل', 'Clear the log'),
+              icon: const Icon(Icons.delete_sweep_rounded),
+              onPressed: () async {
+                final ok = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    content: Text(tr('مسح كل الأخطاء المسجّلة؟', 'Clear every recorded mistake?')),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: Text(tr('إلغاء', 'Cancel')),
+                      ),
+                      FilledButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: Text(tr('مسح', 'Clear')),
+                      ),
+                    ],
+                  ),
+                );
+                if (ok == true) log.clear();
+              },
+            ),
+        ],
+      ),
+      body: log.isEmpty
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Text(
+                  tr(
+                    'لا أخطاء مسجّلة. حين تخطئ في كلمة أثناء التسميع تُسجَّل هنا لتنتبه لها.',
+                    'No mistakes recorded. A word you get wrong while reciting is kept here so you can watch for it.',
+                  ),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: colorScheme.pageNumber),
+                ),
+              ),
+            )
+          : ListView(
+              padding: const EdgeInsets.only(bottom: 24),
+              children: [
+                for (final surah in log.surahs) ...[
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                    child: Text(
+                      surahTitle(surah),
+                      style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.gold),
+                    ),
+                  ),
+                  for (final m in log.ofSurah(surah))
+                    ListTile(
+                      title: Text(
+                        m.text,
+                        textDirection: TextDirection.rtl,
+                        style: const TextStyle(fontFamily: AppTheme.secondaryFontFamily, fontSize: 26),
+                      ),
+                      subtitle: Text(
+                        tr(
+                          'الآية ${m.ayah}، الكلمة ${m.number} · ${m.skipped ? 'فاتتك' : 'سمعتُ: ${m.heard}'} · ${m.count} مرة',
+                          'Ayah ${m.ayah}, word ${m.number} · ${m.skipped ? 'left out' : 'heard: ${m.heard}'} · ${m.count}×',
+                        ),
+                      ),
+                      trailing: IconButton(
+                        tooltip: tr('راجع من هذه الآية', 'Recite from this ayah'),
+                        icon: const Icon(Icons.mic_rounded),
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ReciteScreen(surah: m.surah, fromAyah: m.ayah),
+                          ),
+                        ),
+                      ),
+                      onLongPress: () => log.remove(m),
+                    ),
+                ],
+              ],
+            ),
+    );
+  }
+}
