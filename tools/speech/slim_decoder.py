@@ -25,15 +25,25 @@ def main() -> int:
     graph = model.graph
     biggest = max(graph.initializer, key=lambda i: int(np.prod(i.dims)))
     print("embedding:", biggest.name, list(biggest.dims))
-    for n in consumers(graph, biggest.name):
-        print("  used by", n.op_type, n.name, list(n.input), "->", list(n.output))
+    # The matrix can be handed on through Identity nodes before it is used.
+    names = {biggest.name}
+    changed = True
+    while changed:
+        changed = False
+        for node in graph.node:
+            if node.op_type == "Identity" and node.input[0] in names and node.output[0] not in names:
+                names.add(node.output[0])
+                changed = True
+    for name in sorted(names):
+        for n in consumers(graph, name):
+            print("  ", name, "used by", n.op_type, n.name, list(n.input), "->", list(n.output))
 
+    weights = numpy_helper.to_array(biggest)
     folded = 0
     for node in list(graph.node):
-        if node.op_type == "Transpose" and node.input[0] == biggest.name:
-            perm = [a.ints for a in node.attribute if a.name == "perm"]
-            weights = numpy_helper.to_array(biggest)
-            transposed = np.ascontiguousarray(weights.transpose(list(perm[0]) if perm else None))
+        if node.op_type == "Transpose" and node.input[0] in names:
+            perm = [list(a.ints) for a in node.attribute if a.name == "perm"]
+            transposed = np.ascontiguousarray(weights.transpose(perm[0] if perm else None))
             graph.initializer.append(numpy_helper.from_array(transposed, name=node.output[0]))
             graph.node.remove(node)
             folded += 1
