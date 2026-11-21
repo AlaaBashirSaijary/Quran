@@ -38,7 +38,7 @@ jobs:
           sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
           # The newest torch exports ONNX with a different (dynamo) exporter whose
           # decoder sherpa-onnx cannot run, so an older one is used.
-          pip install --quiet "torch==2.5.1" --index-url https://download.pytorch.org/whl/cpu
+          pip install --quiet "torch==2.6.0" --index-url https://download.pytorch.org/whl/cpu
           pip install --quiet openai-whisper transformers onnx onnxruntime onnxscript sherpa-onnx soundfile numpy
 
       - name: Get sherpa-onnx's export script
