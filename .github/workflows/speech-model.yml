@@ -1,0 +1,113 @@
+# Builds the offline speech model of the recitation check: Tarteel's
+# whisper-base-ar-quran (Apache-2.0), converted to sherpa-onnx's format,
+# shrunk to int8, tried on real recitations, and published as a release the
+# app downloads once. Run by hand (Actions > Speech model > Run workflow).
+name: Speech model
+
+on:
+  # Changes to the conversion are tried on their branch (build and check only).
+  push:
+    branches: ["claude/**"]
+    paths: ["tools/speech/**", ".github/workflows/speech-model.yml"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to publish
+        default: speech-model-v1
+      publish:
+        description: Publish the release (otherwise only build and check)
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+          pip install --quiet torch --index-url https://download.pytorch.org/whl/cpu
+          pip install --quiet openai-whisper transformers onnx onnxruntime onnxscript sherpa-onnx soundfile numpy
+
+      - name: Get sherpa-onnx's export script
+        run: |
+          git clone --depth 1 https://github.com/k2-fsa/sherpa-onnx.git sherpa-src
+          git -C sherpa-src log -1 --format='sherpa-onnx %H'
+          cp sherpa-src/scripts/whisper/export-onnx.py export-onnx.py
+          cp sherpa-src/LICENSE SHERPA-LICENSE.txt
+          # The script only takes the names of OpenAI's models: let it take a file.
+          python - <<'PY'
+          import re
+          s = open("export-onnx.py").read()
+          s2 = re.sub(r"choices\s*=\s*\[.*?\]\s*,?", "", s, count=1, flags=re.S)
+          assert s2 != s, "the --model choices were not found"
+          open("export-onnx.py", "w").write(s2)
+          PY
+
+      - name: Convert to openai-whisper format
+        run: python tools/speech/hf_to_openai.py --model tarteel-ai/whisper-base-ar-quran --out quran-base.pt
+
+      - name: Export to ONNX
+        run: |
+          python export-onnx.py --model ./quran-base.pt
+          ls -la
+
+      - name: Quantise
+        run: python tools/speech/quantize.py ./quran-base.pt
+
+      - name: Check on real recitations
+        run: python tools/speech/verify.py ./quran-base.pt-encoder.int8.onnx ./quran-base.pt-decoder.int8.onnx ./quran-base.pt-tokens.txt
+
+      - name: Collect the files
+        run: |
+          mkdir out
+          cp ./quran-base.pt-encoder.int8.onnx out/quran-base-encoder.int8.onnx
+          cp ./quran-base.pt-decoder.int8.onnx out/quran-base-decoder.int8.onnx
+          cp ./quran-base.pt-tokens.txt out/quran-base-tokens.txt
+          curl -fsSL -o out/silero_vad.onnx https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/silero_vad.onnx
+          cat > out/NOTICE.txt <<'TXT'
+          Speech model for the recitation check of "Manhaj Hayah".
+          - Model: tarteel-ai/whisper-base-ar-quran (fine-tuned from OpenAI Whisper base), licence Apache-2.0,
+            converted to ONNX with sherpa-onnx's export script (Apache-2.0) and quantised to int8.
+          - Voice activity detection: Silero VAD (MIT), as distributed by sherpa-onnx.
+          The text of the recognised recitation is only compared with the Quran text on the device; nothing is sent anywhere.
+          TXT
+          python - <<'PY'
+          import hashlib, json, os
+          files = sorted(os.listdir("out"))
+          json.dump({
+              "model": "tarteel-ai/whisper-base-ar-quran",
+              "licence": "Apache-2.0",
+              "files": {f: {"bytes": os.path.getsize(f"out/{f}"), "sha256": hashlib.sha256(open(f"out/{f}", "rb").read()).hexdigest()} for f in files if f != "manifest.json"},
+          }, open("out/manifest.json", "w"), indent=1)
+          PY
+          ls -la out
+          cat out/manifest.json
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: speech-model
+          path: out/
+
+      - name: Publish the release
+        if: ${{ inputs.publish }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag }}
+          name: Speech model for the recitation check
+          body: |
+            Not an app release. The recitation check downloads these files once (about 100 MB) to recognise recitation without internet.
+            Model: tarteel-ai/whisper-base-ar-quran (Apache-2.0), converted with sherpa-onnx, int8. Voice activity detection: Silero VAD (MIT). See NOTICE.txt.
+          files: out/*
+          prerelease: true
+          make_latest: "false"
