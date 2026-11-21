@@ -6,7 +6,8 @@ Gather is quantised here too.
 
     python tools/speech/quantize.py PREFIX
 reads PREFIX-encoder.onnx and PREFIX-decoder.onnx, writes
-PREFIX-encoder.int8.onnx and PREFIX-decoder.int8.onnx.
+PREFIX-encoder.q8.onnx and PREFIX-decoder.q8.onnx (sherpa-onnx's own
+.int8.onnx files are left as they are, to compare with).
 """
 import os
 import sys
@@ -16,7 +17,7 @@ from onnxruntime.quantization import QuantType, quantize_dynamic
 prefix = sys.argv[1]
 for part in ("encoder", "decoder"):
     src = f"{prefix}-{part}.onnx"
-    dst = f"{prefix}-{part}.int8.onnx"
+    dst = f"{prefix}-{part}.q8.onnx"
     quantize_dynamic(
         model_input=src,
         model_output=dst,

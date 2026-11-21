@@ -56,24 +56,14 @@ def similarity(expected, heard):
     return max(0.0, 1 - d[m] / max(1, n))
 
 
-def main() -> int:
-    encoder, decoder, tokens = sys.argv[1:4]
-    ayahs = {}
-    for line in open(QURAN, encoding="utf8"):
-        if line.strip():
-            s, a, _page, text = line.rstrip("\n").split("|", 3)
-            ayahs[(int(s), int(a))] = text
+def transcribe_all(encoder, decoder, tokens, wavs, ayahs):
     recognizer = sherpa_onnx.OfflineRecognizer.from_whisper(
         encoder=encoder, decoder=decoder, tokens=tokens,
         language="ar", task="transcribe", num_threads=2,
     )
     scores = []
-    for surah, ayah, n in SAMPLES:
-        with tempfile.TemporaryDirectory() as tmp:
-            mp3, wav = f"{tmp}/a.mp3", f"{tmp}/a.wav"
-            urllib.request.urlretrieve(AUDIO.format(n=n), mp3)
-            subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", mp3, "-ar", "16000", "-ac", "1", wav], check=True)
-            samples, rate = sf.read(wav, dtype="float32")
+    for (surah, ayah, _n), wav in zip(SAMPLES, wavs):
+        samples, rate = sf.read(wav, dtype="float32")
         stream = recognizer.create_stream()
         stream.accept_waveform(rate, samples)
         recognizer.decode_stream(stream)
@@ -81,12 +71,47 @@ def main() -> int:
         expected = words(ayahs[(surah, ayah)])
         score = similarity(expected, words(heard))
         scores.append(score)
-        print(f"{surah}:{ayah}  {score:.2f}\n  expected: {' '.join(expected)}\n  heard:    {' '.join(words(heard))}\n  raw:      {heard}")
-    mean = sum(scores) / len(scores)
-    print(f"mean {mean:.3f}  min {min(scores):.2f}")
-    if mean < 0.85 or min(scores) < 0.6:
-        print("The model does not recite well enough: not publishing.", file=sys.stderr)
+        print(f"  {surah}:{ayah}  {score:.2f}  heard: {' '.join(words(heard))}")
+    return scores
+
+
+def main() -> int:
+    tokens = sys.argv[1]
+    candidates = []  # (name, encoder, decoder, selectable)
+    for arg in sys.argv[2:]:
+        name, files = arg.split("=", 1)
+        encoder, decoder = files.split(",")
+        candidates.append((name.removeprefix("diag:"), encoder, decoder, not name.startswith("diag:")))
+    ayahs = {}
+    for line in open(QURAN, encoding="utf8"):
+        if line.strip():
+            s, a, _page, text = line.rstrip("\n").split("|", 3)
+            ayahs[(int(s), int(a))] = text
+    tmp = tempfile.mkdtemp()
+    wavs = []
+    for _surah, _ayah, n in SAMPLES:
+        mp3, wav = f"{tmp}/{n}.mp3", f"{tmp}/{n}.wav"
+        urllib.request.urlretrieve(AUDIO.format(n=n), mp3)
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", mp3, "-ar", "16000", "-ac", "1", wav], check=True)
+        wavs.append(wav)
+    chosen = None
+    for name, encoder, decoder, selectable in candidates:
+        print(f"== {name}")
+        try:
+            scores = transcribe_all(encoder, decoder, tokens, wavs, ayahs)
+        except Exception as error:  # a model that does not run is a result too
+            print(f"  failed to run: {error}")
+            continue
+        mean = sum(scores) / len(scores)
+        ok = mean >= 0.85 and min(scores) >= 0.6
+        print(f"  mean {mean:.3f}  min {min(scores):.2f}  {'passes' if ok else 'does not pass'}")
+        if ok and selectable and chosen is None:
+            chosen = name
+    if chosen is None:
+        print("No model that can be published recites well enough.", file=sys.stderr)
         return 1
+    open("chosen.txt", "w").write(chosen)
+    print("chosen:", chosen)
     return 0
 
 

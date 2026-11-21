@@ -66,13 +66,22 @@ jobs:
         run: python tools/speech/quantize.py ./quran-base.pt
 
       - name: Check on real recitations
-        run: python tools/speech/verify.py ./quran-base.pt-encoder.int8.onnx ./quran-base.pt-decoder.int8.onnx ./quran-base.pt-tokens.txt
+        # Smallest first; the float model is only there to tell a broken
+        # export from a broken quantisation.
+        run: |
+          ls -la quran-base.pt-*.onnx
+          python tools/speech/verify.py ./quran-base.pt-tokens.txt \
+            q8=./quran-base.pt-encoder.q8.onnx,./quran-base.pt-decoder.q8.onnx \
+            int8=./quran-base.pt-encoder.int8.onnx,./quran-base.pt-decoder.int8.onnx \
+            diag:float=./quran-base.pt-encoder.onnx,./quran-base.pt-decoder.onnx
 
       - name: Collect the files
         run: |
           mkdir out
-          cp ./quran-base.pt-encoder.int8.onnx out/quran-base-encoder.int8.onnx
-          cp ./quran-base.pt-decoder.int8.onnx out/quran-base-decoder.int8.onnx
+          CHOSEN=$(cat chosen.txt)
+          echo "publishing the $CHOSEN model"
+          cp ./quran-base.pt-encoder.$CHOSEN.onnx out/quran-base-encoder.int8.onnx
+          cp ./quran-base.pt-decoder.$CHOSEN.onnx out/quran-base-decoder.int8.onnx
           cp ./quran-base.pt-tokens.txt out/quran-base-tokens.txt
           curl -fsSL -o out/silero_vad.onnx https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/silero_vad.onnx
           cat > out/NOTICE.txt <<'TXT'
