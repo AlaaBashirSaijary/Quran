@@ -33,6 +33,10 @@ import 'package:quranapplication/hifz/quiz.dart';
 import 'package:quranapplication/tajweed/lessons.dart';
 import 'package:quranapplication/prayerlock/prayer_lock.dart';
 import 'package:quranapplication/azkar/azkar_audio.dart';
+import 'package:quranapplication/recite/matcher.dart';
+import 'package:quranapplication/recite/mistake_log.dart';
+import 'package:quranapplication/recite/speech_source.dart';
+import 'package:quranapplication/recite/recite_screens.dart';
 import 'package:quranapplication/azkar/azkar_audio_card.dart';
 import 'package:quranapplication/prayerlock/prayer_lock_screen.dart';
 import 'package:quranapplication/tajweed/tajweed_screens.dart';
@@ -2507,6 +2511,242 @@ void main() {
       await tester.pump();
       expect(find.byIcon(Icons.delete_outline_rounded), findsOneWidget);
       expect(find.textContaining('بلا إنترنت'), findsOneWidget);
+    });
+  });
+
+  group('Recitation checking', () {
+    setUpAll(TestWidgetsFlutterBinding.ensureInitialized);
+
+    late QuranSearch quran;
+    setUp(() async => quran = await QuranSearch.load());
+
+    ReciteSession session(int surah) => ReciteSession(
+      reciteWords(quran.ayahsOfSurah(surah)),
+      basmala: surah == 1 || surah == 9
+          ? const []
+          : heardWords(quran.ayahsOfSurah(1).first.text),
+    );
+
+    /// What a recogniser would write for the whole surah, as words.
+    List<String> said(int surah) => [
+      for (final a in quran.ayahsOfSurah(surah)) ...heardWords(a.text),
+    ];
+
+    test('a right recitation is followed to the end', () {
+      final s = session(114);
+      s.hear(said(114), isFinal: true);
+      expect(s.finished, isTrue);
+      expect(s.mistakes, isEmpty);
+      expect(s.recited, s.words.length);
+    });
+
+    test('a recitation that arrives in growing pieces is followed as it goes', () {
+      final s = session(112);
+      final all = said(112);
+      var last = 0;
+      for (var n = 1; n <= all.length; n++) {
+        s.hear(all.sublist(0, n), isFinal: n == all.length);
+        // The last word of a piece may still change, so it waits.
+        expect(s.position, greaterThanOrEqualTo(last));
+        last = s.position;
+        expect(s.pending, isNull);
+      }
+      expect(s.finished, isTrue);
+      expect(s.mistakes, isEmpty);
+    });
+
+    test('a wrong word stops the recitation at that word', () {
+      final s = session(114);
+      final heard = said(114);
+      heard[3] = heardWords('الشيطان').single;
+      s.hear(heard, isFinal: true);
+      expect(s.pending, isNotNull);
+      expect(s.pending!.kind, MistakeKind.wrong);
+      expect(s.pending!.word.norm, said(114)[3]);
+      expect(s.position, 3, reason: 'the words before it are right');
+      expect(s.mistakes, hasLength(1));
+      // Nothing more is taken until the reciter goes on.
+      s.hear(said(114), isFinal: true);
+      expect(s.mistakes, hasLength(1));
+    });
+
+    test('after going on from the stop, the rest is followed', () {
+      final s = session(114);
+      final heard = said(114);
+      final right = heard[3];
+      heard[3] = heardWords('الشيطان').single;
+      s.hear(heard, isFinal: true);
+      s.resume();
+      s.hear(heard.sublist(3).map((w) => w == heardWords('الشيطان').single ? right : w).toList(), isFinal: true);
+      expect(s.pending, isNull);
+      expect(s.finished, isTrue);
+      expect(s.mistakes, hasLength(1));
+    });
+
+    test('a left-out word is a mistake of its own kind', () {
+      final s = session(112);
+      final heard = said(112)..removeAt(4);
+      s.hear(heard, isFinal: true);
+      expect(s.pending!.kind, MistakeKind.skipped);
+      expect(s.pending!.word.norm, said(112)[4]);
+      expect(s.pending!.heard, isEmpty);
+      expect(s.position, 4);
+    });
+
+    test('the last word of a partial result is not judged until it is settled', () {
+      final s = session(114);
+      final all = said(114);
+      // Three words, the third still being formed (a wrong, half word).
+      s.hear([...all.sublist(0, 2), 'خخ'], isFinal: false);
+      expect(s.pending, isNull);
+      expect(s.position, 2);
+      // The same piece as a final result is a mistake.
+      s.hear([...all.sublist(0, 2), 'خخ'], isFinal: true);
+      expect(s.pending, isNotNull);
+      expect(s.pending!.word.norm, all[2]);
+    });
+
+    test('the basmala before a surah is let through, but not in Al-Fatiha', () {
+      final basmala = heardWords(quran.ayahsOfSurah(1).first.text);
+      final nas = session(114);
+      nas.hear([...basmala, ...said(114)], isFinal: true);
+      expect(nas.finished, isTrue);
+      expect(nas.mistakes, isEmpty);
+      // In Al-Fatiha the basmala is the first ayah, so it is expected.
+      final fatiha = session(1);
+      fatiha.hear(said(1), isFinal: true);
+      expect(fatiha.finished, isTrue);
+      expect(fatiha.mistakes, isEmpty);
+    });
+
+    test('a word said twice and an extra word are not mistakes', () {
+      final s = session(112);
+      final heard = said(112);
+      heard.insert(2, heard[1]);
+      s.hear(heard, isFinal: true);
+      expect(s.pending, isNull);
+      expect(s.finished, isTrue);
+    });
+
+    test('words the speech model joins or splits still match', () {
+      final s = session(114);
+      final heard = said(114);
+      // Two words heard as one.
+      final joined = [heard[0] + heard[1], ...heard.sublist(2)];
+      s.hear(joined, isFinal: true);
+      expect(s.pending, isNull);
+      expect(s.finished, isTrue);
+      // One word heard as two.
+      final t = session(114);
+      final w = heard[2];
+      final split = [...heard.sublist(0, 2), w.substring(0, 2), w.substring(2), ...heard.sublist(3)];
+      t.hear(split, isFinal: true);
+      expect(t.pending, isNull);
+      expect(t.finished, isTrue);
+    });
+
+    test('a letter off in a long word is allowed, in a short word it is not', () {
+      expect(wordsMatch('الرحمن', 'الرحمان'), isTrue);
+      expect(wordsMatch('قل', 'كل'), isFalse);
+      expect(wordsMatch('اعوذ', 'اعوز'), isFalse);
+      expect(wordsMatch('وسواس', 'وسواش'), isTrue);
+    });
+
+    test('words that are nothing of the passage stop it', () {
+      final s = session(114);
+      s.hear(heardWords('اللهم صل على محمد'), isFinal: true);
+      expect(s.pending, isNotNull);
+      expect(s.position, 0);
+    });
+
+    test('the log counts a word each time it goes wrong, and survives a restart', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      var now = DateTime(2026, 11, 21);
+      final log = MistakeLog(prefs, clock: () => now);
+      final s = session(114);
+      final heard = said(114);
+      heard[3] = 'خخخ';
+      s.hear(heard, isFinal: true);
+      log.record(s.pending!);
+      now = DateTime(2026, 11, 22);
+      log.record(s.pending!);
+      expect(log.all, hasLength(1));
+      expect(log.all.first.count, 2);
+      expect(log.all.first.last, DateTime(2026, 11, 22));
+      expect(log.surahs, [114]);
+      expect(log.total, 2);
+      final again = MistakeLog(prefs);
+      expect(again.all.single.count, 2);
+      expect(again.all.single.text, s.pending!.word.text);
+      again.forgive(again.all.single);
+      expect(again.all.single.count, 1);
+      again.forgive(again.all.single);
+      expect(again.isEmpty, isTrue);
+    });
+
+    testWidgets('recite a surah on screen: it follows, stops at a mistake, and logs it', (tester) async {
+      tester.view.physicalSize = const Size(900, 3000);
+      tester.view.devicePixelRatio = 1.5;
+      addTearDown(tester.view.reset);
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      await tester.runAsync(QuranSearch.load);
+      final log = MistakeLog(prefs);
+      await tester.pumpWidget(
+        ChangeNotifierProvider.value(
+          value: log,
+          child: const MaterialApp(home: ReciteScreen(surah: 112)),
+        ),
+      );
+      await tester.pump();
+      final ayahs = quran.ayahsOfSurah(112);
+      // The text stays hidden until it is recited.
+      expect(find.byType(Text, skipOffstage: true), findsWidgets);
+      expect(find.textContaining('تجريبي'), findsOneWidget);
+      // The first ayah, right.
+      await tester.enterText(find.byType(TextField), ayahs[0].text);
+      await tester.tap(find.byIcon(Icons.send_rounded));
+      await tester.pump();
+      expect(log.isEmpty, isTrue);
+      expect(find.textContaining('توقفتُ هنا'), findsNothing);
+      // The second ayah, with a word wrong: it stops and says which.
+      final words = ayahs[1].text.split(' ');
+      words[1] = 'خخخخ';
+      await tester.enterText(find.byType(TextField), words.join(' '));
+      await tester.tap(find.byIcon(Icons.send_rounded));
+      await tester.pump();
+      expect(find.text('توقفتُ هنا'), findsOneWidget);
+      expect(find.textContaining('سمعتُ'), findsOneWidget);
+      expect(log.all.single.ayah, 2);
+      expect(log.all.single.number, 2);
+      // Going on from the word, then the rest.
+      await tester.tap(find.text('تابع من هذه الكلمة'));
+      await tester.pump();
+      expect(find.text('توقفتُ هنا'), findsNothing);
+      await tester.enterText(
+        find.byType(TextField),
+        [for (final a in ayahs.skip(1)) a.text].join(' ').split(' ').skip(1).join(' '),
+      );
+      await tester.tap(find.byIcon(Icons.send_rounded));
+      await tester.pump();
+      expect(find.textContaining('أتممتَها بـ 1 من الأخطاء'), findsOneWidget);
+      // The log screen lists the word.
+      await tester.tap(find.text('سجل الأخطاء').last);
+      await tester.pumpAndSettle();
+      expect(find.textContaining('الآية 2، الكلمة 2'), findsOneWidget);
+    });
+
+    test('the typed stand-in gives what is submitted as final results', () async {
+      final source = TypedSpeechSource();
+      final seen = <SpeechResult>[];
+      source.results.listen(seen.add);
+      source.submit('قل اعوذ');
+      await Future<void>.delayed(Duration.zero);
+      expect(seen.single.text, 'قل اعوذ');
+      expect(seen.single.isFinal, isTrue);
+      expect(source.typed, isTrue);
+      source.dispose();
     });
   });
 
