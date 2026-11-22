@@ -36,6 +36,8 @@ import 'package:quranapplication/azkar/azkar_audio.dart';
 import 'package:quranapplication/recite/matcher.dart';
 import 'package:quranapplication/recite/mistake_log.dart';
 import 'package:quranapplication/recite/speech_source.dart';
+import 'package:quranapplication/recite/speech_model.dart';
+import 'package:crypto/crypto.dart' as crypto;
 import 'package:quranapplication/recite/recite_screens.dart';
 import 'package:quranapplication/azkar/azkar_audio_card.dart';
 import 'package:quranapplication/prayerlock/prayer_lock_screen.dart';
@@ -4061,6 +4063,70 @@ void main() {
         names.any((n) => n.contains('ٱلْرَّ') || n.contains('ٱلْشَّ')),
         isFalse,
       );
+    });
+  });
+
+  group('SpeechModel', () {
+    late Directory temp;
+    setUp(() => temp = Directory.systemTemp.createTempSync('speech'));
+    tearDown(() => temp.deleteSync(recursive: true));
+
+    final bodies = {
+      for (final n in speechModelFiles) n: utf8.encode('content of $n'),
+    };
+
+    MockClient server({String? corrupt}) => MockClient.streaming((request, _) async {
+      final name = request.url.pathSegments.last;
+      if (name == 'manifest.json') {
+        final manifest = jsonEncode({
+          'files': {
+            for (final e in bodies.entries)
+              e.key: {'bytes': e.value.length, 'sha256': crypto.sha256.convert(e.value).toString()},
+          },
+        });
+        final bytes = utf8.encode(manifest);
+        return http.StreamedResponse(Stream.value(bytes), 200);
+      }
+      final body = name == corrupt ? utf8.encode('x' * bodies[name]!.length) : bodies[name];
+      if (body == null) return http.StreamedResponse(const Stream.empty(), 404);
+      return http.StreamedResponse(Stream.value(body), 200);
+    });
+
+    SpeechModel model(MockClient client) =>
+        SpeechModel(client: client, folder: Future.value('${temp.path}/model'), baseUrl: 'https://example.test/');
+
+    test('is missing until downloaded, then ready and kept', () async {
+      final m = model(server());
+      await m.load();
+      expect(m.state, SpeechModelState.missing);
+      await m.download();
+      expect(m.error, isNull);
+      expect(m.ready, isTrue);
+      for (final n in speechModelFiles) {
+        expect(File(m.pathOf(n)).readAsBytesSync(), bodies[n]);
+      }
+      final again = model(server());
+      await again.load();
+      expect(again.ready, isTrue);
+    });
+
+    test('a file that fails its check is refused and not kept', () async {
+      final m = model(server(corrupt: 'silero_vad.onnx'));
+      await m.load();
+      await m.download();
+      expect(m.ready, isFalse);
+      expect(m.error, contains('silero_vad.onnx'));
+      expect(File(m.pathOf('silero_vad.onnx')).existsSync(), isFalse);
+      expect(File(m.pathOf('silero_vad.onnx.part')).existsSync(), isFalse);
+    });
+
+    test('delete removes everything', () async {
+      final m = model(server());
+      await m.load();
+      await m.download();
+      await m.delete();
+      expect(m.state, SpeechModelState.missing);
+      expect(Directory('${temp.path}/model').existsSync(), isFalse);
     });
   });
 }

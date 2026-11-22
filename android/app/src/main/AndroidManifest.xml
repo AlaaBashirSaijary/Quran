@@ -2,6 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools">
     <!-- Streaming recitations (everything else works offline). -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <!-- Approximate location is enough to calculate prayer times. -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <!-- Prayer, azkar and wird reminders: re-scheduled after a reboot, and

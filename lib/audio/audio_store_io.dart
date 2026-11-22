@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart';
 import 'package:path_provider/path_provider.dart';
 
 Future<String?> audioFolder() async {
@@ -72,4 +73,30 @@ Future<int> fileCount(String path) async {
     if (entity is File && !entity.path.endsWith('.part')) n++;
   }
   return n;
+}
+
+/// Adds [bytes] to the end of the file at [path], creating it when needed.
+Future<void> appendFile(String path, List<int> bytes) async {
+  final file = File(path);
+  await file.parent.create(recursive: true);
+  await file.writeAsBytes(bytes, mode: FileMode.append, flush: true);
+}
+
+/// Renames [from] to [to], replacing a file that is already there.
+Future<void> renameFile(String from, String to) async {
+  final target = File(to);
+  if (await target.exists()) await target.delete();
+  await File(from).rename(to);
+}
+
+Future<int> fileLength(String path) async {
+  final file = File(path);
+  return await file.exists() ? file.length() : 0;
+}
+
+/// The SHA-256 of the file at [path] as hex, read in pieces.
+Future<String?> fileSha256(String path) async {
+  final file = File(path);
+  if (!await file.exists()) return null;
+  return (await sha256.bind(file.openRead()).first).toString();
 }
