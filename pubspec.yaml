@@ -59,6 +59,9 @@ dependencies:
   home_widget: ^0.10.0
   path_provider: ^2.1.6
   url_launcher: ^6.3.3
+  sherpa_onnx: ^2.0.3
+  record: ^7.2.0
+  crypto: ^3.0.8
 dev_dependencies:
   flutter_test:
     sdk: flutter

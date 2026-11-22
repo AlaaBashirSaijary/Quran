@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -6,6 +8,8 @@ import '../quran/quran.dart';
 import '../quran/search.dart';
 import '../widgets/surah_number.dart';
 import 'matcher.dart';
+import 'sherpa_source.dart';
+import 'speech_model.dart';
 import 'mistake_log.dart';
 import 'speech_source.dart';
 
@@ -28,9 +32,9 @@ class ReciteSetupScreen extends StatelessWidget {
               tr(
                 'اختر سورة وتلُها من حفظك. يتتبع التطبيق كلماتك ويقف عند أول خطأ ويخبرك به، '
                     'وتُجمع أخطاؤك في سجل لتراجعها.\n\n'
-                    'ميزة تجريبية: الآن تكتب الكلمات التي «تتلوها» لتجرّب الشاشة، '
-                    'وسيُضاف التعرف على الصوت بلا إنترنت لاحقاً.',
-                'Choose a surah and recite it from memory. The app follows your words, stops at the first mistake and tells you, and your mistakes are kept in a log to review.\n\nExperimental: for now you type the words you "recite" to try the screen; offline voice recognition will be added later.',
+                    'ميزة تجريبية: نزّل نموذج الصوت مرة واحدة (نحو 108 م.ب) فيعمل التسميع بعدها بلا إنترنت. '
+                    'من غير النموذج تكتب الكلمات التي «تتلوها» لتجرّب الشاشة.',
+                'Choose a surah and recite it from memory. The app follows your words, stops at the first mistake and tells you, and your mistakes are kept in a log to review.\n\nExperimental: download the voice model once (about 108 MB) and the check then works with no internet. Without it you type the words you "recite" to try the screen.',
               ),
               style: const TextStyle(height: 1.7),
             ),
@@ -52,6 +56,7 @@ class ReciteSetupScreen extends StatelessWidget {
               ),
             ),
           ),
+          if (sherpaSupported) const _ModelCard(),
           const SizedBox(height: 8),
           for (var surah = 1; surah <= 114; surah++)
             ListTile(
@@ -60,10 +65,71 @@ class ReciteSetupScreen extends StatelessWidget {
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ReciteScreen(surah: surah),
+                  builder: (context) => ReciteScreen(
+                    surah: surah,
+                    source: createSherpaSource(
+                      Provider.of<SpeechModel>(context, listen: false),
+                    ),
+                  ),
                 ),
               ),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Download, state and removal of the offline voice model.
+class _ModelCard extends StatelessWidget {
+  const _ModelCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final model = Provider.of<SpeechModel>(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    final Widget trailing;
+    final String subtitle;
+    switch (model.state) {
+      case SpeechModelState.ready:
+        subtitle = tr('جاهز، يعمل بلا إنترنت', 'Ready, works offline');
+        trailing = IconButton(
+          tooltip: tr('حذف النموذج', 'Delete the model'),
+          icon: const Icon(Icons.delete_outline_rounded),
+          onPressed: model.delete,
+        );
+      case SpeechModelState.downloading:
+        subtitle = tr(
+          'جارٍ التنزيل ${(model.progress * 100).round()}٪ — أبقِ الشاشة مفتوحة',
+          'Downloading ${(model.progress * 100).round()}% — keep the screen open',
+        );
+        trailing = IconButton(
+          tooltip: tr('إلغاء', 'Cancel'),
+          icon: const Icon(Icons.close_rounded),
+          onPressed: model.cancel,
+        );
+      case SpeechModelState.missing:
+      case SpeechModelState.unsupported:
+        subtitle = model.error == null
+            ? tr('نموذج الصوت (نحو 108 م.ب) — يُنزَّل مرة واحدة', 'Voice model (about 108 MB), downloaded once')
+            : tr('تعذّر التنزيل، حاول ثانية', 'The download failed, try again');
+        trailing = FilledButton(
+          onPressed: model.state == SpeechModelState.unsupported ? null : model.download,
+          child: Text(tr('نزّل', 'Download')),
+        );
+    }
+    return Card(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      child: Column(
+        children: [
+          ListTile(
+            leading: Icon(Icons.mic_rounded, color: colorScheme.gold),
+            title: Text(tr('التعرف على الصوت', 'Voice recognition')),
+            subtitle: Text(subtitle),
+            trailing: trailing,
+          ),
+          if (model.state == SpeechModelState.downloading)
+            LinearProgressIndicator(value: model.progress),
         ],
       ),
     );
@@ -93,9 +159,61 @@ class _ReciteScreenState extends State<ReciteScreen> {
   List<Ayah> _ayahs = const [];
   int _logged = 0;
   bool _reveal = false;
+  bool _listening = false;
+  String _heard = '';
+  String? _problem;
+  StreamSubscription<SpeechResult>? _sub;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!_source.typed) {
+      _sub = _source.results.listen(_onResult, onError: (Object e) {
+        if (mounted) setState(() => _problem = '$e');
+      });
+    }
+  }
+
+  void _onResult(SpeechResult r) {
+    final session = _session;
+    // Nothing is judged while it is stopped: a late result from before the
+    // stop would be counted twice.
+    if (session == null || !_listening || session.pending != null) return;
+    _heard = r.text;
+    session.hear(heardWords(r.text), isFinal: r.isFinal);
+    _logMistakes();
+    if (session.pending != null || session.finished) {
+      _listening = false;
+      unawaited(_source.stop());
+    }
+    if (mounted) setState(() {});
+  }
+
+  void _logMistakes() {
+    final session = _session!;
+    final log = Provider.of<MistakeLog>(context, listen: false);
+    for (; _logged < session.mistakes.length; _logged++) {
+      log.record(session.mistakes[_logged]);
+    }
+  }
+
+  Future<void> _toggleMic() async {
+    if (_listening) {
+      _listening = false;
+      setState(() {});
+      await _source.stop();
+    } else {
+      _problem = null;
+      _heard = '';
+      _listening = true;
+      setState(() {});
+      await _source.start();
+    }
+  }
 
   @override
   void dispose() {
+    _sub?.cancel();
     _source.dispose();
     _box.dispose();
     super.dispose();
@@ -117,10 +235,7 @@ class _ReciteScreenState extends State<ReciteScreen> {
     if (session == null || _box.text.trim().isEmpty) return;
     session.hear(heardWords(_box.text), isFinal: true);
     _box.clear();
-    final log = Provider.of<MistakeLog>(context, listen: false);
-    for (; _logged < session.mistakes.length; _logged++) {
-      log.record(session.mistakes[_logged]);
-    }
+    _logMistakes();
     setState(() {});
   }
 
@@ -176,11 +291,45 @@ class _ReciteScreenState extends State<ReciteScreen> {
                   padding: const EdgeInsets.all(16),
                   children: [
                     for (final a in _ayahs) _ayah(a, session, colorScheme),
-                    if (session.pending != null) _MistakeCard(session: session, onResume: () => setState(session.resume)),
+                    if (session.pending != null) _MistakeCard(session: session, onResume: () {
+                      setState(session.resume);
+                      if (!_source.typed) _toggleMic();
+                    }),
                     if (session.finished) _Summary(session: session, onAgain: () => setState(() => _begin(quran))),
                   ],
                 ),
               ),
+              if (!_source.typed && !session.finished)
+                SafeArea(
+                  top: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (_problem != null)
+                          Text(_problem!, style: const TextStyle(color: Colors.red)),
+                        if (_listening && _heard.isNotEmpty)
+                          Text(
+                            _heard,
+                            textDirection: TextDirection.rtl,
+                            style: TextStyle(color: colorScheme.pageNumber),
+                          ),
+                        const SizedBox(height: 6),
+                        if (session.pending == null)
+                          FilledButton.icon(
+                            onPressed: _toggleMic,
+                            icon: Icon(_listening ? Icons.stop_rounded : Icons.mic_rounded),
+                            label: Text(
+                              _listening
+                                  ? tr('أوقف الاستماع', 'Stop listening')
+                                  : tr('ابدأ التسميع', 'Start reciting'),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
               if (_source.typed && !session.finished)
                 SafeArea(
                   top: false,

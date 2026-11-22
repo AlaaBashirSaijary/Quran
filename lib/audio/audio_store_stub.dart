@@ -23,3 +23,11 @@ Future<String?> readText(String path) async => null;
 Future<Uint8List?> readBytes(String path) async => null;
 
 Future<int> fileCount(String path) async => 0;
+
+Future<void> appendFile(String path, List<int> bytes) async {}
+
+Future<void> renameFile(String from, String to) async {}
+
+Future<int> fileLength(String path) async => 0;
+
+Future<String?> fileSha256(String path) async => null;
