@@ -42,3 +42,7 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Speech model, fetched by the build from the speech-model release
+/assets/speech_model/*
+!/assets/speech_model/.gitkeep
