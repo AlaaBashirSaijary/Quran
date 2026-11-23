@@ -6,6 +6,7 @@ import '../harvest/harvest_screen.dart';
 import '../hifz/hifz.dart';
 import '../kids/kids_screen.dart';
 import '../providers/reading_provider.dart';
+import '../recite/recite_screens.dart';
 import 'hifz_screen.dart';
 import 'wird_screen.dart';
 
@@ -124,6 +125,12 @@ class _QuickTiles extends StatelessWidget {
           label: tr('الحفظ', 'Memorize'),
           badge: hifz.due.length,
           onTap: () => _open(context, const HifzScreen()),
+        ),
+        const SizedBox(width: 8),
+        _Tile(
+          icon: Icons.mic_rounded,
+          label: tr('التسميع', 'Recite'),
+          onTap: () => _open(context, const ReciteSetupScreen()),
         ),
         const SizedBox(width: 8),
         _Tile(

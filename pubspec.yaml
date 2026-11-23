@@ -106,6 +106,7 @@ flutter:
     - assets/content/
     - assets/library/
     - assets/azkar_audio/
+    - assets/speech_model/
     - assets/splash.png
     - assets/
 

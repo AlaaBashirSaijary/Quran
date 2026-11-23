@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 
 import '../audio/audio_store.dart';
@@ -18,7 +19,20 @@ const speechModelFiles = [
   'silero_vad.onnx',
 ];
 
-enum SpeechModelState { unsupported, missing, downloading, ready }
+enum SpeechModelState { unsupported, missing, downloading, preparing, ready }
+
+/// Where the full builds carry the model inside the app. The light builds
+/// leave it out and download it instead.
+const speechModelAssetDir = 'assets/speech_model/';
+
+Future<Uint8List?> _bundledFile(String name) async {
+  try {
+    final data = await rootBundle.load('$speechModelAssetDir$name');
+    return data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+  } catch (_) {
+    return null;
+  }
+}
 
 /// The offline speech model on the phone: downloads it once (about 108 MB),
 /// checks every file against the sizes and hashes in the release's
@@ -28,12 +42,18 @@ class SpeechModel extends ChangeNotifier {
     http.Client? client,
     Future<String?>? folder,
     this.baseUrl = speechModelBase,
-  }) : _client = client ?? http.Client(),
+    Future<Uint8List?> Function(String name)? bundled,
+  }) : _bundled = bundled ?? _bundledFile,
+       _client = client ?? http.Client(),
        _folderFuture = folder ?? dataFolder('speech_model');
 
   final http.Client _client;
   final Future<String?> _folderFuture;
   final String baseUrl;
+  final Future<Uint8List?> Function(String name) _bundled;
+
+  /// Whether the app carries the model inside it (no download needed).
+  bool bundledModel = false;
 
   String? _folder;
   var state = SpeechModelState.missing;
@@ -48,8 +68,42 @@ class SpeechModel extends ChangeNotifier {
     _folder = await _folderFuture;
     if (_folder == null) {
       state = SpeechModelState.unsupported;
-    } else if (state != SpeechModelState.downloading) {
-      state = await _complete() ? SpeechModelState.ready : SpeechModelState.missing;
+    } else if (state != SpeechModelState.downloading && state != SpeechModelState.preparing) {
+      bundledModel = await _bundled(speechModelFiles[2]) != null;
+      if (await _complete()) {
+        state = SpeechModelState.ready;
+      } else if (bundledModel) {
+        await _prepare();
+        return;
+      } else {
+        state = SpeechModelState.missing;
+      }
+    }
+    notifyListeners();
+  }
+
+  /// Copies the model that came with the app to the phone's storage, where
+  /// the recogniser can open it as files. Done once.
+  Future<void> _prepare() async {
+    state = SpeechModelState.preparing;
+    progress = 0;
+    error = null;
+    notifyListeners();
+    try {
+      await deleteFile('$_folder/ok');
+      for (var i = 0; i < speechModelFiles.length; i++) {
+        final name = speechModelFiles[i];
+        final bytes = await _bundled(name);
+        if (bytes == null) throw 'missing $name in the app';
+        await writeFile('$_folder/$name', bytes);
+        progress = (i + 1) / speechModelFiles.length;
+        notifyListeners();
+      }
+      await writeFile('$_folder/ok', Uint8List.fromList(utf8.encode('ok')));
+      state = SpeechModelState.ready;
+    } catch (e) {
+      error = '$e';
+      state = SpeechModelState.missing;
     }
     notifyListeners();
   }

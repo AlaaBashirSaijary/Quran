@@ -32,9 +32,9 @@ class ReciteSetupScreen extends StatelessWidget {
               tr(
                 'اختر سورة وتلُها من حفظك. يتتبع التطبيق كلماتك ويقف عند أول خطأ ويخبرك به، '
                     'وتُجمع أخطاؤك في سجل لتراجعها.\n\n'
-                    'ميزة تجريبية: نزّل نموذج الصوت مرة واحدة (نحو 108 م.ب) فيعمل التسميع بعدها بلا إنترنت. '
-                    'من غير النموذج تكتب الكلمات التي «تتلوها» لتجرّب الشاشة.',
-                'Choose a surah and recite it from memory. The app follows your words, stops at the first mistake and tells you, and your mistakes are kept in a log to review.\n\nExperimental: download the voice model once (about 108 MB) and the check then works with no internet. Without it you type the words you "recite" to try the screen.',
+                    'ميزة تجريبية: اختر سورة واضغط «ابدأ التسميع» ثم تلُها بصوتك؛ تعمل بلا إنترنت. '
+                    'في النسخة الخفيفة يُنزَّل نموذج الصوت مرة واحدة (نحو 108 م.ب).',
+                'Choose a surah and recite it from memory. The app follows your words, stops at the first mistake and tells you, and your mistakes are kept in a log to review.\n\nExperimental: pick a surah, press "Start reciting" and recite aloud; it works with no internet. The light build downloads the voice model once (about 108 MB).',
               ),
               style: const TextStyle(height: 1.7),
             ),
@@ -88,6 +88,8 @@ class _ModelCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final model = Provider.of<SpeechModel>(context);
     final colorScheme = Theme.of(context).colorScheme;
+    // A build that carries the model needs nothing from the user.
+    if (model.bundledModel && model.ready) return const SizedBox.shrink();
     final Widget trailing;
     final String subtitle;
     switch (model.state) {
@@ -108,11 +110,14 @@ class _ModelCard extends StatelessWidget {
           icon: const Icon(Icons.close_rounded),
           onPressed: model.cancel,
         );
+      case SpeechModelState.preparing:
+        subtitle = tr('جارٍ تجهيز نموذج الصوت (مرة واحدة)…', 'Getting the voice model ready (once)…');
+        trailing = const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2));
       case SpeechModelState.missing:
       case SpeechModelState.unsupported:
         subtitle = model.error == null
             ? tr('نموذج الصوت (نحو 108 م.ب) — يُنزَّل مرة واحدة', 'Voice model (about 108 MB), downloaded once')
-            : tr('تعذّر التنزيل، حاول ثانية', 'The download failed, try again');
+            : tr('تعذّر ذلك: ${model.error}', 'It failed: ${model.error}');
         trailing = FilledButton(
           onPressed: model.state == SpeechModelState.unsupported ? null : model.download,
           child: Text(tr('نزّل', 'Download')),
@@ -128,7 +133,7 @@ class _ModelCard extends StatelessWidget {
             subtitle: Text(subtitle),
             trailing: trailing,
           ),
-          if (model.state == SpeechModelState.downloading)
+          if (model.state == SpeechModelState.downloading || model.state == SpeechModelState.preparing)
             LinearProgressIndicator(value: model.progress),
         ],
       ),

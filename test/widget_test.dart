@@ -4120,6 +4120,20 @@ void main() {
       expect(File(m.pathOf('silero_vad.onnx.part')).existsSync(), isFalse);
     });
 
+    test('a model that came with the app is copied once and needs no network', () async {
+      final m = SpeechModel(
+        client: MockClient((_) async => throw Exception('no network')),
+        folder: Future.value('${temp.path}/model'),
+        bundled: (name) async => Uint8List.fromList(bodies[name]!),
+      );
+      await m.load();
+      expect(m.bundledModel, isTrue);
+      expect(m.ready, isTrue);
+      for (final n in speechModelFiles) {
+        expect(File(m.pathOf(n)).readAsBytesSync(), bodies[n]);
+      }
+    });
+
     test('delete removes everything', () async {
       final m = model(server());
       await m.load();
