@@ -7,6 +7,7 @@ import '../hifz/hifz.dart';
 import '../kids/kids_screen.dart';
 import '../providers/reading_provider.dart';
 import '../recite/recite_screens.dart';
+import '../recorder/recordings_screen.dart';
 import 'hifz_screen.dart';
 import 'wird_screen.dart';
 
@@ -131,6 +132,12 @@ class _QuickTiles extends StatelessWidget {
           icon: Icons.mic_rounded,
           label: tr('التسميع', 'Recite'),
           onTap: () => _open(context, const ReciteSetupScreen()),
+        ),
+        const SizedBox(width: 8),
+        _Tile(
+          icon: Icons.keyboard_voice_rounded,
+          label: tr('تسجيلاتي', 'Recordings'),
+          onTap: () => _open(context, const RecordingsScreen()),
         ),
         const SizedBox(width: 8),
         _Tile(

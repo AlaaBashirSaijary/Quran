@@ -37,6 +37,7 @@ import 'package:quranapplication/recite/matcher.dart';
 import 'package:quranapplication/recite/mistake_log.dart';
 import 'package:quranapplication/recite/speech_source.dart';
 import 'package:quranapplication/recite/speech_model.dart';
+import 'package:quranapplication/recorder/recordings.dart';
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:quranapplication/recite/recite_screens.dart';
 import 'package:quranapplication/azkar/azkar_audio_card.dart';
@@ -4143,4 +4144,99 @@ void main() {
       expect(Directory('${temp.path}/model').existsSync(), isFalse);
     });
   });
+
+  group('Recordings', () {
+    late Directory temp;
+    setUp(() => temp = Directory.systemTemp.createTempSync('rec'));
+    tearDown(() => temp.deleteSync(recursive: true));
+
+    var now = DateTime(2026, 11, 27, 10, 5);
+
+    Future<({Recordings r, _FakeRecorder mic, List<String> shared})> make({
+      bool allowed = true,
+      Map<String, Object> prefs = const {},
+    }) async {
+      SharedPreferences.setMockInitialValues(prefs);
+      final mic = _FakeRecorder(allowed);
+      final shared = <String>[];
+      final r = Recordings(
+        await SharedPreferences.getInstance(),
+        folder: Future.value('${temp.path}/rec'),
+        recorder: mic,
+        sharer: (bytes, name, title) async => shared.add('$name:${bytes.length}'),
+        clock: () => now,
+      );
+      await r.load();
+      return (r: r, mic: mic, shared: shared);
+    }
+
+    test('records, keeps the recording and survives a restart', () async {
+      final t = await make();
+      expect(await t.r.start(), isTrue);
+      now = now.add(const Duration(seconds: 12));
+      final rec = await t.r.stop();
+      expect(rec, isNotNull);
+      expect(rec!.length.inSeconds, 12);
+      expect(t.r.items.length, 1);
+      expect(File('${temp.path}/rec/${rec.file}').existsSync(), isTrue);
+      final again = Recordings(
+        t.r.prefs,
+        folder: Future.value('${temp.path}/rec'),
+        recorder: _FakeRecorder(true),
+      );
+      await again.load();
+      expect(again.items.single.file, rec.file);
+    });
+
+    test('a slip of the finger is not kept', () async {
+      final t = await make();
+      await t.r.start();
+      now = now.add(const Duration(milliseconds: 200));
+      expect(await t.r.stop(), isNull);
+      expect(t.r.items, isEmpty);
+      expect(Directory('${temp.path}/rec').listSync(), isEmpty);
+    });
+
+    test('without the microphone permission nothing starts', () async {
+      final t = await make(allowed: false);
+      expect(await t.r.start(), isFalse);
+      expect(t.r.recording, isFalse);
+      expect(t.r.error, isNotNull);
+    });
+
+    test('rename, share and delete', () async {
+      final t = await make();
+      await t.r.start();
+      now = now.add(const Duration(seconds: 3));
+      final rec = (await t.r.stop())!;
+      await t.r.rename(rec, 'سورة الناس: تجربة');
+      expect(t.r.items.single.title, 'سورة الناس: تجربة');
+      expect(await t.r.share(t.r.items.single), isTrue);
+      // The name is made safe for a file.
+      expect(t.shared.single, 'سورة الناس- تجربة.m4a:${_FakeRecorder.bytes.length}');
+      await t.r.delete(t.r.items.single);
+      expect(t.r.items, isEmpty);
+      expect(File('${temp.path}/rec/${rec.file}').existsSync(), isFalse);
+    });
+  });
+}
+
+class _FakeRecorder implements VoiceRecorder {
+  _FakeRecorder(this.allowed);
+
+  static final bytes = List<int>.filled(2048, 7);
+  final bool allowed;
+  String? _path;
+
+  @override
+  Future<bool> hasPermission() async => allowed;
+
+  @override
+  Future<void> start(String path) async => _path = path;
+
+  @override
+  Future<void> stop() async => File(_path!).writeAsBytesSync(bytes);
+
+  @override
+  void dispose() {}
 }
