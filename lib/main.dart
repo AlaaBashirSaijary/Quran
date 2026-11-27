@@ -16,6 +16,7 @@ import 'hifz/plan.dart';
 import 'tajweed/lessons.dart';
 import 'prayerlock/prayer_lock.dart';
 import 'recite/mistake_log.dart';
+import 'recorder/recordings.dart';
 import 'recite/speech_model.dart';
 import 'azkar/azkar_audio.dart';
 import 'kids/garden.dart';
@@ -135,6 +136,9 @@ class _AppRootState extends State<AppRoot> {
           ),
           ChangeNotifierProvider<MistakeLog>(
             create: (context) => MistakeLog(prefs),
+          ),
+          ChangeNotifierProvider<Recordings>(
+            create: (context) => Recordings(prefs)..load(),
           ),
           ChangeNotifierProvider<SpeechModel>(
             create: (context) => SpeechModel()..load(),
