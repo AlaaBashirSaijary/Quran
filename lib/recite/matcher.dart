@@ -212,6 +212,11 @@ class ReciteSession {
   int _base = 0;
   static const _lookAhead = 8;
 
+  /// A mistake seen in a partial result, waiting to be seen again in the
+  /// next one before it counts: a guess made from half a phrase is often
+  /// wrong, and a false stop is worse than a slow one.
+  String? _candidate;
+
   bool get finished => position >= words.length;
 
   /// How many words were recited right.
@@ -235,6 +240,16 @@ class ReciteSession {
     final firstBad = a.steps.indexWhere((s) => s.op == _Op.wrong || s.op == _Op.skipped);
     if (firstBad >= 0) {
       final bad = a.steps[firstBad];
+      if (!isFinal) {
+        final key = '${bad.op}:${bad.expected}:${bad.heard >= 0 ? tokens[bad.heard] : ''}';
+        if (key != _candidate) {
+          // Seen for the first time: move up to it, but do not stop yet.
+          _candidate = key;
+          position = _base + bad.expected;
+          return;
+        }
+      }
+      _candidate = null;
       position = _base + bad.expected;
       final wrongOne = bad.op == _Op.wrong;
       pending = ReciteMistake(
@@ -250,6 +265,7 @@ class ReciteSession {
       }
       return;
     }
+    _candidate = null;
     if (a.reached == 0 && isFinal && tokens.length >= 2) {
       // Words that fit nothing of the passage.
       pending = ReciteMistake(word: words[_base], heard: tokens.first, kind: MistakeKind.wrong);
@@ -260,9 +276,25 @@ class ReciteSession {
     if (isFinal) _base = position;
   }
 
+  /// How far the words heard so far reach, counting the last, unsettled one
+  /// too, without judging anything or changing the session. For showing
+  /// progress at once while the real decision waits.
+  int preview(List<String> heard) {
+    if (pending != null || finished || heard.isEmpty) return position;
+    var tokens = heard;
+    if (_base == 0 && basmala.isNotEmpty) tokens = _withoutBasmala(tokens);
+    if (tokens.isEmpty) return position;
+    final end = (_base + tokens.length + _lookAhead).clamp(0, words.length);
+    final a = _align(tokens, words.sublist(_base, end));
+    final firstBad = a.steps.indexWhere((s) => s.op == _Op.wrong || s.op == _Op.skipped);
+    final reach = _base + (firstBad >= 0 ? a.steps[firstBad].expected : a.reached);
+    return reach > position ? reach : position;
+  }
+
   /// The reciter goes on from the word where it stopped.
   void resume() {
     pending = null;
+    _candidate = null;
     _base = position;
   }
 

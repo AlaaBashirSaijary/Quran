@@ -167,7 +167,10 @@ class _ReciteScreenState extends State<ReciteScreen> {
   bool _listening = false;
   String _heard = '';
   String? _problem;
+  String _note = '';
+  int _tentative = 0;
   StreamSubscription<SpeechResult>? _sub;
+  StreamSubscription<String>? _notes;
 
   @override
   void initState() {
@@ -175,6 +178,9 @@ class _ReciteScreenState extends State<ReciteScreen> {
     if (!_source.typed) {
       _sub = _source.results.listen(_onResult, onError: (Object e) {
         if (mounted) setState(() => _problem = '$e');
+      });
+      _notes = _source.notes.listen((n) {
+        if (mounted && _listening) setState(() => _note = n);
       });
     }
   }
@@ -185,7 +191,10 @@ class _ReciteScreenState extends State<ReciteScreen> {
     // stop would be counted twice.
     if (session == null || !_listening || session.pending != null) return;
     _heard = r.text;
-    session.hear(heardWords(r.text), isFinal: r.isFinal);
+    final heard = heardWords(r.text);
+    session.hear(heard, isFinal: r.isFinal);
+    // Words heard but not yet settled show at once in a lighter colour.
+    _tentative = r.isFinal ? session.position : session.preview(heard);
     _logMistakes();
     if (session.pending != null || session.finished) {
       _listening = false;
@@ -210,6 +219,8 @@ class _ReciteScreenState extends State<ReciteScreen> {
     } else {
       _problem = null;
       _heard = '';
+      _note = '';
+      _tentative = 0;
       _listening = true;
       setState(() {});
       await _source.start();
@@ -219,6 +230,7 @@ class _ReciteScreenState extends State<ReciteScreen> {
   @override
   void dispose() {
     _sub?.cancel();
+    _notes?.cancel();
     _source.dispose();
     _box.dispose();
     super.dispose();
@@ -320,6 +332,11 @@ class _ReciteScreenState extends State<ReciteScreen> {
                             textDirection: TextDirection.rtl,
                             style: TextStyle(color: colorScheme.pageNumber),
                           ),
+                        if (_listening && _note.isNotEmpty)
+                          Text(
+                            _note,
+                            style: TextStyle(fontSize: 11, color: colorScheme.pageNumber.withValues(alpha: 0.7)),
+                          ),
                         const SizedBox(height: 6),
                         if (session.pending == null)
                           FilledButton.icon(
@@ -381,6 +398,8 @@ class _ReciteScreenState extends State<ReciteScreen> {
         style = TextStyle(color: colorScheme.primary);
       } else if (i == session.position && session.pending != null) {
         style = const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, decoration: TextDecoration.underline);
+      } else if (i < _tentative && session.pending == null) {
+        style = TextStyle(color: colorScheme.primary.withValues(alpha: 0.55));
       } else if (_reveal) {
         style = TextStyle(color: colorScheme.pageNumber);
       } else {

@@ -2609,6 +2609,39 @@ void main() {
       expect(s.pending!.word.norm, all[2]);
     });
 
+    test('a mistake in a partial result counts only when the next one repeats it', () {
+      final s = session(114);
+      final all = said(114);
+      // A wrong word in the middle of a longer partial result.
+      final wrong = [...all.sublist(0, 2), 'خخخخ', ...all.sublist(3, 5)];
+      s.hear(wrong, isFinal: false);
+      expect(s.pending, isNull, reason: 'seen once, not yet a stop');
+      expect(s.position, 2);
+      s.hear(wrong, isFinal: false);
+      expect(s.pending, isNotNull);
+      expect(s.pending!.word.norm, all[2]);
+      expect(s.mistakes.length, 1);
+    });
+
+    test('a guess that was wrong once and then right never stops', () {
+      final s = session(114);
+      final all = said(114);
+      s.hear([...all.sublist(0, 2), 'خخخخ', ...all.sublist(3, 5)], isFinal: false);
+      s.hear(all.sublist(0, 6), isFinal: false);
+      expect(s.pending, isNull);
+      expect(s.mistakes, isEmpty);
+    });
+
+    test('preview shows how far the heard words reach, changing nothing', () {
+      final s = session(114);
+      final all = said(114);
+      expect(s.preview(all.sublist(0, 3)), 3, reason: 'the unsettled last word counts');
+      expect(s.position, 0);
+      expect(s.pending, isNull);
+      expect(s.preview([...all.sublist(0, 2), 'خخخخ', all[3]]), 2, reason: 'stops at the wrong word');
+      expect(s.mistakes, isEmpty);
+    });
+
     test('the basmala before a surah is let through, but not in Al-Fatiha', () {
       final basmala = heardWords(quran.ayahsOfSurah(1).first.text);
       final nas = session(114);

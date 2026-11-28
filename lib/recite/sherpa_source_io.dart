@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:record/record.dart';
 import 'package:sherpa_onnx/sherpa_onnx.dart' as sherpa;
@@ -33,6 +34,7 @@ class SherpaSpeechSource implements SpeechSource {
 
   final SpeechModel _model;
   final _controller = StreamController<SpeechResult>.broadcast();
+  final _notes = StreamController<String>.broadcast();
   final _recorder = AudioRecorder();
 
   Isolate? _isolate;
@@ -47,6 +49,9 @@ class SherpaSpeechSource implements SpeechSource {
   @override
   Stream<SpeechResult> get results => _controller.stream;
 
+  @override
+  Stream<String> get notes => _notes.stream;
+
   Future<void> _spawn() async {
     if (_worker != null) return;
     if (_ready != null) return _ready!.future;
@@ -59,6 +64,8 @@ class SherpaSpeechSource implements SpeechSource {
         if (!ready.isCompleted) ready.complete();
       } else if (message is List && message.first == 'text') {
         _controller.add(SpeechResult(message[1] as String, isFinal: message[2] as bool));
+      } else if (message is List && message.first == 'note') {
+        _notes.add(message[1] as String);
       } else if (message is List && message.first == 'error') {
         final error = message[1] as String;
         if (!ready.isCompleted) ready.completeError(error);
@@ -102,6 +109,8 @@ class SherpaSpeechSource implements SpeechSource {
           encoder: AudioEncoder.pcm16bits,
           sampleRate: _rate,
           numChannels: 1,
+          // Quiet voices (a child, a phone held far off) are lifted.
+          autoGain: true,
         ),
       );
       _mic = stream.listen((bytes) {
@@ -129,6 +138,7 @@ class SherpaSpeechSource implements SpeechSource {
     _worker?.send('exit');
     Future.delayed(const Duration(seconds: 2), _kill);
     _controller.close();
+    _notes.close();
   }
 }
 
@@ -151,7 +161,7 @@ void _work(List<Object> args) {
             task: 'transcribe',
           ),
           tokens: paths.tokens,
-          numThreads: 2,
+          numThreads: math.max(2, math.min(4, Platform.numberOfProcessors ~/ 2)),
           debug: false,
         ),
       ),
@@ -160,8 +170,9 @@ void _work(List<Object> args) {
       config: sherpa.VadModelConfig(
         sileroVad: sherpa.SileroVadModelConfig(
           model: paths.vad,
-          minSilenceDuration: 0.6,
-          minSpeechDuration: 0.2,
+          threshold: 0.4,
+          minSilenceDuration: 0.45,
+          minSpeechDuration: 0.15,
           maxSpeechDuration: 20,
         ),
         sampleRate: _rate,
@@ -175,7 +186,24 @@ void _work(List<Object> args) {
     return;
   }
 
+  // How long the last recognition took, in seconds, to space the guesses
+  // out so they never pile up behind a slow phone.
+  var lastDecode = 1.0;
+
   String decode(Float32List samples) {
+    final started = DateTime.now();
+    // Lift a quiet recording to a steady level (up to 10 times).
+    var peak = 0.0;
+    for (final v in samples) {
+      final a = v.abs();
+      if (a > peak) peak = a;
+    }
+    if (peak > 0.01 && peak < 0.9) {
+      final gain = math.min(10.0, 0.9 / peak);
+      for (var i = 0; i < samples.length; i++) {
+        samples[i] *= gain;
+      }
+    }
     final stream = recognizer!.createStream();
     try {
       // Whisper stops a phrase at a token budget per second; the default is
@@ -186,6 +214,8 @@ void _work(List<Object> args) {
       return recognizer.getResult(stream).text.trim();
     } finally {
       stream.free();
+      lastDecode = DateTime.now().difference(started).inMilliseconds / 1000;
+      out.send(['note', 'تحليل ${lastDecode.toStringAsFixed(1)} ث لمقطع ${(samples.length / _rate).toStringAsFixed(1)} ث']);
     }
   }
 
@@ -211,7 +241,7 @@ void _work(List<Object> args) {
     if (v.isDetected()) {
       phrase.addAll(samples);
       sinceGuess += samples.length;
-      if (sinceGuess >= _partialEvery * _rate && phrase.length < 25 * _rate) {
+      if (sinceGuess >= math.max(_partialEvery, lastDecode * 1.2) * _rate && phrase.length < 25 * _rate) {
         sinceGuess = 0;
         out.send(['text', decode(Float32List.fromList(phrase)), false]);
       }
