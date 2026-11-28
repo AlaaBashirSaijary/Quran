@@ -17,6 +17,10 @@ abstract class SpeechSource {
 
   Stream<SpeechResult> get results;
 
+  /// Short notes on how it is doing (for example how long the last
+  /// recognition took), shown small on the screen.
+  Stream<String> get notes;
+
   /// Starts listening.
   Future<void> start();
 
@@ -39,6 +43,9 @@ class TypedSpeechSource implements SpeechSource {
 
   /// Gives a typed text as if it was heard: a final result.
   void submit(String text) => _controller.add(SpeechResult(text, isFinal: true));
+
+  @override
+  Stream<String> get notes => const Stream.empty();
 
   @override
   Future<void> start() async {}
